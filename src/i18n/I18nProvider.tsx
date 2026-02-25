@@ -69,6 +69,10 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     'settings.language.label': 'App Language',
     'settings.language.en': 'English',
     'settings.language.es': 'Español',
+    'settings.section.theme': 'THEME',
+    'settings.theme.label': 'Atmosphere',
+    'settings.theme.midnight': 'Midnight Reverence',
+    'settings.theme.dawn': 'Dawn Mercy',
 
     'care.home.title': 'How can we walk with you?',
     'care.home.prayer.label': 'PRAYER REQUEST',
@@ -277,6 +281,10 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     'settings.language.label': 'Idioma de la app',
     'settings.language.en': 'Inglés',
     'settings.language.es': 'Español',
+    'settings.section.theme': 'TEMA',
+    'settings.theme.label': 'Atmósfera',
+    'settings.theme.midnight': 'Reverencia de Medianoche',
+    'settings.theme.dawn': 'Misericordia del Alba',
 
     'care.home.title': '¿Cómo podemos caminar contigo?',
     'care.home.prayer.label': 'PETICIÓN DE ORACIÓN',
