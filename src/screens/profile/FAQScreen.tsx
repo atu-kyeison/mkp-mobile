@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, SafeAreaView, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MidnightBackground } from '../../components/MidnightBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -11,9 +12,9 @@ const FAQScreen = ({ navigation }: any) => (
       <View style={styles.container}>
         <View style={styles.header}><TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}><MaterialIcons name="chevron-left" size={24} color={Colors.antiqueGold} /></TouchableOpacity><Text style={styles.headerLabel}>HELP</Text><View style={styles.headerDivider} /><Text style={styles.title}>Frequently Asked Questions</Text></View>
         <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <FAQItem question="Is my journey really private?" answer="Yes. Your reflections are encrypted and only visible to you." />
+          <FAQItem question="Is my journey really private?" answer="Yes. Your reflections stay on your device in this MVP and are only visible to you." />
           <FAQItem question="What if I miss a formation day?" answer="There are no streaks here. God meets you exactly where you are." />
-          <FAQItem question="How can I support others?" answer="You can share gratitude and prayers in the Care section." />
+          <FAQItem question="How can I support others?" answer="You can submit prayer and testimony in Care so your church team can follow up." />
           <View style={styles.footer}><Text style={styles.footerHint}>Still seeking guidance?</Text><TouchableOpacity style={styles.supportButton} onPress={() => navigation.navigate('Main', { screen: 'Profile', params: { screen: 'TechnicalSupport' } })}><Text style={styles.supportButtonText}>CONTACT PASTORAL SUPPORT</Text></TouchableOpacity></View>
           <View style={{ height: 100 }} />
         </ScrollView>

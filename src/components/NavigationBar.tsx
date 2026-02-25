@@ -1,6 +1,7 @@
 import React from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
 
 interface NavigationBarProps {
@@ -9,6 +10,7 @@ interface NavigationBarProps {
 }
 
 export const NavigationBar: React.FC<NavigationBarProps> = ({ activeTab, onTabPress }) => {
+  const insets = useSafeAreaInsets();
   const tabs: Array<{ id: typeof activeTab; icon: keyof typeof MaterialIcons.glyphMap }> = [
     { id: 'HOME', icon: 'home' },
     { id: 'JOURNEY', icon: 'route' },
@@ -17,7 +19,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ activeTab, onTabPr
   ];
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { bottom: Math.max(16, insets.bottom + 8) }]}>
       <View style={styles.capsule}>
         {tabs.map((tab) => {
           const isActive = activeTab === tab.id;
@@ -51,7 +53,6 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ activeTab, onTabPr
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
-    bottom: 32,
     left: 0,
     right: 0,
     alignItems: 'center',

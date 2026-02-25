@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Alert, View, Text, ScrollView, SafeAreaView, StyleSheet, TouchableOpacity, Switch } from 'react-native';
+import { Alert, View, Text, ScrollView, StyleSheet, TouchableOpacity, Switch } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { MidnightBackground } from '../../components/MidnightBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { MaterialIcons } from '@expo/vector-icons';

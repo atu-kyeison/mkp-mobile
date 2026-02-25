@@ -67,7 +67,7 @@ export default function PrayerSubmission({ navigation }: any) {
               <View style={styles.toggleRow}>
                 <View style={styles.toggleLabelGroup}>
                   <Text style={styles.toggleTitle}>Post Anonymously</Text>
-                  <Text style={styles.toggleSubtitle}>Your name won't be shown to the community</Text>
+                  <Text style={styles.toggleSubtitle}>Your name will be hidden from the care team view</Text>
                 </View>
                 <Switch
                   value={anonymous}
