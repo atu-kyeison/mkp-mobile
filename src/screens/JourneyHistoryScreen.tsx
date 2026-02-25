@@ -46,11 +46,8 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
     return `SEP ${selectedDay}, 2024`;
   }, [selectedDay]);
 
-  const openDay = (day: CalendarDay) => {
-    if (day.muted) return;
-    setSelectedDay(day.day);
+  const resolveDayState = (day: CalendarDay) => {
     setDetailState('loading');
-
     setTimeout(() => {
       if (day.hasDetail) {
         setDetailState(day.day === 17 ? 'empty' : 'ready');
@@ -58,6 +55,25 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
         setDetailState('error');
       }
     }, 700);
+  };
+
+  const openDay = (day: CalendarDay) => {
+    if (day.muted) return;
+    setSelectedDay(day.day);
+    resolveDayState(day);
+  };
+
+  const retrySelectedDay = () => {
+    if (selectedDay == null) {
+      setDetailState('error');
+      return;
+    }
+    const day = CALENDAR_DAYS.find((candidate) => !candidate.muted && candidate.day === selectedDay);
+    if (!day) {
+      setDetailState('error');
+      return;
+    }
+    resolveDayState(day);
   };
 
   return (
@@ -272,7 +288,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
               {detailState === 'error' ? (
                 <View style={styles.sheetBodyCentered}>
                   <Text style={styles.sheetErrorText}>{t('journey.dayDetail.error')}</Text>
-                  <TouchableOpacity style={styles.retryButton} onPress={() => setDetailState('loading')}>
+                  <TouchableOpacity style={styles.retryButton} onPress={retrySelectedDay}>
                     <Text style={styles.retryText}>{t('journey.dayDetail.retry')}</Text>
                   </TouchableOpacity>
                 </View>
