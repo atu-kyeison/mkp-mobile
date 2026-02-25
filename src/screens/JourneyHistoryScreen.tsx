@@ -1,10 +1,11 @@
 import React, { useMemo, useState } from 'react';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Modal, StyleSheet, View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
 import { BackgroundGradient } from '../components/BackgroundGradient';
 import { GlassCard } from '../components/GlassCard';
+import { useI18n } from '../i18n/I18nProvider';
 
 const JOURNEY_ITEMS = [
   { id: '1', date: 'Friday - Sept 22', type: 'REFLECTION', content: "'I noticed God's hand in the quietness of the morning...'", isItalic: true },
@@ -34,6 +35,8 @@ const CALENDAR_DAYS: CalendarDay[] = [
 ];
 
 export const JourneyHistoryScreen = ({ navigation }: any) => {
+  const { t } = useI18n();
+  const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'LIBRARY' | 'CALENDAR'>('CALENDAR');
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [detailState, setDetailState] = useState<'loading' | 'ready' | 'empty' | 'error'>('loading');
@@ -61,34 +64,34 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
     <BackgroundGradient style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.headerRow}>
-          <Text style={styles.headerTitle}>Journey</Text>
+          <Text style={styles.headerTitle}>{t('journey.title')}</Text>
           <View style={styles.segmentedControl}>
             <TouchableOpacity
               style={[styles.segmentedItem, activeTab === 'LIBRARY' && styles.segmentedItemActive]}
               onPress={() => setActiveTab('LIBRARY')}
             >
-              <Text style={[styles.segmentedText, activeTab === 'LIBRARY' && styles.segmentedTextActive]}>LIBRARY</Text>
+              <Text style={[styles.segmentedText, activeTab === 'LIBRARY' && styles.segmentedTextActive]}>{t('journey.library')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.segmentedItem, activeTab === 'CALENDAR' && styles.segmentedItemActive]}
               onPress={() => setActiveTab('CALENDAR')}
             >
-              <Text style={[styles.segmentedText, activeTab === 'CALENDAR' && styles.segmentedTextActive]}>CALENDAR</Text>
+              <Text style={[styles.segmentedText, activeTab === 'CALENDAR' && styles.segmentedTextActive]}>{t('journey.calendar')}</Text>
             </TouchableOpacity>
           </View>
         </View>
 
         {activeTab === 'LIBRARY' ? (
-          <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 150 + insets.bottom }]} showsVerticalScrollIndicator={false}>
             <View style={styles.quickLinks}>
               <TouchableOpacity style={styles.quickLinkButton} onPress={() => navigation.navigate('Insights')}>
-                <Text style={styles.quickLinkText}>INSIGHTS HOME</Text>
+                <Text style={styles.quickLinkText}>{t('journey.quick.insights')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.quickLinkButton}
                 onPress={() => navigation.navigate('MoodDetail', { moodId: 'peaceful', date: 'Wednesday - Sept 20' })}
               >
-                <Text style={styles.quickLinkText}>PAST AWARENESS</Text>
+                <Text style={styles.quickLinkText}>{t('journey.quick.awareness')}</Text>
               </TouchableOpacity>
             </View>
 
@@ -116,7 +119,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
             ))}
           </ScrollView>
         ) : (
-          <ScrollView contentContainerStyle={styles.calendarScroll} showsVerticalScrollIndicator={false}>
+          <ScrollView contentContainerStyle={[styles.calendarScroll, { paddingBottom: 150 + insets.bottom }]} showsVerticalScrollIndicator={false}>
             <View style={styles.monthHeader}>
               <TouchableOpacity style={styles.chevronButton}>
                 <MaterialIcons name="chevron-left" size={20} color="rgba(229, 185, 95, 0.45)" />
@@ -150,15 +153,15 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
             </View>
 
             <View style={styles.legendRow}>
-              <View style={styles.legendItem}><View style={[styles.dot, styles.reflectionDot]} /><Text style={styles.legendText}>Reflection</Text></View>
+              <View style={styles.legendItem}><View style={[styles.dot, styles.reflectionDot]} /><Text style={styles.legendText}>{t('journey.legend.reflection')}</Text></View>
               <Text style={styles.legendSeparator}>-</Text>
-              <View style={styles.legendItem}><View style={[styles.dot, styles.moodDot]} /><Text style={styles.legendText}>Mood</Text></View>
+              <View style={styles.legendItem}><View style={[styles.dot, styles.moodDot]} /><Text style={styles.legendText}>{t('journey.legend.mood')}</Text></View>
               <Text style={styles.legendSeparator}>-</Text>
-              <View style={styles.legendItem}><MaterialIcons name="auto-awesome" size={10} color={Colors.accentGold} /><Text style={styles.legendText}>Sunday</Text></View>
+              <View style={styles.legendItem}><MaterialIcons name="auto-awesome" size={10} color={Colors.accentGold} /><Text style={styles.legendText}>{t('journey.legend.sunday')}</Text></View>
             </View>
 
             <GlassCard style={styles.emptyPromptCard}>
-              <Text style={styles.emptyPromptText}>Select a day to revisit your walk.</Text>
+              <Text style={styles.emptyPromptText}>{t('journey.emptyPrompt')}</Text>
             </GlassCard>
           </ScrollView>
         )}
@@ -166,13 +169,13 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
         <Modal transparent visible={selectedDay !== null} animationType="fade" onRequestClose={() => setSelectedDay(null)}>
           <View style={styles.modalBackdrop}>
             <TouchableOpacity style={StyleSheet.absoluteFill} onPress={() => setSelectedDay(null)} />
-            <View style={styles.bottomSheet}>
+            <View style={[styles.bottomSheet, { paddingBottom: 38 + insets.bottom }]}>
               <View style={styles.sheetHandle} />
               <View style={styles.sheetHeader}>
                 <View style={styles.headerSpacer} />
                 <View style={styles.sheetTitleWrap}>
                   <Text style={styles.sheetDate}>{detailTitle}</Text>
-                  <Text style={styles.sheetTitle}>Day Detail</Text>
+                  <Text style={styles.sheetTitle}>{t('journey.dayDetail.title')}</Text>
                 </View>
                 <TouchableOpacity style={styles.closeButton} onPress={() => setSelectedDay(null)}>
                   <MaterialIcons name="close" size={18} color="rgba(255,255,255,0.7)" />
@@ -182,7 +185,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
               {detailState === 'loading' ? (
                 <View style={styles.sheetBodyCentered}>
                   <ActivityIndicator size="large" color={Colors.accentGold} />
-                  <Text style={styles.sheetLoadingText}>Loading day...</Text>
+                  <Text style={styles.sheetLoadingText}>{t('journey.dayDetail.loading')}</Text>
                 </View>
               ) : null}
 
@@ -190,7 +193,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                 <View style={styles.sheetBodyReady}>
                   <TouchableOpacity style={styles.readySection} onPress={() => navigation.navigate('MoodDetail', { moodId: 'peaceful', date: detailTitle })}>
                     <View style={styles.readySectionHeader}>
-                      <Text style={styles.readyLabel}>INNER POSTURE</Text>
+                      <Text style={styles.readyLabel}>{t('journey.dayDetail.innerPosture')}</Text>
                       <MaterialIcons name="chevron-right" size={16} color="rgba(229,185,95,0.35)" />
                     </View>
                     <View style={styles.moodPill}>
@@ -214,7 +217,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                     }
                   >
                     <View style={styles.readySectionHeader}>
-                      <Text style={styles.readyLabel}>REFLECTION</Text>
+                      <Text style={styles.readyLabel}>{t('journey.dayDetail.reflection')}</Text>
                       <MaterialIcons name="chevron-right" size={16} color="rgba(229,185,95,0.35)" />
                     </View>
                     <Text style={styles.readyReflectionText}>
@@ -224,7 +227,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
 
                   <TouchableOpacity style={[styles.readySection, styles.readySundaySection]} onPress={() => navigation.navigate('SundaySummaryDetail')}>
                     <View style={styles.readySectionHeader}>
-                      <Text style={styles.readyLabel}>FROM SUNDAY</Text>
+                      <Text style={styles.readyLabel}>{t('journey.dayDetail.fromSunday')}</Text>
                       <MaterialIcons name="chevron-right" size={16} color="rgba(229,185,95,0.35)" />
                     </View>
                     <View style={styles.sundayRow}>
@@ -239,7 +242,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
 
               {detailState === 'empty' ? (
                 <View style={styles.sheetBodyCentered}>
-                  <Text style={styles.sheetEmptyText}>No entries saved for this day.</Text>
+                  <Text style={styles.sheetEmptyText}>{t('journey.dayDetail.empty')}</Text>
                   <TouchableOpacity
                     style={styles.addReflectionButton}
                     onPress={() => {
@@ -250,7 +253,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                       });
                     }}
                   >
-                    <Text style={styles.addReflectionText}>ADD A REFLECTION</Text>
+                    <Text style={styles.addReflectionText}>{t('journey.dayDetail.addReflection')}</Text>
                   </TouchableOpacity>
                   <TouchableOpacity
                     style={styles.logMoodLink}
@@ -261,16 +264,16 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                       });
                     }}
                   >
-                    <Text style={styles.logMoodText}>LOG A MOOD</Text>
+                    <Text style={styles.logMoodText}>{t('journey.dayDetail.logMood')}</Text>
                   </TouchableOpacity>
                 </View>
               ) : null}
 
               {detailState === 'error' ? (
                 <View style={styles.sheetBodyCentered}>
-                  <Text style={styles.sheetErrorText}>Could not load this day.</Text>
+                  <Text style={styles.sheetErrorText}>{t('journey.dayDetail.error')}</Text>
                   <TouchableOpacity style={styles.retryButton} onPress={() => setDetailState('loading')}>
-                    <Text style={styles.retryText}>RETRY</Text>
+                    <Text style={styles.retryText}>{t('journey.dayDetail.retry')}</Text>
                   </TouchableOpacity>
                 </View>
               ) : null}
@@ -292,7 +295,7 @@ const styles = StyleSheet.create({
   segmentedItemActive: { backgroundColor: 'rgba(229,185,95,0.16)' },
   segmentedText: { fontFamily: 'Cinzel_700Bold', fontSize: 10, letterSpacing: 2, color: 'rgba(255,255,255,0.45)' },
   segmentedTextActive: { color: Colors.accentGold },
-  scrollContent: { paddingHorizontal: 24, paddingBottom: 150 },
+  scrollContent: { paddingHorizontal: 24 },
   quickLinks: { flexDirection: 'row', gap: 12, marginBottom: 24 },
   quickLinkButton: { flex: 1, borderWidth: 1, borderColor: 'rgba(229, 185, 95, 0.35)', borderRadius: 14, paddingVertical: 12, alignItems: 'center', backgroundColor: 'rgba(13, 27, 42, 0.45)' },
   quickLinkText: { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1.8, color: Colors.accentGold },
@@ -306,7 +309,7 @@ const styles = StyleSheet.create({
   itemText: { fontFamily: 'PlayfairDisplay_400Regular', fontSize: 17, color: 'rgba(255, 255, 255, 0.9)', lineHeight: 26 },
   italicText: { fontStyle: 'italic' },
   iconRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  calendarScroll: { paddingHorizontal: 24, paddingBottom: 150 },
+  calendarScroll: { paddingHorizontal: 24 },
   monthHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: 24, gap: 22 },
   chevronButton: { padding: 4 },
   monthTitle: { fontFamily: 'Cinzel_700Bold', fontSize: 13, letterSpacing: 5, color: Colors.accentGold },

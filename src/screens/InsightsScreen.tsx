@@ -4,50 +4,52 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
 import { BackgroundGradient } from '../components/BackgroundGradient';
 import { GlassCard } from '../components/GlassCard';
+import { useI18n } from '../i18n/I18nProvider';
 
 export const InsightsScreen = () => {
+  const { t } = useI18n();
   return (
     <BackgroundGradient style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
-          <Text style={styles.headerSubtitle}>INSIGHTS</Text>
+          <Text style={styles.headerSubtitle}>{t('insights.header')}</Text>
           <View style={styles.divider} />
-          <Text style={styles.title}>Notice how this week has felt.</Text>
+          <Text style={styles.title}>{t('insights.title')}</Text>
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <GlassCard style={styles.sectionCard}>
-            <Text style={styles.sectionLabel}>THIS WEEK’S RHYTHM</Text>
+            <Text style={styles.sectionLabel}>{t('insights.rhythm')}</Text>
             <View style={styles.moodArcContainer}>
               <View style={styles.moodArc} />
             </View>
             <View style={styles.arcLabels}>
-              <Text style={styles.arcLabel}>Earlier</Text>
-              <Text style={styles.arcLabel}>Now</Text>
+              <Text style={styles.arcLabel}>{t('insights.earlier')}</Text>
+              <Text style={styles.arcLabel}>{t('insights.now')}</Text>
             </View>
-            <Text style={styles.sectionNote}>Based on your optional check-ins</Text>
+            <Text style={styles.sectionNote}>{t('insights.optional')}</Text>
           </GlassCard>
 
           <GlassCard style={[styles.sectionCard, styles.centeredCard]}>
-            <Text style={styles.sectionLabel}>REFLECTION PRESENCE</Text>
+            <Text style={styles.sectionLabel}>{t('insights.reflectionPresence')}</Text>
             <Text style={styles.statText}>
-              You paused to reflect 3 days this week
+              {t('insights.reflectionStat')}
             </Text>
             <View style={styles.smallDivider} />
             <Text style={styles.statSubtext}>
-              Reflection was part of your week
+              {t('insights.reflectionSub')}
             </Text>
           </GlassCard>
 
           <GlassCard style={styles.sectionCard}>
-            <Text style={styles.sectionLabel}>SOMETHING WE NOTICED</Text>
+            <Text style={styles.sectionLabel}>{t('insights.notice')}</Text>
             <Text style={styles.noticeText}>
-              "Weeks where you pause midweek often feel steadier."
+              {t('insights.noticeText')}
             </Text>
           </GlassCard>
 
           <Text style={styles.footerText}>
-            These insights are for awareness, not evaluation.
+            {t('insights.footer')}
           </Text>
         </ScrollView>
       </SafeAreaView>

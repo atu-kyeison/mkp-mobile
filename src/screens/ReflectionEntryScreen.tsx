@@ -4,8 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
 import { BackgroundGradient } from '../components/BackgroundGradient';
 import { GlassCard } from '../components/GlassCard';
+import { useI18n } from '../i18n/I18nProvider';
 
 export const ReflectionEntryScreen = ({ navigation, route }: any) => {
+  const { t } = useI18n();
   const [reflection, setReflection] = useState('');
   const journalVariant = route.params?.journalVariant === 'mid_week' ? 'mid_week' : 'early_week';
   const mood = route.params?.mood;
@@ -20,18 +22,18 @@ export const ReflectionEntryScreen = ({ navigation, route }: any) => {
   const content = useMemo(() => {
     if (journalVariant === 'mid_week') {
       return {
-        subtitle: "MIDWEEK REFLECTION",
-        invitationLabel: "MIDWEEK INVITATION",
-        invitationText: "\"What is God bringing to the surface in you today?\"",
+        subtitle: t('reflection.subtitle.midweek'),
+        invitationLabel: t('reflection.invitation.midweekLabel'),
+        invitationText: t('reflection.invitation.midweekText'),
       };
     }
 
     return {
-      subtitle: "TODAY'S REFLECTION",
-      invitationLabel: "DAILY INVITATION",
-      invitationText: "\"What stayed with you today?\"",
+      subtitle: t('reflection.subtitle.today'),
+      invitationLabel: t('reflection.invitation.dailyLabel'),
+      invitationText: t('reflection.invitation.dailyText'),
     };
-  }, [journalVariant]);
+  }, [journalVariant, t]);
 
   const handleSave = () => {
     openMoodCheckIn('JourneyHistory');
@@ -59,7 +61,7 @@ export const ReflectionEntryScreen = ({ navigation, route }: any) => {
 
             <TextInput
               style={styles.input}
-              placeholder="Write your reflection here..."
+              placeholder={t('reflection.placeholder')}
               placeholderTextColor="rgba(148, 163, 184, 0.6)"
               multiline
               value={reflection}
@@ -69,7 +71,7 @@ export const ReflectionEntryScreen = ({ navigation, route }: any) => {
 
           <View style={styles.footer}>
             <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-              <Text style={styles.saveButtonText}>SAVE TO JOURNEY</Text>
+              <Text style={styles.saveButtonText}>{t('reflection.save')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.supportLink}
@@ -80,16 +82,16 @@ export const ReflectionEntryScreen = ({ navigation, route }: any) => {
                 })
               }
             >
-              <Text style={styles.supportLinkText}>Need more than prayer?</Text>
+              <Text style={styles.supportLinkText}>{t('reflection.needMore')}</Text>
             </TouchableOpacity>
             <Text style={styles.privacyNote}>
-              This space is between you and God. Your reflections stay private.
+              {t('reflection.privacy')}
             </Text>
             {mood ? (
-              <Text style={styles.moodTag}>Current mood: {String(mood).toUpperCase()}</Text>
+              <Text style={styles.moodTag}>{t('reflection.moodCurrent')} {String(mood).toUpperCase()}</Text>
             ) : null}
             <Text style={styles.quote}>
-              "A moment with God is never wasted."
+              {t('reflection.quote')}
             </Text>
           </View>
         </KeyboardAvoidingView>
