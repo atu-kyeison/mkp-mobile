@@ -1,0 +1,142 @@
+import React from 'react';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Colors } from '../../constants/Colors';
+import { GradientBackground } from '../../components/GradientBackground';
+import { GlassCard } from '../../components/GlassCard';
+import { CustomButton } from '../../components/CustomButton';
+
+export default function CareHome({ navigation }: any) {
+  return (
+    <GradientBackground style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <View style={styles.header}>
+            <View style={styles.divider} />
+            <Text style={styles.title}>How can we walk with you?</Text>
+          </View>
+
+          <View style={styles.section}>
+            <GlassCard withGlow style={styles.mainCard}>
+              <Text style={styles.cardLabel}>PRAYER REQUEST</Text>
+              <Text style={styles.cardText}>
+                What would you like prayer for today?
+              </Text>
+              <CustomButton
+                title="SHARE PRAYER"
+                onPress={() => navigation.navigate('PrayerSubmission')}
+              />
+            </GlassCard>
+
+            <TouchableOpacity style={styles.linkButton}>
+              <Text style={styles.linkText}>Need more than prayer?</Text>
+            </TouchableOpacity>
+          </View>
+
+          <GlassCard style={styles.gratitudeCard}>
+            <Text style={styles.cardLabel}>GRATITUDE</Text>
+            <Text style={[styles.cardText, styles.smallText]}>
+              Where have you seen God’s faithfulness this week?
+            </Text>
+            <CustomButton
+              title="SHARE GRATITUDE"
+              variant="outline"
+              onPress={() => navigation.navigate('TestimonySubmission')}
+            />
+          </GlassCard>
+
+          <View style={styles.footer}>
+            <Text style={styles.footerText}>
+              Your community is here to hold you in prayer.
+            </Text>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </GradientBackground>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  safeArea: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingTop: 40,
+    paddingBottom: 120,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  divider: {
+    width: 48,
+    height: 1,
+    backgroundColor: 'rgba(229, 185, 95, 0.4)',
+    marginBottom: 32,
+  },
+  title: {
+    fontFamily: 'PlayfairDisplay_400Regular_Italic',
+    fontSize: 24,
+    color: Colors.text,
+    textAlign: 'center',
+    lineHeight: 36,
+  },
+  section: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  mainCard: {
+    width: '100%',
+    padding: 32,
+    alignItems: 'center',
+  },
+  gratitudeCard: {
+    width: '100%',
+    padding: 28,
+    alignItems: 'center',
+  },
+  cardLabel: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 9,
+    color: 'rgba(229, 185, 95, 0.6)',
+    letterSpacing: 2,
+    marginBottom: 32,
+  },
+  cardText: {
+    fontFamily: 'PlayfairDisplay_400Regular_Italic',
+    fontSize: 20,
+    color: 'rgba(255, 255, 255, 0.9)',
+    textAlign: 'center',
+    marginBottom: 40,
+    lineHeight: 30,
+  },
+  smallText: {
+    fontSize: 17,
+    marginBottom: 32,
+  },
+  linkButton: {
+    marginTop: 32,
+  },
+  linkText: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 12,
+    color: Colors.accentGold,
+    textDecorationLine: 'underline',
+  },
+  footer: {
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  footerText: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 10,
+    color: 'rgba(255, 255, 255, 0.3)',
+    textAlign: 'center',
+    maxWidth: 200,
+    lineHeight: 20,
+  },
+});
