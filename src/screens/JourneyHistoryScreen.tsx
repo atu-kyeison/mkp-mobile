@@ -35,9 +35,12 @@ const CALENDAR_DAYS: CalendarDay[] = [
 export const JourneyHistoryScreen = ({ navigation }: any) => {
   const [activeTab, setActiveTab] = useState<'LIBRARY' | 'CALENDAR'>('CALENDAR');
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
-  const [detailState, setDetailState] = useState<'loading' | 'ready' | 'error'>('loading');
+  const [detailState, setDetailState] = useState<'loading' | 'ready' | 'empty' | 'error'>('loading');
 
-  const detailTitle = useMemo(() => `SEPTEMBER ${selectedDay ?? ''}`, [selectedDay]);
+  const detailTitle = useMemo(() => {
+    if (!selectedDay) return '';
+    return `SEP ${selectedDay}, 2024`;
+  }, [selectedDay]);
 
   const openDay = (day: CalendarDay) => {
     if (day.muted) return;
@@ -46,7 +49,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
 
     setTimeout(() => {
       if (day.hasDetail) {
-        setDetailState('ready');
+        setDetailState(day.day === 17 ? 'empty' : 'ready');
       } else {
         setDetailState('error');
       }
@@ -188,6 +191,35 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                 </View>
               ) : null}
 
+              {detailState === 'empty' ? (
+                <View style={styles.sheetBodyCentered}>
+                  <Text style={styles.sheetEmptyText}>No entries saved for this day.</Text>
+                  <TouchableOpacity
+                    style={styles.addReflectionButton}
+                    onPress={() => {
+                      setSelectedDay(null);
+                      navigation.navigate('ReflectionEntry', {
+                        journalVariant: 'mid_week',
+                        openMoodOnEntry: false,
+                      });
+                    }}
+                  >
+                    <Text style={styles.addReflectionText}>ADD A REFLECTION</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    style={styles.logMoodLink}
+                    onPress={() => {
+                      setSelectedDay(null);
+                      navigation.navigate('MoodCheckIn', {
+                        nextScreen: 'JourneyHistory',
+                      });
+                    }}
+                  >
+                    <Text style={styles.logMoodText}>LOG A MOOD</Text>
+                  </TouchableOpacity>
+                </View>
+              ) : null}
+
               {detailState === 'error' ? (
                 <View style={styles.sheetBodyCentered}>
                   <Text style={styles.sheetErrorText}>Could not load this day.</Text>
@@ -256,12 +288,45 @@ const styles = StyleSheet.create({
   sheetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
   headerSpacer: { width: 32 },
   sheetTitleWrap: { alignItems: 'center' },
-  sheetDate: { fontFamily: 'Cinzel_700Bold', fontSize: 9, letterSpacing: 3, color: Colors.accentGold, marginBottom: 4 },
+  sheetDate: { fontFamily: 'Cinzel_700Bold', fontSize: 18, letterSpacing: 5, color: Colors.accentGold, marginBottom: 4 },
   sheetTitle: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 18, color: 'rgba(255,255,255,0.92)' },
   closeButton: { width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.05)' },
   sheetBodyCentered: { flex: 1, minHeight: 170, alignItems: 'center', justifyContent: 'center', gap: 12 },
   sheetLoadingText: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 16, color: 'rgba(229,185,95,0.85)' },
   sheetReadyText: { fontFamily: 'Inter_400Regular', fontSize: 14, color: 'rgba(255,255,255,0.72)' },
+  sheetEmptyText: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 17, color: 'rgba(148,163,184,0.88)' },
+  addReflectionButton: {
+    marginTop: 8,
+    minWidth: 260,
+    borderRadius: 999,
+    backgroundColor: Colors.accentGold,
+    paddingVertical: 20,
+    paddingHorizontal: 26,
+    alignItems: 'center',
+    shadowColor: Colors.accentGold,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.28,
+    shadowRadius: 28,
+    elevation: 8,
+  },
+  addReflectionText: {
+    fontFamily: 'Cinzel_700Bold',
+    fontSize: 14,
+    letterSpacing: 4,
+    color: Colors.backgroundDark,
+  },
+  logMoodLink: {
+    marginTop: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(229,185,95,0.45)',
+    paddingBottom: 2,
+  },
+  logMoodText: {
+    fontFamily: 'Cinzel_700Bold',
+    fontSize: 12,
+    letterSpacing: 4,
+    color: Colors.accentGold,
+  },
   sheetErrorText: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 17, color: '#D97B66' },
   retryButton: { borderWidth: 1, borderColor: 'rgba(229,185,95,0.4)', borderRadius: 12, paddingHorizontal: 28, paddingVertical: 11, backgroundColor: 'rgba(255,255,255,0.03)' },
   retryText: { fontFamily: 'Cinzel_700Bold', fontSize: 11, letterSpacing: 2, color: 'rgba(255,255,255,0.82)' },
