@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
 import { BackgroundGradient } from '../components/BackgroundGradient';
 import { GlassCard } from '../components/GlassCard';
+import { useI18n } from '../i18n/I18nProvider';
 
 const MOODS = [
   { id: 'peaceful', label: 'Peaceful', icon: 'self-improvement' as const },
@@ -16,6 +17,8 @@ const MOODS = [
 ];
 
 export const MoodCheckInScreen = ({ navigation, route }: any) => {
+  const { t } = useI18n();
+  const insets = useSafeAreaInsets();
   const [selectedMood, setSelectedMood] = useState<string | null>(null);
   const journalVariant = route.params?.journalVariant;
   const nextScreen = route.params?.nextScreen;
@@ -46,12 +49,12 @@ export const MoodCheckInScreen = ({ navigation, route }: any) => {
             style={styles.skipButton}
             onPress={() => navigation.navigate('JourneyHistory')}
           >
-            <Text style={styles.skipText}>SKIP</Text>
+            <Text style={styles.skipText}>{t('mood.skip')}</Text>
           </TouchableOpacity>
           <View style={styles.headerContent}>
-            <Text style={styles.subtitle}>EMOTIONAL AWARENESS</Text>
+            <Text style={styles.subtitle}>{t('mood.subtitle')}</Text>
             <View style={styles.divider} />
-            <Text style={styles.title}>How are you feeling right now?</Text>
+            <Text style={styles.title}>{t('mood.title')}</Text>
           </View>
         </View>
 
@@ -71,21 +74,21 @@ export const MoodCheckInScreen = ({ navigation, route }: any) => {
                   color={Colors.accentGold}
                   style={styles.moodIcon}
                 />
-                <Text style={styles.moodLabel}>{mood.label}</Text>
+                <Text style={styles.moodLabel}>{t(`mood.label.${mood.id}`)}</Text>
               </GlassCard>
             </TouchableOpacity>
           ))}
         </ScrollView>
 
-        <View style={styles.footer}>
+        <View style={[styles.footer, { paddingBottom: 32 + insets.bottom }]}>
           <TouchableOpacity
             style={[styles.continueButton, !selectedMood && styles.disabledButton]}
             onPress={handleContinue}
             disabled={!selectedMood}
           >
-            <Text style={styles.continueText}>CONTINUE</Text>
+            <Text style={styles.continueText}>{t('mood.continue')}</Text>
           </TouchableOpacity>
-          <Text style={styles.footerNote}>A moment for inner reflection.</Text>
+          <Text style={styles.footerNote}>{t('mood.note')}</Text>
           <TouchableOpacity
             style={styles.supportLink}
             onPress={() =>
@@ -95,7 +98,7 @@ export const MoodCheckInScreen = ({ navigation, route }: any) => {
               })
             }
           >
-            <Text style={styles.supportLinkText}>Need more than prayer?</Text>
+            <Text style={styles.supportLinkText}>{t('mood.needMore')}</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>

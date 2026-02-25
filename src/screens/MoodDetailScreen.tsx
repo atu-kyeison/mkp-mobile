@@ -5,41 +5,43 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
 import { BackgroundGradient } from '../components/BackgroundGradient';
 import { GlassCard } from '../components/GlassCard';
+import { useI18n } from '../i18n/I18nProvider';
 
-const MOOD_DETAILS: Record<string, { icon: keyof typeof MaterialIcons.glyphMap; title: string; description: string }> = {
+const MOOD_DETAILS: Record<string, { icon: keyof typeof MaterialIcons.glyphMap; titleKey: string; descriptionKey: string }> = {
   tired: {
     icon: 'dark-mode',
-    title: 'Tired',
-    description: 'You marked this moment as tired. Low energy is a signal for rest, not a demand for productivity. You were invited to exhale and trust God with your weariness.'
+    titleKey: 'moodDetail.title.tired',
+    descriptionKey: 'moodDetail.desc.tired',
   },
   rushed: {
     icon: 'bolt',
-    title: 'Rushed',
-    description: 'You marked this moment as rushed. This posture highlights pace, not failure. You were invited to slow your heart and find a moment of unhurried grace.'
+    titleKey: 'moodDetail.title.rushed',
+    descriptionKey: 'moodDetail.desc.rushed',
   },
   grateful: {
     icon: 'favorite',
-    title: 'Grateful',
-    description: 'You marked this moment as grateful. This posture amplifies your awareness of God’s presence. You were invited to rest in this lighthearted joy.'
+    titleKey: 'moodDetail.title.grateful',
+    descriptionKey: 'moodDetail.desc.grateful',
   },
   peaceful: {
     icon: 'yard',
-    title: 'Peaceful',
-    description: 'You marked this moment as peaceful. In this receptive state, you were invited to notice grace and listen for the quiet voice of God.'
+    titleKey: 'moodDetail.title.peaceful',
+    descriptionKey: 'moodDetail.desc.peaceful',
   },
   focused: {
     icon: 'center-focus-strong',
-    title: 'Focused',
-    description: 'You marked this moment as focused. Clarity and attention allowed your intentions to flow naturally. You were invited to walk purposefully in this alignment.'
+    titleKey: 'moodDetail.title.focused',
+    descriptionKey: 'moodDetail.desc.focused',
   },
   anxious: {
     icon: 'waves',
-    title: 'Anxious',
-    description: 'You marked this moment as anxious. This mental noise is simply a cue for prayer and gentleness. You were invited to breathe deeply and remember you are held.'
+    titleKey: 'moodDetail.title.anxious',
+    descriptionKey: 'moodDetail.desc.anxious',
   }
 };
 
 export const MoodDetailScreen = ({ navigation, route }: any) => {
+  const { t } = useI18n();
   const moodId = route.params?.moodId || 'tired';
   const detail = MOOD_DETAILS[moodId] || MOOD_DETAILS.tired;
   const dateStr = route.params?.date || 'Friday • Sept 22';
@@ -51,21 +53,21 @@ export const MoodDetailScreen = ({ navigation, route }: any) => {
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <MaterialIcons name="chevron-left" size={32} color="rgba(229, 185, 95, 0.6)" />
           </TouchableOpacity>
-          <Text style={styles.headerSubtitle}>PAST AWARENESS</Text>
+          <Text style={styles.headerSubtitle}>{t('moodDetail.subtitle')}</Text>
           <View style={styles.divider} />
           <Text style={styles.date}>{dateStr}</Text>
         </View>
 
         <View style={styles.content}>
           <GlassCard variant="large" style={styles.detailCard}>
-            <Text style={styles.cardSubtitle}>INNER POSTURE</Text>
+            <Text style={styles.cardSubtitle}>{t('moodDetail.innerPosture')}</Text>
 
             <View style={styles.iconContainer}>
               <MaterialIcons name={detail.icon} size={72} color={Colors.accentGold} style={styles.icon} />
             </View>
 
-            <Text style={styles.title}>{detail.title}</Text>
-            <Text style={styles.description}>{detail.description}</Text>
+            <Text style={styles.title}>{t(detail.titleKey)}</Text>
+            <Text style={styles.description}>{t(detail.descriptionKey)}</Text>
 
             <TouchableOpacity
               style={styles.journalButton}
@@ -75,14 +77,14 @@ export const MoodDetailScreen = ({ navigation, route }: any) => {
                   fromMoodDetail: true,
                 })
               }
-            >
+              >
               <MaterialIcons name="history-edu" size={24} color={Colors.accentGold} />
-              <Text style={styles.journalButtonText}>JOURNAL ENTRY</Text>
+              <Text style={styles.journalButtonText}>{t('moodDetail.journalEntry')}</Text>
             </TouchableOpacity>
           </GlassCard>
 
           <View style={styles.footerNoteContainer}>
-            <Text style={styles.footerNote}>Part of your weekly rhythm</Text>
+            <Text style={styles.footerNote}>{t('moodDetail.footer')}</Text>
           </View>
         </View>
       </SafeAreaView>
