@@ -199,7 +199,19 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                     <Text style={styles.readySubText}>A quiet morning with the Word.</Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity style={styles.readySection} onPress={() => navigation.navigate('ReflectionEntry', { journalVariant: 'mid_week', openMoodOnEntry: false })}>
+                  <TouchableOpacity
+                    style={styles.readySection}
+                    onPress={() =>
+                      navigation.navigate('ReflectionDetail', {
+                        date: detailTitle,
+                        invitation: '"What stayed with you today?"',
+                        mood: 'Peaceful',
+                        fromSunday: true,
+                        content:
+                          "I felt a deep sense of stillness this morning during the scripture reading. It reminded me that abiding isn't about...",
+                      })
+                    }
+                  >
                     <View style={styles.readySectionHeader}>
                       <Text style={styles.readyLabel}>REFLECTION</Text>
                       <MaterialIcons name="chevron-right" size={16} color="rgba(229,185,95,0.35)" />

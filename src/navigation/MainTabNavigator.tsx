@@ -15,6 +15,7 @@ import CareStack from '../../navigation/CareStack';
 // Batch 3 Imports
 import { MoodCheckInScreen } from '../screens/MoodCheckInScreen';
 import { ReflectionEntryScreen } from '../screens/ReflectionEntryScreen';
+import { ReflectionDetailScreen } from '../screens/ReflectionDetailScreen';
 import { MoodDetailScreen } from '../screens/MoodDetailScreen';
 import { JourneyHistoryScreen } from '../screens/JourneyHistoryScreen';
 import { InsightsScreen } from '../screens/InsightsScreen';
@@ -34,6 +35,7 @@ const JourneyStackNavigator = () => {
       <JourneyStack.Screen name="JourneyHistory" component={JourneyHistoryScreen} />
       <JourneyStack.Screen name="MoodCheckIn" component={MoodCheckInScreen} />
       <JourneyStack.Screen name="ReflectionEntry" component={ReflectionEntryScreen} />
+      <JourneyStack.Screen name="ReflectionDetail" component={ReflectionDetailScreen} />
       <JourneyStack.Screen name="MoodDetail" component={MoodDetailScreen} />
       <JourneyStack.Screen name="Insights" component={InsightsScreen} />
       <JourneyStack.Screen name="SundaySummaryDetail" component={SundaySummaryDetailScreen} />

@@ -44,7 +44,18 @@ export const SundaySummaryDetailScreen = ({ navigation, route }: any) => {
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>YOUR REFLECTIONS LINKED TO THIS SUNDAY</Text>
                 <View style={styles.cardStack}>
-                  <TouchableOpacity onPress={() => navigation.navigate('ReflectionEntry', { journalVariant: 'early_week', openMoodOnEntry: false })}>
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate('ReflectionDetail', {
+                        date: 'MONDAY - SEPT 16',
+                        invitation: '"What stayed with you today?"',
+                        mood: 'Peaceful',
+                        fromSunday: true,
+                        content:
+                          "The message about the vine and the branches really resonated this morning during my quiet time. I am learning to trust the pruning...",
+                      })
+                    }
+                  >
                     <GlassCard style={styles.reflectionCard}>
                       <Text style={styles.reflectionDate}>MONDAY - SEPT 16</Text>
                       <Text style={styles.reflectionPreview}>
@@ -52,7 +63,18 @@ export const SundaySummaryDetailScreen = ({ navigation, route }: any) => {
                       </Text>
                     </GlassCard>
                   </TouchableOpacity>
-                  <TouchableOpacity onPress={() => navigation.navigate('ReflectionEntry', { journalVariant: 'mid_week', openMoodOnEntry: false })}>
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate('ReflectionDetail', {
+                        date: 'WEDNESDAY - SEPT 18',
+                        invitation: '"What stayed with you today?"',
+                        mood: 'Peaceful',
+                        fromSunday: true,
+                        content:
+                          "Found myself coming back to the idea of remaining. It's not about striving, but about positioning myself near Him...",
+                      })
+                    }
+                  >
                     <GlassCard style={styles.reflectionCard}>
                       <Text style={styles.reflectionDate}>WEDNESDAY - SEPT 18</Text>
                       <Text style={styles.reflectionPreview}>
