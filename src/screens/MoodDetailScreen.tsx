@@ -66,7 +66,15 @@ export const MoodDetailScreen = ({ navigation, route }: any) => {
             <Text style={styles.title}>{detail.title}</Text>
             <Text style={styles.description}>{detail.description}</Text>
 
-            <TouchableOpacity style={styles.journalButton}>
+            <TouchableOpacity
+              style={styles.journalButton}
+              onPress={() =>
+                navigation.navigate('ReflectionEntry', {
+                  journalVariant: 'mid_week',
+                  fromMoodDetail: true,
+                })
+              }
+            >
               <MaterialIcons name="history-edu" size={24} color={Colors.accentGold} />
               <Text style={styles.journalButtonText}>JOURNAL ENTRY</Text>
             </TouchableOpacity>

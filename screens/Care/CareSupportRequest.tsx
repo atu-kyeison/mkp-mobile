@@ -1,0 +1,235 @@
+import React, { useState } from 'react';
+import {
+  Alert,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { GradientBackground } from '../../components/GradientBackground';
+import { GlassCard } from '../../components/GlassCard';
+import { CustomButton } from '../../components/CustomButton';
+import { Colors } from '../../constants/Colors';
+
+const HELP_TYPES = [
+  "I'd like someone to contact me",
+  'I need practical help',
+  "I'm in crisis / urgent",
+] as const;
+
+const CONTACT_METHODS = ['Call', 'Text', 'Email'] as const;
+
+export default function CareSupportRequest({ navigation }: any) {
+  const [helpType, setHelpType] =
+    useState<(typeof HELP_TYPES)[number]>(HELP_TYPES[0]);
+  const [contactMethod, setContactMethod] =
+    useState<(typeof CONTACT_METHODS)[number]>('Text');
+  const [message, setMessage] = useState('');
+
+  const handleSubmit = () => {
+    Alert.alert(
+      'Support Request Received',
+      'Thank you for sharing this with us. A care team member will follow up.',
+      [{ text: 'OK', onPress: () => navigation.goBack() }]
+    );
+  };
+
+  return (
+    <GradientBackground style={styles.container}>
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
+          <View style={styles.header}>
+            <View style={styles.divider} />
+            <Text style={styles.title}>How can we support you right now?</Text>
+          </View>
+
+          <GlassCard withGlow style={styles.card}>
+            <Text style={styles.sectionLabel}>KIND OF SUPPORT</Text>
+            <View style={styles.chipsRow}>
+              {HELP_TYPES.map((option) => {
+                const selected = option === helpType;
+                return (
+                  <TouchableOpacity
+                    key={option}
+                    onPress={() => setHelpType(option)}
+                    style={[styles.chip, selected && styles.chipSelected]}
+                  >
+                    <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                      {option}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            {helpType === "I'm in crisis / urgent" ? (
+              <Text style={styles.crisisNote}>
+                If you are in immediate danger, call local emergency services.
+              </Text>
+            ) : null}
+
+            <Text style={[styles.sectionLabel, styles.sectionSpacing]}>
+              YOUR MESSAGE
+            </Text>
+            <TextInput
+              style={styles.textInput}
+              multiline
+              numberOfLines={5}
+              value={message}
+              onChangeText={setMessage}
+              placeholder="Tell us how we can walk with you..."
+              placeholderTextColor="rgba(255, 255, 255, 0.35)"
+            />
+
+            <Text style={[styles.sectionLabel, styles.sectionSpacing]}>
+              PREFERRED CONTACT
+            </Text>
+            <View style={styles.contactRow}>
+              {CONTACT_METHODS.map((method) => {
+                const selected = method === contactMethod;
+                return (
+                  <TouchableOpacity
+                    key={method}
+                    onPress={() => setContactMethod(method)}
+                    style={[styles.contactChip, selected && styles.contactChipSelected]}
+                  >
+                    <Text
+                      style={[
+                        styles.contactChipText,
+                        selected && styles.contactChipTextSelected,
+                      ]}
+                    >
+                      {method}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </View>
+
+            <View style={styles.buttonContainer}>
+              <CustomButton title="SEND REQUEST" onPress={handleSubmit} />
+            </View>
+          </GlassCard>
+        </ScrollView>
+      </SafeAreaView>
+    </GradientBackground>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+  safeArea: { flex: 1 },
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingTop: 40,
+    paddingBottom: 120,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 28,
+  },
+  divider: {
+    width: 48,
+    height: 1,
+    backgroundColor: 'rgba(229, 185, 95, 0.4)',
+    marginBottom: 24,
+  },
+  title: {
+    fontFamily: 'PlayfairDisplay_400Regular_Italic',
+    fontSize: 22,
+    lineHeight: 32,
+    textAlign: 'center',
+    color: Colors.text,
+  },
+  card: {
+    padding: 20,
+  },
+  sectionLabel: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 10,
+    color: 'rgba(229, 185, 95, 0.7)',
+    letterSpacing: 2,
+    marginBottom: 12,
+  },
+  sectionSpacing: {
+    marginTop: 20,
+  },
+  chipsRow: {
+    gap: 10,
+  },
+  chip: {
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 185, 95, 0.25)',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+  },
+  chipSelected: {
+    borderColor: Colors.accentGold,
+    backgroundColor: 'rgba(229, 185, 95, 0.15)',
+  },
+  chipText: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+  chipTextSelected: {
+    color: Colors.accentGold,
+  },
+  crisisNote: {
+    marginTop: 10,
+    fontFamily: 'Inter_400Regular',
+    fontSize: 12,
+    lineHeight: 18,
+    color: 'rgba(255, 255, 255, 0.75)',
+  },
+  textInput: {
+    minHeight: 110,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 185, 95, 0.2)',
+    backgroundColor: 'rgba(0, 0, 0, 0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
+    textAlignVertical: 'top',
+    fontFamily: 'Inter_400Regular',
+    fontSize: 15,
+    color: Colors.text,
+  },
+  contactRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  contactChip: {
+    flex: 1,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 185, 95, 0.25)',
+    paddingVertical: 10,
+    alignItems: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+  },
+  contactChipSelected: {
+    borderColor: Colors.accentGold,
+    backgroundColor: 'rgba(229, 185, 95, 0.15)',
+  },
+  contactChipText: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 13,
+    color: 'rgba(255, 255, 255, 0.8)',
+  },
+  contactChipTextSelected: {
+    color: Colors.accentGold,
+  },
+  buttonContainer: {
+    marginTop: 22,
+  },
+});

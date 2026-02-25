@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StyleSheet, ScrollView } from 'react-native';
+import { Alert, View, Text, TextInput, TouchableOpacity, SafeAreaView, StyleSheet, ScrollView } from 'react-native';
 import { MidnightBackground } from '../../components/MidnightBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { GoldButton } from '../../components/GoldButton';
@@ -44,7 +44,17 @@ const ChurchSearchScreen = ({ navigation }: any) => {
                   onChangeText={setCode}
                 />
                 <View style={styles.buttonWrapper}><GoldButton title="CONNECT" onPress={handleConnect} /></View>
-                <TouchableOpacity style={styles.helpLink}><Text style={styles.helpText}>Where can I find my code?</Text></TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.helpLink}
+                  onPress={() =>
+                    Alert.alert(
+                      'Find Your Church Code',
+                      'Your church can provide this code from the Sunday slide, bulletin, or welcome team.'
+                    )
+                  }
+                >
+                  <Text style={styles.helpText}>Where can I find my code?</Text>
+                </TouchableOpacity>
               </View>
               <View style={styles.cardFooter}>
                 <Text style={styles.footerText}>By continuing, you agree to our</Text>

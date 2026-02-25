@@ -6,6 +6,7 @@ import { Colors } from '../../constants/Colors';
 import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
+import { openChurchMessage, openScriptureReference, speakWithTTS } from '../../constants/Actions';
 
 export default function Wednesday({ navigation }: any) {
   const { height } = useWindowDimensions();
@@ -28,9 +29,14 @@ export default function Wednesday({ navigation }: any) {
               <View style={styles.flex1}>
                 <Text style={styles.cardLabel}>TODAY’S SCRIPTURE</Text>
                 <Text style={styles.scriptureText}>“Search me, God, and know my heart…”</Text>
-                <Text style={styles.reference}>Psalm 139:23</Text>
+                <TouchableOpacity onPress={() => openScriptureReference('Psalm 139:23')}>
+                  <Text style={styles.reference}>Psalm 139:23</Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity style={styles.playButton}>
+              <TouchableOpacity
+                style={styles.playButton}
+                onPress={() => speakWithTTS('Search me, God, and know my heart. Psalm 139:23')}
+              >
                 <Text style={styles.playIcon}>▶</Text>
               </TouchableOpacity>
             </View>
@@ -42,7 +48,10 @@ export default function Wednesday({ navigation }: any) {
                 <Text style={styles.cardLabel}>FROM SUNDAY'S MESSAGE</Text>
                 <Text style={styles.messageText}>Remaining in Christ reveals what striving hides.</Text>
               </View>
-              <TouchableOpacity style={styles.listenButton}>
+              <TouchableOpacity
+                style={styles.listenButton}
+                onPress={openChurchMessage}
+              >
                 <Text style={styles.listenIcon}>🎧</Text>
                 <Text style={styles.listenText}>LISTEN</Text>
               </TouchableOpacity>

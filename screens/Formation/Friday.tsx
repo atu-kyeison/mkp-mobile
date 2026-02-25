@@ -6,6 +6,7 @@ import { Colors } from '../../constants/Colors';
 import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
+import { openChurchMessage, openScriptureReference, speakWithTTS } from '../../constants/Actions';
 
 export default function Friday({ navigation }: any) {
   const { height } = useWindowDimensions();
@@ -28,9 +29,18 @@ export default function Friday({ navigation }: any) {
               <View style={styles.flex1}>
                 <Text style={styles.cardLabel}>TODAY’S SCRIPTURE</Text>
                 <Text style={styles.scriptureText}>“Give thanks in all circumstances; for this is God’s will for you in Christ Jesus.”</Text>
-                <Text style={styles.reference}>1 Thessalonians 5:18</Text>
+                <TouchableOpacity onPress={() => openScriptureReference('1 Thessalonians 5:18')}>
+                  <Text style={styles.reference}>1 Thessalonians 5:18</Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity style={styles.playButton}>
+              <TouchableOpacity
+                style={styles.playButton}
+                onPress={() =>
+                  speakWithTTS(
+                    'Give thanks in all circumstances, for this is God’s will for you in Christ Jesus. 1 Thessalonians 5:18'
+                  )
+                }
+              >
                 <Text style={styles.playIcon}>⦿</Text>
               </TouchableOpacity>
             </View>
@@ -42,7 +52,10 @@ export default function Friday({ navigation }: any) {
                 <Text style={styles.cardLabel}>FROM SUNDAY</Text>
                 <Text style={styles.messageText}>Gratitude turns what we have into enough, and more.</Text>
               </View>
-              <TouchableOpacity style={styles.listenButton}>
+              <TouchableOpacity
+                style={styles.listenButton}
+                onPress={openChurchMessage}
+              >
                 <Text style={styles.listenIcon}>🎧</Text>
                 <Text style={styles.listenText}>Listen</Text>
               </TouchableOpacity>

@@ -14,7 +14,7 @@ const FAQScreen = ({ navigation }: any) => (
           <FAQItem question="Is my journey really private?" answer="Yes. Your reflections are encrypted and only visible to you." />
           <FAQItem question="What if I miss a formation day?" answer="There are no streaks here. God meets you exactly where you are." />
           <FAQItem question="How can I support others?" answer="You can share gratitude and prayers in the Care section." />
-          <View style={styles.footer}><Text style={styles.footerHint}>Still seeking guidance?</Text><TouchableOpacity style={styles.supportButton}><Text style={styles.supportButtonText}>CONTACT PASTORAL SUPPORT</Text></TouchableOpacity></View>
+          <View style={styles.footer}><Text style={styles.footerHint}>Still seeking guidance?</Text><TouchableOpacity style={styles.supportButton} onPress={() => navigation.navigate('Main', { screen: 'Profile', params: { screen: 'TechnicalSupport' } })}><Text style={styles.supportButtonText}>CONTACT PASTORAL SUPPORT</Text></TouchableOpacity></View>
           <View style={{ height: 100 }} />
         </ScrollView>
       </View>

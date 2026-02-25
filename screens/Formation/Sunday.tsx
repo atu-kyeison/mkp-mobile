@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
 import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
+import { openChurchMessage, openScriptureReference } from '../../constants/Actions';
 
 export default function Sunday() {
   return (
@@ -14,10 +15,15 @@ export default function Sunday() {
             <Text style={styles.topLabel}>Sunday • Sept 15</Text>
             <Text style={styles.title}>Abiding in Christ</Text>
             <Text style={styles.subtitle}>The Vine and the Branches • Part 1</Text>
-            <Text style={styles.scriptureRef}>John 15:1-8</Text>
+            <TouchableOpacity onPress={() => openScriptureReference('John 15:1-8')}>
+              <Text style={styles.scriptureRef}>John 15:1-8</Text>
+            </TouchableOpacity>
             <Text style={styles.pastorInfo}>Pastor Elias Vance • Grace Fellowship</Text>
 
-            <TouchableOpacity style={styles.listenLink}>
+            <TouchableOpacity
+              style={styles.listenLink}
+              onPress={openChurchMessage}
+            >
               <Text style={styles.listenLinkText}>🔊 Listen to This Week’s Message</Text>
             </TouchableOpacity>
 
@@ -59,12 +65,16 @@ export default function Sunday() {
                 <View style={styles.scriptureItem}>
                   <Text style={styles.bookIcon}>📖</Text>
                   <Text style={styles.scriptureQuote}>"Abide in me, and I in you. As the branch cannot bear fruit by itself..."</Text>
-                  <Text style={styles.scriptureReference}>John 15:4</Text>
+                  <TouchableOpacity onPress={() => openScriptureReference('John 15:4')}>
+                    <Text style={styles.scriptureReference}>John 15:4</Text>
+                  </TouchableOpacity>
                 </View>
                 <View style={styles.scriptureItem}>
                   <Text style={styles.bookIcon}>📖</Text>
                   <Text style={styles.scriptureQuote}>"He is like a tree planted by streams of water that yields its fruit..."</Text>
-                  <Text style={styles.scriptureReference}>Psalm 1:2-3</Text>
+                  <TouchableOpacity onPress={() => openScriptureReference('Psalm 1:2-3')}>
+                    <Text style={styles.scriptureReference}>Psalm 1:2-3</Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             </GlassCard>

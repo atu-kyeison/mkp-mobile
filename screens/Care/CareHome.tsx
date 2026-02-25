@@ -28,7 +28,10 @@ export default function CareHome({ navigation }: any) {
               />
             </GlassCard>
 
-            <TouchableOpacity style={styles.linkButton}>
+            <TouchableOpacity
+              style={styles.linkButton}
+              onPress={() => navigation.navigate('CareSupportRequest')}
+            >
               <Text style={styles.linkText}>Need more than prayer?</Text>
             </TouchableOpacity>
           </View>

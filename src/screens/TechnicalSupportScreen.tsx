@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
+import { Alert, StyleSheet, View, Text, TextInput, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
 import { BackgroundGradient } from '../components/BackgroundGradient';
@@ -7,6 +7,14 @@ import { GlassCard } from '../components/GlassCard';
 
 export const TechnicalSupportScreen = ({ navigation }: any) => {
   const [message, setMessage] = useState('');
+  const handleSend = () => {
+    Alert.alert(
+      'Message Sent',
+      'Thanks for reaching out. A care team member will follow up.',
+      [{ text: 'OK' }]
+    );
+    setMessage('');
+  };
 
   return (
     <BackgroundGradient style={styles.container}>
@@ -33,17 +41,23 @@ export const TechnicalSupportScreen = ({ navigation }: any) => {
             />
           </GlassCard>
 
-          <TouchableOpacity style={styles.sendButton}>
+          <TouchableOpacity style={styles.sendButton} onPress={handleSend}>
             <Text style={styles.sendButtonText}>SEND MESSAGE</Text>
           </TouchableOpacity>
 
           <GlassCard style={styles.faqCard}>
-            <TouchableOpacity style={styles.faqItem}>
+            <TouchableOpacity
+              style={styles.faqItem}
+              onPress={() => navigation.getParent()?.getParent()?.navigate('FAQ')}
+            >
               <Text style={styles.faqText}>Browse FAQs</Text>
               <MaterialIcons name="chevron-right" size={20} color={Colors.accentGold} style={styles.faqIcon} />
             </TouchableOpacity>
             <View style={styles.itemDivider} />
-            <TouchableOpacity style={styles.faqItem}>
+            <TouchableOpacity
+              style={styles.faqItem}
+              onPress={() => navigation.getParent()?.getParent()?.navigate('Guidelines')}
+            >
               <Text style={styles.faqText}>Sacred Use Guidelines</Text>
               <MaterialIcons name="chevron-right" size={20} color={Colors.accentGold} style={styles.faqIcon} />
             </TouchableOpacity>

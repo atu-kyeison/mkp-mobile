@@ -6,6 +6,7 @@ import { Colors } from '../../constants/Colors';
 import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
+import { openChurchMessage, openScriptureReference, speakWithTTS } from '../../constants/Actions';
 
 export default function Thursday({ navigation }: any) {
   const { height } = useWindowDimensions();
@@ -28,9 +29,14 @@ export default function Thursday({ navigation }: any) {
               <View style={styles.flex1}>
                 <Text style={styles.cardLabel}>Today’s Scripture</Text>
                 <Text style={styles.scriptureText}>“If any of you lacks wisdom, let him ask God…”</Text>
-                <Text style={styles.reference}>James 1:5</Text>
+                <TouchableOpacity onPress={() => openScriptureReference('James 1:5')}>
+                  <Text style={styles.reference}>James 1:5</Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity style={styles.playButton}>
+              <TouchableOpacity
+                style={styles.playButton}
+                onPress={() => speakWithTTS('If any of you lacks wisdom, let him ask God. James 1:5')}
+              >
                 <Text style={styles.playIcon}>▶</Text>
               </TouchableOpacity>
             </View>
@@ -42,7 +48,10 @@ export default function Thursday({ navigation }: any) {
                 <Text style={styles.cardLabel}>From Sunday’s Message</Text>
                 <Text style={styles.messageText}>Abiding teaches us how to respond, not react.</Text>
               </View>
-              <TouchableOpacity style={styles.listenButton}>
+              <TouchableOpacity
+                style={styles.listenButton}
+                onPress={openChurchMessage}
+              >
                 <Text style={styles.listenIcon}>🎧</Text>
                 <Text style={styles.listenText}>Listen</Text>
               </TouchableOpacity>

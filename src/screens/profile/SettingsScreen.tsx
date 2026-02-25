@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, ScrollView, SafeAreaView, StyleSheet, TouchableOpacity, Switch } from 'react-native';
+import { Alert, View, Text, ScrollView, SafeAreaView, StyleSheet, TouchableOpacity, Switch } from 'react-native';
 import { MidnightBackground } from '../../components/MidnightBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -16,7 +16,7 @@ const SettingsScreen = ({ navigation }: any) => {
           <View style={styles.header}><Text style={styles.headerLabel}>SETTINGS</Text><View style={styles.headerDivider} /><Text style={styles.title}>Adjust your experience, not your formation.</Text></View>
           <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
             <Section title="FORMATION PREFERENCES">
-              <TouchableOpacity style={styles.settingRow}><GlassCard style={styles.settingCard}><View style={styles.settingInfo}><Text style={styles.settingLabel}>Atmosphere</Text><Text style={styles.settingValue}>Midnight Reverence</Text></View><MaterialIcons name="chevron-right" size={24} color={Colors.antiqueGold} /></GlassCard></TouchableOpacity>
+              <TouchableOpacity style={styles.settingRow} onPress={() => Alert.alert('Themes', 'Additional themes will be available in a future update.')}><GlassCard style={styles.settingCard}><View style={styles.settingInfo}><Text style={styles.settingLabel}>Atmosphere</Text><Text style={styles.settingValue}>Midnight Reverence</Text></View><MaterialIcons name="chevron-right" size={24} color={Colors.antiqueGold} /></GlassCard></TouchableOpacity>
               <GlassCard style={styles.settingCard}><View style={styles.settingInfo}><Text style={styles.settingValue}>Gentle Reminders</Text><Text style={styles.settingHint}>Receive a quiet daily nudge to pause.</Text></View><Switch value={reminders} onValueChange={setReminders} trackColor={{ false: 'rgba(255, 255, 255, 0.1)', true: 'rgba(229, 185, 95, 0.4)' }} thumbColor={reminders ? Colors.antiqueGold : '#f4f3f4'} /></GlassCard>
               <Text style={styles.sectionInfo}>Your reflections remain private. You choose what to share.</Text>
             </Section>
@@ -28,7 +28,7 @@ const SettingsScreen = ({ navigation }: any) => {
               <TouchableOpacity onPress={() => navigation.getParent()?.getParent()?.navigate('FAQ')}><GlassCard style={styles.settingCard}><Text style={styles.settingValue}>Get Help & FAQ</Text><MaterialIcons name="chevron-right" size={24} color={Colors.antiqueGold} /></GlassCard></TouchableOpacity>
             </Section>
             <Section title="ACCOUNT">
-              <GlassCard style={styles.settingCard}><View style={styles.settingInfo}><Text style={styles.settingLabel}>Connected Church</Text><Text style={styles.settingValue}>Grace Fellowship</Text></View><TouchableOpacity><Text style={styles.changeText}>Change church</Text></TouchableOpacity></GlassCard>
+              <GlassCard style={styles.settingCard}><View style={styles.settingInfo}><Text style={styles.settingLabel}>Connected Church</Text><Text style={styles.settingValue}>Grace Fellowship</Text></View><TouchableOpacity onPress={() => navigation.getParent()?.getParent()?.navigate('Auth', { screen: 'ChurchSearch' })}><Text style={styles.changeText}>Change church</Text></TouchableOpacity></GlassCard>
               <View style={styles.signOutContainer}><View style={styles.signOutDivider} /><TouchableOpacity style={styles.signOutButton} onPress={() => navigation.getParent()?.getParent()?.navigate('Auth', { screen: 'Welcome' })}><GlassCard style={styles.signOutCard}><Text style={styles.signOutText}>Sign Out</Text></GlassCard></TouchableOpacity></View>
             </Section>
             <View style={styles.footer}><Text style={styles.footerQuote}>MKP supports your journey — your church leads it.</Text></View>
