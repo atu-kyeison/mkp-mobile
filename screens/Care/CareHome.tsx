@@ -1,29 +1,33 @@
 import React from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
 import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
+import { useI18n } from '../../src/i18n/I18nProvider';
 
 export default function CareHome({ navigation }: any) {
+  const insets = useSafeAreaInsets();
+  const { t } = useI18n();
+
   return (
     <GradientBackground style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 120 + insets.bottom }]} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <View style={styles.divider} />
-            <Text style={styles.title}>How can we walk with you?</Text>
+            <Text style={styles.title}>{t('care.home.title')}</Text>
           </View>
 
           <View style={styles.section}>
             <GlassCard withGlow style={styles.mainCard}>
-              <Text style={styles.cardLabel}>PRAYER REQUEST</Text>
+              <Text style={styles.cardLabel}>{t('care.home.prayer.label')}</Text>
               <Text style={styles.cardText}>
-                What would you like prayer for today?
+                {t('care.home.prayer.prompt')}
               </Text>
               <CustomButton
-                title="SHARE PRAYER"
+                title={t('care.home.prayer.action')}
                 onPress={() => navigation.navigate('PrayerSubmission')}
               />
             </GlassCard>
@@ -32,17 +36,17 @@ export default function CareHome({ navigation }: any) {
               style={styles.linkButton}
               onPress={() => navigation.navigate('CareSupportRequest')}
             >
-              <Text style={styles.linkText}>Need more than prayer?</Text>
+              <Text style={styles.linkText}>{t('care.home.needMore')}</Text>
             </TouchableOpacity>
           </View>
 
           <GlassCard style={styles.gratitudeCard}>
-            <Text style={styles.cardLabel}>GRATITUDE</Text>
+            <Text style={styles.cardLabel}>{t('care.home.gratitude.label')}</Text>
             <Text style={[styles.cardText, styles.smallText]}>
-              Where have you seen God’s faithfulness this week?
+              {t('care.home.gratitude.prompt')}
             </Text>
             <CustomButton
-              title="SHARE GRATITUDE"
+              title={t('care.home.gratitude.action')}
               variant="outline"
               onPress={() => navigation.navigate('TestimonySubmission')}
             />
@@ -50,7 +54,7 @@ export default function CareHome({ navigation }: any) {
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>
-              Your community is here to hold you in prayer.
+              {t('care.home.footer')}
             </Text>
           </View>
         </ScrollView>
@@ -69,7 +73,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 40,
-    paddingBottom: 120,
   },
   header: {
     alignItems: 'center',

@@ -7,11 +7,12 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
 import { Colors } from '../../constants/Colors';
+import { useI18n } from '../../src/i18n/I18nProvider';
 
 const HELP_TYPES = [
   'A conversation with a pastor',
@@ -26,6 +27,8 @@ const HELP_TYPES = [
 const CONTACT_METHODS = ['Call', 'Text', 'Email'] as const;
 
 export default function CareSupportRequest({ navigation, route }: any) {
+  const insets = useSafeAreaInsets();
+  const { t } = useI18n();
   const preselectedType = route?.params?.initialHelpType as (typeof HELP_TYPES)[number] | undefined;
   const [helpType, setHelpType] =
     useState<(typeof HELP_TYPES)[number]>(preselectedType && HELP_TYPES.includes(preselectedType) ? preselectedType : HELP_TYPES[0]);
@@ -46,17 +49,17 @@ export default function CareSupportRequest({ navigation, route }: any) {
     <GradientBackground style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: 120 + insets.bottom }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
             <View style={styles.divider} />
-            <Text style={styles.title}>How can we support you right now?</Text>
+            <Text style={styles.title}>{t('care.support.title')}</Text>
           </View>
 
           <GlassCard withGlow style={styles.card}>
-            <Text style={styles.sectionLabel}>WHAT KIND OF SUPPORT?</Text>
+            <Text style={styles.sectionLabel}>{t('care.support.section.type')}</Text>
             <View style={styles.chipsRow}>
               {HELP_TYPES.map((option) => {
                 const selected = option === helpType;
@@ -67,7 +70,15 @@ export default function CareSupportRequest({ navigation, route }: any) {
                     style={[styles.chip, selected && styles.chipSelected]}
                   >
                     <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                      {option}
+                      {
+                        option === 'A conversation with a pastor' ? t('care.support.type.pastor') :
+                        option === 'Discipleship / next steps' ? t('care.support.type.discipleship') :
+                        option === 'Accountability support' ? t('care.support.type.accountability') :
+                        option === 'Prayer in person or by call' ? t('care.support.type.prayer') :
+                        option === "I'm going through something difficult" ? t('care.support.type.difficult') :
+                        option === 'I recently gave my life to Christ' ? t('care.support.type.newBeliever') :
+                        t('care.support.type.other')
+                      }
                     </Text>
                   </TouchableOpacity>
                 );
@@ -76,12 +87,12 @@ export default function CareSupportRequest({ navigation, route }: any) {
 
             {helpType === "I'm going through something difficult" ? (
               <Text style={styles.crisisNote}>
-                If you are in immediate danger, call local emergency services.
+                {t('care.support.crisis')}
               </Text>
             ) : null}
 
             <Text style={[styles.sectionLabel, styles.sectionSpacing]}>
-              YOUR MESSAGE
+              {t('care.support.section.message')}
             </Text>
             <TextInput
               style={styles.textInput}
@@ -89,12 +100,12 @@ export default function CareSupportRequest({ navigation, route }: any) {
               numberOfLines={5}
               value={message}
               onChangeText={setMessage}
-              placeholder="Tell us how we can walk with you..."
+              placeholder={t('care.support.placeholder')}
               placeholderTextColor="rgba(255, 255, 255, 0.35)"
             />
 
             <Text style={[styles.sectionLabel, styles.sectionSpacing]}>
-              PREFERRED CONTACT
+              {t('care.support.section.contact')}
             </Text>
             <View style={styles.contactRow}>
               {CONTACT_METHODS.map((method) => {
@@ -111,7 +122,11 @@ export default function CareSupportRequest({ navigation, route }: any) {
                         selected && styles.contactChipTextSelected,
                       ]}
                     >
-                      {method}
+                      {
+                        method === 'Call' ? t('care.support.contact.call') :
+                        method === 'Text' ? t('care.support.contact.text') :
+                        t('care.support.contact.email')
+                      }
                     </Text>
                   </TouchableOpacity>
                 );
@@ -119,7 +134,7 @@ export default function CareSupportRequest({ navigation, route }: any) {
             </View>
 
             <View style={styles.buttonContainer}>
-              <CustomButton title="SEND REQUEST" onPress={handleSubmit} />
+              <CustomButton title={t('care.support.send')} onPress={handleSubmit} />
             </View>
           </GlassCard>
         </ScrollView>
@@ -134,7 +149,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 40,
-    paddingBottom: 120,
   },
   header: {
     alignItems: 'center',

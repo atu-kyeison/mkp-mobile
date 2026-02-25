@@ -1,20 +1,23 @@
 import React, { useState } from 'react';
 import { Alert, StyleSheet, View, Text, ScrollView, TextInput, Switch, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
 import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
+import { useI18n } from '../../src/i18n/I18nProvider';
 
 export default function TestimonySubmission({ navigation }: any) {
+  const insets = useSafeAreaInsets();
+  const { t } = useI18n();
   const [anonymous, setAnonymous] = useState(false);
   const [allowShare, setAllowShare] = useState(true);
   const [testimony, setTestimony] = useState('');
 
   const handleShareGratitude = () => {
     Alert.alert(
-      'Testimony Submitted',
-      'Your testimony has been sent and will appear in the pastor dashboard.',
+      t('care.testimony.alert.title'),
+      t('care.testimony.alert.body'),
       [{ text: 'OK', onPress: () => navigation.goBack() }]
     );
   };
@@ -23,20 +26,20 @@ export default function TestimonySubmission({ navigation }: any) {
     <GradientBackground style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: 120 + insets.bottom }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
             <View style={styles.divider} />
-            <Text style={styles.title}>Where have you seen God’s faithfulness?</Text>
+            <Text style={styles.title}>{t('care.testimony.title')}</Text>
           </View>
 
           <GlassCard withGlow style={styles.inputCard}>
-            <Text style={styles.cardLabel}>TESTIMONY</Text>
+            <Text style={styles.cardLabel}>{t('care.testimony.label')}</Text>
             <TextInput
               style={styles.textInput}
-              placeholder="Share a moment of grace..."
+              placeholder={t('care.testimony.placeholder')}
               placeholderTextColor="rgba(148, 163, 184, 0.5)"
               multiline
               numberOfLines={8}
@@ -55,7 +58,7 @@ export default function TestimonySubmission({ navigation }: any) {
               <View style={styles.toggleRow}>
                 <View style={styles.labelWithIcon}>
                   <Text style={styles.icon}>👤</Text>
-                  <Text style={styles.toggleText}>Share anonymously</Text>
+                  <Text style={styles.toggleText}>{t('care.testimony.anonymous')}</Text>
                 </View>
                 <Switch
                   value={anonymous}
@@ -68,7 +71,7 @@ export default function TestimonySubmission({ navigation }: any) {
               <View style={styles.toggleRow}>
                 <View style={styles.labelWithIcon}>
                   <Text style={styles.icon}>⛪</Text>
-                  <Text style={styles.toggleText}>Allow church to share this as encouragement</Text>
+                  <Text style={styles.toggleText}>{t('care.testimony.allowShare')}</Text>
                 </View>
                 <Switch
                   value={allowShare}
@@ -81,12 +84,12 @@ export default function TestimonySubmission({ navigation }: any) {
           </View>
 
           <View style={styles.buttonContainer}>
-            <CustomButton title="SHARE GRATITUDE" onPress={handleShareGratitude} />
+            <CustomButton title={t('care.testimony.action')} onPress={handleShareGratitude} />
           </View>
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>
-              Your story strengthens the church.
+              {t('care.testimony.footer')}
             </Text>
           </View>
         </ScrollView>
@@ -105,7 +108,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 40,
-    paddingBottom: 120,
   },
   header: {
     alignItems: 'center',

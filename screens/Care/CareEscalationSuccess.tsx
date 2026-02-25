@@ -5,19 +5,21 @@ import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
 import { Colors } from '../../constants/Colors';
+import { useI18n } from '../../src/i18n/I18nProvider';
 
 export default function CareEscalationSuccess({ navigation }: any) {
+  const { t } = useI18n();
   return (
     <GradientBackground style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.content}>
           <GlassCard withGlow style={styles.card}>
-            <Text style={styles.kicker}>CARE SUPPORT</Text>
-            <Text style={styles.title}>Thanks for reaching out.</Text>
+            <Text style={styles.kicker}>{t('care.success.kicker')}</Text>
+            <Text style={styles.title}>{t('care.success.title')}</Text>
             <Text style={styles.message}>
-              Someone from your church will follow up with you soon.
+              {t('care.success.message')}
             </Text>
-            <CustomButton title="BACK TO CARE" onPress={() => navigation.navigate('CareHome')} />
+            <CustomButton title={t('care.success.back')} onPress={() => navigation.navigate('CareHome')} />
           </GlassCard>
         </View>
       </SafeAreaView>

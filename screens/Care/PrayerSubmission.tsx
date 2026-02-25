@@ -1,24 +1,27 @@
 import React, { useState } from 'react';
 import { Alert, StyleSheet, View, Text, ScrollView, TextInput, Switch } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
 import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
+import { useI18n } from '../../src/i18n/I18nProvider';
 
 export default function PrayerSubmission({ navigation }: any) {
+  const insets = useSafeAreaInsets();
+  const { t } = useI18n();
   const [anonymous, setAnonymous] = useState(false);
   const [pastoralSupport, setPastoralSupport] = useState(false);
   const [request, setRequest] = useState('');
 
   const handleSharePrayer = () => {
     Alert.alert(
-      'Prayer Submitted',
-      'Your request has been received. A pastor will review it in the dashboard.',
+      t('care.prayer.alert.title'),
+      t('care.prayer.alert.body'),
       [
-        { text: 'DONE', onPress: () => navigation.goBack() },
+        { text: t('care.prayer.alert.done'), onPress: () => navigation.goBack() },
         {
-          text: 'NEED MORE SUPPORT',
+          text: t('care.prayer.alert.needSupport'),
           onPress: () =>
             navigation.navigate('CareSupportRequest', {
               initialHelpType: 'A conversation with a pastor',
@@ -32,20 +35,20 @@ export default function PrayerSubmission({ navigation }: any) {
     <GradientBackground style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={[styles.scrollContent, { paddingBottom: 120 + insets.bottom }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
             <View style={styles.divider} />
-            <Text style={styles.title}>How can we pray for you?</Text>
+            <Text style={styles.title}>{t('care.prayer.title')}</Text>
           </View>
 
           <GlassCard withGlow style={styles.inputCard}>
-            <Text style={styles.cardLabel}>PRAYER REQUEST</Text>
+            <Text style={styles.cardLabel}>{t('care.prayer.label')}</Text>
             <TextInput
               style={styles.textInput}
-              placeholder="What would you like prayer for today?"
+              placeholder={t('care.prayer.placeholder')}
               placeholderTextColor="rgba(255, 255, 255, 0.2)"
               multiline
               numberOfLines={5}
@@ -53,7 +56,7 @@ export default function PrayerSubmission({ navigation }: any) {
               onChangeText={setRequest}
             />
             <View style={styles.cardFooter}>
-              <CustomButton title="SHARE PRAYER" onPress={handleSharePrayer} style={styles.submitButton} />
+              <CustomButton title={t('care.prayer.action')} onPress={handleSharePrayer} style={styles.submitButton} />
               <View style={styles.stars}>
                 <Text style={styles.star}>★</Text>
                 <Text style={styles.starLarge}>★</Text>
@@ -66,8 +69,8 @@ export default function PrayerSubmission({ navigation }: any) {
             <GlassCard style={styles.innerCard}>
               <View style={styles.toggleRow}>
                 <View style={styles.toggleLabelGroup}>
-                  <Text style={styles.toggleTitle}>Post Anonymously</Text>
-                  <Text style={styles.toggleSubtitle}>Your name will be hidden from the care team view</Text>
+                  <Text style={styles.toggleTitle}>{t('care.prayer.anonymous.title')}</Text>
+                  <Text style={styles.toggleSubtitle}>{t('care.prayer.anonymous.subtitle')}</Text>
                 </View>
                 <Switch
                   value={anonymous}
@@ -79,8 +82,8 @@ export default function PrayerSubmission({ navigation }: any) {
               <View style={styles.separator} />
               <View style={styles.toggleRow}>
                 <View style={styles.toggleLabelGroup}>
-                  <Text style={styles.toggleTitle}>Request Pastoral Support</Text>
-                  <Text style={styles.toggleSubtitle}>A leader will reach out to walk with you</Text>
+                  <Text style={styles.toggleTitle}>{t('care.prayer.support.title')}</Text>
+                  <Text style={styles.toggleSubtitle}>{t('care.prayer.support.subtitle')}</Text>
                 </View>
                 <Switch
                   value={pastoralSupport}
@@ -94,7 +97,7 @@ export default function PrayerSubmission({ navigation }: any) {
 
           <View style={styles.footer}>
             <Text style={styles.footerText}>
-              Your community is here to hold you in prayer.
+              {t('care.home.footer')}
             </Text>
           </View>
         </ScrollView>
@@ -113,7 +116,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 40,
-    paddingBottom: 120,
   },
   header: {
     alignItems: 'center',
