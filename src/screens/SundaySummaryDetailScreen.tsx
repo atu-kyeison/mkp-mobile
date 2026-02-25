@@ -9,7 +9,11 @@ import { Colors } from '../../constants/Colors';
 type ViewState = 'filled' | 'empty' | 'loading' | 'error';
 
 export const SundaySummaryDetailScreen = ({ navigation, route }: any) => {
-  const initialState = (route?.params?.viewState as ViewState) || 'filled';
+  const routeState = route?.params?.viewState;
+  const initialState: ViewState =
+    routeState === 'empty' || routeState === 'loading' || routeState === 'error' || routeState === 'filled'
+      ? routeState
+      : 'filled';
   const [viewState, setViewState] = useState<ViewState>(initialState);
 
   const showFilled = viewState === 'filled';
