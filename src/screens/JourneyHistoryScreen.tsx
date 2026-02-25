@@ -209,7 +209,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                     </Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity style={[styles.readySection, styles.readySundaySection]} onPress={() => navigation.getParent()?.navigate('Home')}>
+                  <TouchableOpacity style={[styles.readySection, styles.readySundaySection]} onPress={() => navigation.navigate('SundaySummaryDetail')}>
                     <View style={styles.readySectionHeader}>
                       <Text style={styles.readyLabel}>FROM SUNDAY</Text>
                       <MaterialIcons name="chevron-right" size={16} color="rgba(229,185,95,0.35)" />

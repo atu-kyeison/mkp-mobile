@@ -19,6 +19,7 @@ import { MoodDetailScreen } from '../screens/MoodDetailScreen';
 import { JourneyHistoryScreen } from '../screens/JourneyHistoryScreen';
 import { InsightsScreen } from '../screens/InsightsScreen';
 import { TechnicalSupportScreen } from '../screens/TechnicalSupportScreen';
+import { SundaySummaryDetailScreen } from '../screens/SundaySummaryDetailScreen';
 
 // Auth Imports
 import SettingsScreen from '../screens/profile/SettingsScreen';
@@ -35,6 +36,7 @@ const JourneyStackNavigator = () => {
       <JourneyStack.Screen name="ReflectionEntry" component={ReflectionEntryScreen} />
       <JourneyStack.Screen name="MoodDetail" component={MoodDetailScreen} />
       <JourneyStack.Screen name="Insights" component={InsightsScreen} />
+      <JourneyStack.Screen name="SundaySummaryDetail" component={SundaySummaryDetailScreen} />
     </JourneyStack.Navigator>
   );
 };
