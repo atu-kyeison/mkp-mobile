@@ -13,7 +13,7 @@ export default function Wednesday({ navigation }: any) {
   return (
     <GradientBackground style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 170 + insets.bottom }]} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 230 + insets.bottom }]} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <Text style={styles.topLabel}>TODAY'S FOCUS</Text>
             <View style={styles.divider} />
@@ -86,6 +86,8 @@ export default function Wednesday({ navigation }: any) {
               </View>
             </View>
           </GlassCard>
+
+          <View style={styles.bottomSpacer} />
         </ScrollView>
       </SafeAreaView>
     </GradientBackground>
@@ -220,9 +222,10 @@ const styles = StyleSheet.create({
   },
   practiceText: {
     fontFamily: 'PlayfairDisplay_400Regular_Italic',
+    fontStyle: 'italic',
     fontSize: 18,
     color: Colors.text,
-    lineHeight: 28,
+    lineHeight: 30,
     marginBottom: 32,
   },
   roundedButton: {
@@ -261,5 +264,8 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.8)',
     lineHeight: 20,
+  },
+  bottomSpacer: {
+    height: 84,
   },
 });
