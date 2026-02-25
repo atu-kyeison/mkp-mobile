@@ -6,8 +6,10 @@ import { GlassCard } from '../../components/GlassCard';
 import { GoldButton } from '../../components/GoldButton';
 import { MaterialIcons } from '@expo/vector-icons';
 import Colors from '../../constants/Colors';
+import { useI18n } from '../../i18n/I18nProvider';
 
 const ChurchSearchScreen = ({ navigation }: any) => {
+  const { t } = useI18n();
   const [code, setCode] = useState('');
 
   const handleConnect = () => {
@@ -27,15 +29,15 @@ const ChurchSearchScreen = ({ navigation }: any) => {
           <View style={styles.container}>
             <View style={styles.headerContainer}>
               <View style={styles.logoCircle}><MaterialIcons name="church" size={32} color={Colors.antiqueGold} /></View>
-              <Text style={styles.brandText}>MY KINGDOM PAL</Text>
+              <Text style={styles.brandText}>{t('auth.brand')}</Text>
             </View>
             <GlassCard style={styles.card}>
               <View style={styles.header}>
-                <Text style={styles.title}>Find your church</Text>
-                <Text style={styles.subtitle}>Enter the code your church gave you to join the community.</Text>
+                <Text style={styles.title}>{t('auth.churchSearch.title')}</Text>
+                <Text style={styles.subtitle}>{t('auth.churchSearch.subtitle')}</Text>
               </View>
               <View style={styles.form}>
-                <Text style={styles.label}>CHURCH CODE</Text>
+                <Text style={styles.label}>{t('auth.churchSearch.codeLabel')}</Text>
                 <TextInput
                   style={styles.input}
                   placeholder="E.G. KINGDOM-24"
@@ -44,25 +46,25 @@ const ChurchSearchScreen = ({ navigation }: any) => {
                   value={code}
                   onChangeText={setCode}
                 />
-                <View style={styles.buttonWrapper}><GoldButton title="CONNECT" onPress={handleConnect} /></View>
+                <View style={styles.buttonWrapper}><GoldButton title={t('auth.churchSearch.submit')} onPress={handleConnect} /></View>
                 <TouchableOpacity
                   style={styles.helpLink}
                   onPress={() =>
                     Alert.alert(
-                      'Find Your Church Code',
-                      'Your church can provide this code from the Sunday slide, bulletin, or welcome team.'
+                      t('auth.churchSearch.helpTitle'),
+                      t('auth.churchSearch.helpBody')
                     )
                   }
                 >
-                  <Text style={styles.helpText}>Where can I find my code?</Text>
+                  <Text style={styles.helpText}>{t('auth.churchSearch.codeHelp')}</Text>
                 </TouchableOpacity>
               </View>
               <View style={styles.cardFooter}>
-                <Text style={styles.footerText}>By continuing, you agree to our</Text>
+                <Text style={styles.footerText}>{t('auth.footer.prefix')}</Text>
                 <View style={styles.footerLinks}>
-                  <TouchableOpacity onPress={() => navigation.navigate('Terms')}><Text style={styles.footerLink}>Terms of Service</Text></TouchableOpacity>
-                  <Text style={styles.footerText}> and </Text>
-                  <TouchableOpacity onPress={() => navigation.navigate('Privacy')}><Text style={styles.footerLink}>Privacy Policy</Text></TouchableOpacity>
+                  <TouchableOpacity onPress={() => navigation.navigate('Terms')}><Text style={styles.footerLink}>{t('auth.footer.terms')}</Text></TouchableOpacity>
+                  <Text style={styles.footerText}> {t('auth.footer.and')} </Text>
+                  <TouchableOpacity onPress={() => navigation.navigate('Privacy')}><Text style={styles.footerLink}>{t('auth.footer.privacy')}</Text></TouchableOpacity>
                 </View>
               </View>
             </GlassCard>

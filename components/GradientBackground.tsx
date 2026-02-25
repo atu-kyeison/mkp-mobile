@@ -14,7 +14,7 @@ export const GradientBackground: React.FC<GradientBackgroundProps> = ({
   style,
   ...props
 }) => {
-  const colors = variant === 'midnight'
+  const colors: [string, string, ...string[]] = variant === 'midnight'
     ? [Colors.primaryBackground, Colors.midnightMid, Colors.midnightBottom]
     : [Colors.sacredDeepBlue, Colors.sacredMidBlue, Colors.sacredGold];
 

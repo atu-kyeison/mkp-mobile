@@ -6,8 +6,10 @@ import { GlassCard } from '../../components/GlassCard';
 import { GoldButton } from '../../components/GoldButton';
 import { MaterialIcons } from '@expo/vector-icons';
 import Colors from '../../constants/Colors';
+import { useI18n } from '../../i18n/I18nProvider';
 
 const PasswordResetScreen = ({ navigation }: any) => {
+  const { t } = useI18n();
   const [email, setEmail] = useState('');
   return (
     <MidnightBackground>
@@ -16,18 +18,18 @@ const PasswordResetScreen = ({ navigation }: any) => {
           <View style={styles.container}>
             <View style={styles.headerContainer}>
               <View style={styles.logoCircle}><MaterialIcons name="church" size={32} color={Colors.antiqueGold} /></View>
-              <Text style={styles.brandText}>MY KINGDOM PAL</Text>
+              <Text style={styles.brandText}>{t('auth.brand')}</Text>
             </View>
             <GlassCard style={styles.card}>
-              <View style={styles.header}><Text style={styles.title}>Reset your password</Text><Text style={styles.subtitle}>Enter your email and we’ll send you a reset link.</Text></View>
+              <View style={styles.header}><Text style={styles.title}>{t('auth.passwordReset.title')}</Text><Text style={styles.subtitle}>{t('auth.passwordReset.subtitle')}</Text></View>
               <View style={styles.form}>
-                <View style={styles.inputGroup}><Text style={styles.label}>EMAIL ADDRESS</Text><TextInput style={styles.input} placeholder="your@email.com" placeholderTextColor="rgba(255, 255, 255, 0.25)" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} /></View>
-                <View style={styles.buttonWrapper}><GoldButton title="SEND RESET LINK" onPress={() => navigation.navigate('PasswordEmailSent', { email })} /></View>
-                <TouchableOpacity style={styles.signinLink} onPress={() => navigation.navigate('Signin', {})}><Text style={styles.signinText}>Remember your password? <Text style={styles.signinHighlight}>Sign in</Text></Text></TouchableOpacity>
+                <View style={styles.inputGroup}><Text style={styles.label}>{t('auth.signin.emailLabel')}</Text><TextInput style={styles.input} placeholder="your@email.com" placeholderTextColor="rgba(255, 255, 255, 0.25)" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} /></View>
+                <View style={styles.buttonWrapper}><GoldButton title={t('auth.passwordReset.submit')} onPress={() => navigation.navigate('PasswordEmailSent', { email })} /></View>
+                <TouchableOpacity style={styles.signinLink} onPress={() => navigation.navigate('Signin', {})}><Text style={styles.signinText}>{t('auth.passwordReset.remembered')} <Text style={styles.signinHighlight}>{t('auth.signup.signin')}</Text></Text></TouchableOpacity>
               </View>
               <View style={styles.cardFooter}>
                 <Text style={styles.footerText}>
-                  By continuing, you agree to our <Text style={styles.footerLink} onPress={() => navigation.navigate('Terms')}>Terms of Service</Text> and <Text style={styles.footerLink} onPress={() => navigation.navigate('Privacy')}>Privacy Policy</Text>.
+                  {t('auth.footer.prefix')} <Text style={styles.footerLink} onPress={() => navigation.navigate('Terms')}>{t('auth.footer.terms')}</Text> {t('auth.footer.and')} <Text style={styles.footerLink} onPress={() => navigation.navigate('Privacy')}>{t('auth.footer.privacy')}</Text>.
                 </Text>
               </View>
             </GlassCard>

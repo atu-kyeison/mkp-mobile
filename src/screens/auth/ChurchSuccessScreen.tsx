@@ -7,8 +7,10 @@ import { GoldButton } from '../../components/GoldButton';
 import { MaterialIcons } from '@expo/vector-icons';
 import Colors from '../../constants/Colors';
 import Svg, { Path } from 'react-native-svg';
+import { useI18n } from '../../i18n/I18nProvider';
 
 const ChurchSuccessScreen = ({ navigation, route }: any) => {
+  const { t } = useI18n();
   const { churchName } = route.params;
   const isNewBeliever = route.params?.isNewBeliever === true;
   return (
@@ -18,11 +20,11 @@ const ChurchSuccessScreen = ({ navigation, route }: any) => {
           <View style={styles.container}>
             <GlassCard style={styles.card}>
               <View style={styles.iconContainer}><View style={styles.iconCircle}><MaterialIcons name="check-circle" size={40} color={Colors.antiqueGold} /></View></View>
-              <View style={styles.header}><Text style={styles.title}>You're connected!</Text><Text style={styles.churchName}>{churchName.toUpperCase()}</Text></View>
+              <View style={styles.header}><Text style={styles.title}>{t('auth.churchSuccess.title')}</Text><Text style={styles.churchName}>{churchName.toUpperCase()}</Text></View>
               <View style={styles.logoSlot}><View style={styles.logoCircle}><Svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={Colors.antiqueGold} strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><Path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></Svg></View></View>
-              <Text style={styles.description}>Welcome to the family. Your journey with us begins today.</Text>
+              <Text style={styles.description}>{t('auth.churchSuccess.description')}</Text>
               <GoldButton
-                title={isNewBeliever ? "CONTINUE" : "GO TO MY CHURCH"}
+                title={isNewBeliever ? t('auth.churchSuccess.continue') : t('auth.churchSuccess.submit')}
                 onPress={() =>
                   isNewBeliever
                     ? navigation.navigate('NewBelieverStart', { churchName })
@@ -32,7 +34,7 @@ const ChurchSuccessScreen = ({ navigation, route }: any) => {
               {!isNewBeliever ? (
                 <View style={styles.secondaryButton}>
                   <GoldButton
-                    title="NEW TO FAITH? START HERE"
+                    title={t('auth.churchSuccess.newBeliever')}
                     variant="outline"
                     onPress={() => navigation.navigate('NewBelieverStart', { churchName })}
                   />
@@ -40,7 +42,7 @@ const ChurchSuccessScreen = ({ navigation, route }: any) => {
               ) : null}
               <View style={styles.footer}>
                 <Text style={styles.footerText}>
-                  By continuing, you agree to the <Text style={styles.footerLink} onPress={() => navigation.navigate('Terms')}>Terms of Service</Text> and <Text style={styles.footerLink} onPress={() => navigation.navigate('Privacy')}>Privacy Policy</Text>.
+                  {t('auth.footer.prefix')} <Text style={styles.footerLink} onPress={() => navigation.navigate('Terms')}>{t('auth.footer.terms')}</Text> {t('auth.footer.and')} <Text style={styles.footerLink} onPress={() => navigation.navigate('Privacy')}>{t('auth.footer.privacy')}</Text>.
                 </Text>
               </View>
             </GlassCard>

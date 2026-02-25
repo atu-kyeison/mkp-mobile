@@ -6,8 +6,10 @@ import { GlassCard } from '../../components/GlassCard';
 import { GoldButton } from '../../components/GoldButton';
 import { MaterialIcons } from '@expo/vector-icons';
 import Colors from '../../constants/Colors';
+import { useI18n } from '../../i18n/I18nProvider';
 
 const SigninScreen = ({ navigation, route }: any) => {
+  const { t } = useI18n();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isError, setIsError] = useState(route.params?.error || false);
@@ -24,28 +26,28 @@ const SigninScreen = ({ navigation, route }: any) => {
             <View style={styles.container}>
               <View style={styles.headerContainer}>
                 <View style={styles.logoCircle}><MaterialIcons name="church" size={32} color={Colors.antiqueGold} /></View>
-                <Text style={styles.brandText}>MY KINGDOM PAL</Text>
+                <Text style={styles.brandText}>{t('auth.brand')}</Text>
               </View>
               <GlassCard style={styles.card}>
-                <View style={styles.header}><Text style={styles.title}>Welcome back</Text><Text style={styles.subtitle}>Continue your walk</Text></View>
+                <View style={styles.header}><Text style={styles.title}>{t('auth.signin.title')}</Text><Text style={styles.subtitle}>{t('auth.signin.subtitle')}</Text></View>
                 <View style={styles.form}>
-                  <View style={styles.inputGroup}><Text style={styles.label}>EMAIL ADDRESS</Text><TextInput style={styles.input} placeholder="your@email.com" placeholderTextColor="rgba(255, 255, 255, 0.25)" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} /></View>
+                  <View style={styles.inputGroup}><Text style={styles.label}>{t('auth.signin.emailLabel')}</Text><TextInput style={styles.input} placeholder="your@email.com" placeholderTextColor="rgba(255, 255, 255, 0.25)" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} /></View>
                   <View style={styles.inputGroup}>
-                    <Text style={styles.label}>PASSWORD</Text>
+                    <Text style={styles.label}>{t('auth.signin.passwordLabel')}</Text>
                     <TextInput style={[styles.input, isError && styles.inputError]} placeholder="••••••••" placeholderTextColor="rgba(255, 255, 255, 0.25)" secureTextEntry value={password} onChangeText={(text) => { setPassword(text); if (isError) setIsError(false); }} />
-                    {isError && <Text style={styles.errorHint}>That didn't match our records. Check your details or reset your password.</Text>}
+                    {isError && <Text style={styles.errorHint}>{t('auth.signin.error')}</Text>}
                   </View>
                   <View style={styles.buttonWrapper}>
                     <GoldButton
-                      title={isError ? "TRY AGAIN" : "SIGN IN"}
+                      title={isError ? t('auth.signin.tryAgain') : t('auth.signin.submit')}
                       onPress={() => navigation.getParent()?.navigate('Main')}
                     />
                   </View>
-                  <TouchableOpacity style={styles.forgotLink} onPress={() => navigation.navigate('PasswordReset')}><Text style={styles.forgotText}>Forgot password?</Text></TouchableOpacity>
+                  <TouchableOpacity style={styles.forgotLink} onPress={() => navigation.navigate('PasswordReset')}><Text style={styles.forgotText}>{t('auth.signin.forgot')}</Text></TouchableOpacity>
                 </View>
                 <View style={styles.cardFooter}>
                   <Text style={styles.footerText}>
-                    By continuing, you agree to our <Text style={styles.footerLink} onPress={() => navigation.navigate('Terms')}>Terms of Service</Text> and <Text style={styles.footerLink} onPress={() => navigation.navigate('Privacy')}>Privacy Policy</Text>.
+                    {t('auth.footer.prefix')} <Text style={styles.footerLink} onPress={() => navigation.navigate('Terms')}>{t('auth.footer.terms')}</Text> {t('auth.footer.and')} <Text style={styles.footerLink} onPress={() => navigation.navigate('Privacy')}>{t('auth.footer.privacy')}</Text>.
                   </Text>
                 </View>
               </GlassCard>

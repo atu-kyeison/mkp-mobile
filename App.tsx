@@ -31,6 +31,7 @@ import {
 import { Colors } from './constants/Colors';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { I18nProvider } from './src/i18n/I18nProvider';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -67,10 +68,12 @@ export default function App() {
 
   return (
     <SafeAreaProvider>
-      <View style={styles.container} onLayout={onLayoutRootView}>
-        <RootNavigator />
-        <StatusBar style="light" />
-      </View>
+      <I18nProvider>
+        <View style={styles.container} onLayout={onLayoutRootView}>
+          <RootNavigator />
+          <StatusBar style="light" />
+        </View>
+      </I18nProvider>
     </SafeAreaProvider>
   );
 }

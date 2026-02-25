@@ -51,6 +51,8 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     'auth.churchSuccess.title': "You're connected!",
     'auth.churchSuccess.description': 'Welcome to the family. Your journey with us begins today.',
     'auth.churchSuccess.submit': 'GO TO MY CHURCH',
+    'auth.churchSuccess.continue': 'CONTINUE',
+    'auth.churchSuccess.newBeliever': 'NEW TO FAITH? START HERE',
 
     'auth.passwordReset.title': 'Reset your password',
     'auth.passwordReset.subtitle': 'Enter your email and we’ll send you a reset link.',
@@ -114,6 +116,8 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     'auth.churchSuccess.title': '¡Estás conectado!',
     'auth.churchSuccess.description': 'Bienvenido a la familia. Tu camino con nosotros comienza hoy.',
     'auth.churchSuccess.submit': 'IR A MI IGLESIA',
+    'auth.churchSuccess.continue': 'CONTINUAR',
+    'auth.churchSuccess.newBeliever': '¿NUEVO EN LA FE? COMIENZA AQUÍ',
 
     'auth.passwordReset.title': 'Restablece tu contraseña',
     'auth.passwordReset.subtitle': 'Ingresa tu correo y te enviaremos un enlace de restablecimiento.',
@@ -180,4 +184,3 @@ export const useI18n = (): I18nContextValue => {
   }
   return context;
 };
-

@@ -6,8 +6,10 @@ import { GlassCard } from '../../components/GlassCard';
 import { GoldButton } from '../../components/GoldButton';
 import { MaterialIcons } from '@expo/vector-icons';
 import Colors from '../../constants/Colors';
+import { useI18n } from '../../i18n/I18nProvider';
 
 const SignupScreen = ({ navigation }: any) => {
+  const { t } = useI18n();
   const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -19,26 +21,26 @@ const SignupScreen = ({ navigation }: any) => {
           <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
             <View style={styles.headerContainer}>
               <View style={styles.logoCircle}><MaterialIcons name="church" size={32} color={Colors.antiqueGold} /></View>
-              <Text style={styles.brandText}>MY KINGDOM PAL</Text>
+              <Text style={styles.brandText}>{t('auth.brand')}</Text>
             </View>
             <GlassCard style={styles.card}>
-              <View style={styles.header}><Text style={styles.title}>Start your journey</Text><Text style={styles.subtitle}>Create an account to begin</Text></View>
+              <View style={styles.header}><Text style={styles.title}>{t('auth.signup.title')}</Text><Text style={styles.subtitle}>{t('auth.signup.subtitle')}</Text></View>
               <View style={styles.form}>
-                <View style={styles.inputGroup}><Text style={styles.label}>FIRST NAME</Text><TextInput style={styles.input} placeholder="Enter your name" placeholderTextColor="rgba(255, 255, 255, 0.25)" value={firstName} onChangeText={setFirstName} /></View>
-                <View style={styles.inputGroup}><Text style={styles.label}>EMAIL ADDRESS</Text><TextInput style={styles.input} placeholder="your@email.com" placeholderTextColor="rgba(255, 255, 255, 0.25)" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} /></View>
-                <View style={styles.inputGroup}><Text style={styles.label}>PASSWORD</Text><TextInput style={styles.input} placeholder="••••••••" placeholderTextColor="rgba(255, 255, 255, 0.25)" secureTextEntry value={password} onChangeText={setPassword} /></View>
+                <View style={styles.inputGroup}><Text style={styles.label}>{t('auth.signup.firstNameLabel')}</Text><TextInput style={styles.input} placeholder={t('auth.signup.firstNamePlaceholder')} placeholderTextColor="rgba(255, 255, 255, 0.25)" value={firstName} onChangeText={setFirstName} /></View>
+                <View style={styles.inputGroup}><Text style={styles.label}>{t('auth.signin.emailLabel')}</Text><TextInput style={styles.input} placeholder="your@email.com" placeholderTextColor="rgba(255, 255, 255, 0.25)" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} /></View>
+                <View style={styles.inputGroup}><Text style={styles.label}>{t('auth.signin.passwordLabel')}</Text><TextInput style={styles.input} placeholder="••••••••" placeholderTextColor="rgba(255, 255, 255, 0.25)" secureTextEntry value={password} onChangeText={setPassword} /></View>
                 <TouchableOpacity style={styles.checkboxContainer} activeOpacity={0.7} onPress={() => setIsAgeVerified(!isAgeVerified)}>
                   <View style={[styles.checkbox, isAgeVerified && styles.checkboxActive]}>{isAgeVerified && <MaterialIcons name="check" size={14} color={Colors.backgroundDark} />}</View>
-                  <View style={styles.checkboxLabelContainer}><Text style={styles.checkboxLabel}>I confirm I am at least 16 years old.</Text><Text style={styles.checkboxSublabel}>My Kingdom Pal is designed for ages 16+.</Text></View>
+                  <View style={styles.checkboxLabelContainer}><Text style={styles.checkboxLabel}>{t('auth.signup.ageLine')}</Text><Text style={styles.checkboxSublabel}>{t('auth.signup.ageSubline')}</Text></View>
                 </TouchableOpacity>
                 <View style={styles.buttonWrapper}>
-                  <GoldButton title="CREATE ACCOUNT" onPress={() => navigation.navigate('Terms', { nextScreen: 'ChurchSearch' })} />
+                  <GoldButton title={t('auth.signup.submit')} onPress={() => navigation.navigate('Terms', { nextScreen: 'ChurchSearch' })} />
                 </View>
-                <TouchableOpacity style={styles.signinLink} onPress={() => navigation.navigate('Signin', {})}><Text style={styles.signinText}>Already have an account? <Text style={styles.signinHighlight}>Sign in</Text></Text></TouchableOpacity>
+                <TouchableOpacity style={styles.signinLink} onPress={() => navigation.navigate('Signin', {})}><Text style={styles.signinText}>{t('auth.signup.hasAccount')} <Text style={styles.signinHighlight}>{t('auth.signup.signin')}</Text></Text></TouchableOpacity>
               </View>
               <View style={styles.cardFooter}>
                 <Text style={styles.footerText}>
-                  BY CONTINUING, YOU AGREE TO OUR <Text style={styles.footerLink} onPress={() => navigation.navigate('Terms')}>TERMS OF SERVICE</Text> AND <Text style={styles.footerLink} onPress={() => navigation.navigate('Privacy')}>PRIVACY POLICY</Text>.
+                  {t('auth.footer.prefix').toUpperCase()} <Text style={styles.footerLink} onPress={() => navigation.navigate('Terms')}>{t('auth.footer.terms').toUpperCase()}</Text> {t('auth.footer.and').toUpperCase()} <Text style={styles.footerLink} onPress={() => navigation.navigate('Privacy')}>{t('auth.footer.privacy').toUpperCase()}</Text>.
                 </Text>
               </View>
             </GlassCard>

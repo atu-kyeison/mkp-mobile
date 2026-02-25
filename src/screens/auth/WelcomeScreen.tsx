@@ -6,9 +6,12 @@ import { GlassCard } from '../../components/GlassCard';
 import { GoldButton } from '../../components/GoldButton';
 import { MaterialIcons } from '@expo/vector-icons';
 import Colors from '../../constants/Colors';
+import { useI18n } from '../../i18n/I18nProvider';
 
-const WelcomeScreen = ({ navigation }: any) => (
-  <MidnightBackground>
+const WelcomeScreen = ({ navigation }: any) => {
+  const { t } = useI18n();
+  return (
+    <MidnightBackground>
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
@@ -21,23 +24,24 @@ const WelcomeScreen = ({ navigation }: any) => (
               <View style={styles.logoCircle}>
                 <MaterialIcons name="church" size={32} color={Colors.antiqueGold} />
               </View>
-              <Text style={styles.brandText}>MY KINGDOM PAL</Text>
+              <Text style={styles.brandText}>{t('auth.brand')}</Text>
             </View>
             <View style={styles.header}>
-              <Text style={styles.title}>Walk with the Word all week.</Text>
-              <Text style={styles.subtitle}>Helping Believers Live the Word Every Day - Beyond Sunday</Text>
+              <Text style={styles.title}>{t('auth.welcome.title')}</Text>
+              <Text style={styles.subtitle}>{t('auth.welcome.subtitle')}</Text>
             </View>
             <View style={styles.buttonContainer}>
-              <GoldButton title="JOIN YOUR CHURCH" onPress={() => navigation.navigate('Signup')} />
+              <GoldButton title={t('auth.welcome.join')} onPress={() => navigation.navigate('Signup')} />
               <TouchableOpacity style={styles.linkButton} onPress={() => navigation.navigate('Signin', {})}>
-                <Text style={styles.linkText}>I ALREADY HAVE ACCESS</Text>
+                <Text style={styles.linkText}>{t('auth.welcome.haveAccess')}</Text>
               </TouchableOpacity>
             </View>
             <View style={styles.footer}>
               <Text style={styles.footerText}>
-                By continuing, you agree to our{' '}
-                <Text style={styles.footerLink} onPress={() => navigation.navigate('Terms')}>Terms of Service</Text> and{' '}
-                <Text style={styles.footerLink} onPress={() => navigation.navigate('Privacy')}>Privacy Policy</Text>.
+                {t('auth.footer.prefix')}{' '}
+                <Text style={styles.footerLink} onPress={() => navigation.navigate('Terms')}>{t('auth.footer.terms')}</Text>{' '}
+                {t('auth.footer.and')}{' '}
+                <Text style={styles.footerLink} onPress={() => navigation.navigate('Privacy')}>{t('auth.footer.privacy')}</Text>.
               </Text>
             </View>
           </GlassCard>
@@ -45,7 +49,8 @@ const WelcomeScreen = ({ navigation }: any) => (
       </ScrollView>
     </SafeAreaView>
   </MidnightBackground>
-);
+  );
+};
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
