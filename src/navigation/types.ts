@@ -23,4 +23,6 @@ export type RootStackParamList = {
   Main: undefined;
   FAQ: undefined;
   Guidelines: undefined;
+  Terms: undefined;
+  Privacy: undefined;
 };

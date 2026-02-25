@@ -6,6 +6,8 @@ import { MainTabNavigator } from './MainTabNavigator';
 import { RootStackParamList } from './types';
 import FAQScreen from '../screens/profile/FAQScreen';
 import UseGuidelinesScreen from '../screens/legal/UseGuidelinesScreen';
+import TermsScreen from '../screens/legal/TermsScreen';
+import PrivacyPolicyScreen from '../screens/legal/PrivacyPolicyScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -21,6 +23,8 @@ export const RootNavigator = () => {
         <Stack.Group screenOptions={{ presentation: 'modal' }}>
           <Stack.Screen name="FAQ" component={FAQScreen} />
           <Stack.Screen name="Guidelines" component={UseGuidelinesScreen} />
+          <Stack.Screen name="Terms" component={TermsScreen} />
+          <Stack.Screen name="Privacy" component={PrivacyPolicyScreen} />
         </Stack.Group>
       </Stack.Navigator>
     </NavigationContainer>

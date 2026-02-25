@@ -24,7 +24,7 @@ export default function CareEscalationSuccess({ navigation }: any) {
           <View style={styles.ctaGroup}>
             <CustomButton
               title={t('care.success.returnHome')}
-              onPress={() => navigation.getParent()?.navigate('HOME')}
+              onPress={() => navigation.getParent()?.navigate('Home')}
               style={styles.fullWidthButton}
             />
             <TouchableOpacity onPress={() => navigation.navigate('PrayerSubmission')}>
@@ -33,8 +33,12 @@ export default function CareEscalationSuccess({ navigation }: any) {
           </View>
 
           <View style={styles.footer}>
-            <Text style={styles.footerLink}>{t('auth.footer.terms')}</Text>
-            <Text style={styles.footerLink}>{t('auth.footer.privacy')}</Text>
+            <TouchableOpacity onPress={() => navigation.getParent()?.getParent()?.navigate('Terms')}>
+              <Text style={styles.footerLink}>{t('auth.footer.terms')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.getParent()?.getParent()?.navigate('Privacy')}>
+              <Text style={styles.footerLink}>{t('auth.footer.privacy')}</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </SafeAreaView>
