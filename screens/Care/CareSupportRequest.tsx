@@ -39,23 +39,25 @@ export default function CareSupportRequest({ navigation, route }: any) {
   const [message, setMessage] = useState('');
   const [submitState, setSubmitState] = useState<'idle' | 'sending' | 'error'>('idle');
 
+  const completeSendAttempt = () => {
+    if (!message.trim()) {
+      setSubmitState('error');
+      return;
+    }
+    setSubmitState('idle');
+    navigation.navigate('CareEscalationSuccess', {
+      requestType: helpType,
+      careCategory: helpType === 'I recently gave my life to Christ' ? 'new_believer' : 'general',
+      contactMethod,
+      notes: message,
+    });
+  };
+
   const handleSubmit = () => {
     setSubmitState('sending');
 
-    // Until backend wiring is in place, emulate network behavior and keep both states testable.
-    setTimeout(() => {
-      if (!message.trim()) {
-        setSubmitState('error');
-        return;
-      }
-      setSubmitState('idle');
-      navigation.navigate('CareEscalationSuccess', {
-        requestType: helpType,
-        careCategory: helpType === 'I recently gave my life to Christ' ? 'new_believer' : 'general',
-        contactMethod,
-        notes: message,
-      });
-    }, 900);
+    // Until backend wiring is in place, emulate network behavior while keeping states exclusive.
+    setTimeout(completeSendAttempt, 900);
   };
 
   return (
@@ -71,87 +73,87 @@ export default function CareSupportRequest({ navigation, route }: any) {
             <Text style={styles.title}>{t('care.support.title')}</Text>
           </View>
 
-          <GlassCard withGlow style={styles.card}>
-            <Text style={styles.sectionLabel}>{t('care.support.section.type')}</Text>
-            <View style={styles.chipsRow}>
-              {HELP_TYPES.map((option) => {
-                const selected = option === helpType;
-                return (
-                  <TouchableOpacity
-                    key={option}
-                    onPress={() => setHelpType(option)}
-                    style={[styles.chip, selected && styles.chipSelected]}
-                  >
-                    <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                      {
-                        option === 'A conversation with a pastor' ? t('care.support.type.pastor') :
-                        option === 'Discipleship / next steps' ? t('care.support.type.discipleship') :
-                        option === 'Accountability support' ? t('care.support.type.accountability') :
-                        option === 'Prayer in person or by call' ? t('care.support.type.prayer') :
-                        option === "I'm going through something difficult" ? t('care.support.type.difficult') :
-                        option === 'I recently gave my life to Christ' ? t('care.support.type.newBeliever') :
-                        t('care.support.type.other')
-                      }
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-
-            {helpType === "I'm going through something difficult" ? (
-              <Text style={styles.crisisNote}>
-                {t('care.support.crisis')}
-              </Text>
-            ) : null}
-
-            <Text style={[styles.sectionLabel, styles.sectionSpacing]}>
-              {t('care.support.section.message')}
-            </Text>
-            <TextInput
-              style={styles.textInput}
-              multiline
-              numberOfLines={5}
-              value={message}
-              onChangeText={setMessage}
-              placeholder={t('care.support.placeholder')}
-              placeholderTextColor="rgba(255, 255, 255, 0.35)"
-            />
-
-            <Text style={[styles.sectionLabel, styles.sectionSpacing]}>
-              {t('care.support.section.contact')}
-            </Text>
-            <View style={styles.contactRow}>
-              {CONTACT_METHODS.map((method) => {
-                const selected = method === contactMethod;
-                return (
-                  <TouchableOpacity
-                    key={method}
-                    onPress={() => setContactMethod(method)}
-                    style={[styles.contactChip, selected && styles.contactChipSelected]}
-                  >
-                    <Text
-                      style={[
-                        styles.contactChipText,
-                        selected && styles.contactChipTextSelected,
-                      ]}
+          {submitState === 'idle' ? (
+            <GlassCard withGlow style={styles.card}>
+              <Text style={styles.sectionLabel}>{t('care.support.section.type')}</Text>
+              <View style={styles.chipsRow}>
+                {HELP_TYPES.map((option) => {
+                  const selected = option === helpType;
+                  return (
+                    <TouchableOpacity
+                      key={option}
+                      onPress={() => setHelpType(option)}
+                      style={[styles.chip, selected && styles.chipSelected]}
                     >
-                      {
-                        method === 'Call' ? t('care.support.contact.call') :
-                        method === 'Text' ? t('care.support.contact.text') :
-                        t('care.support.contact.email')
-                      }
-                    </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
+                      <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
+                        {
+                          option === 'A conversation with a pastor' ? t('care.support.type.pastor') :
+                          option === 'Discipleship / next steps' ? t('care.support.type.discipleship') :
+                          option === 'Accountability support' ? t('care.support.type.accountability') :
+                          option === 'Prayer in person or by call' ? t('care.support.type.prayer') :
+                          option === "I'm going through something difficult" ? t('care.support.type.difficult') :
+                          option === 'I recently gave my life to Christ' ? t('care.support.type.newBeliever') :
+                          t('care.support.type.other')
+                        }
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
 
-            <View style={styles.buttonContainer}>
-              <CustomButton title={t('care.support.send')} onPress={handleSubmit} />
-            </View>
-          </GlassCard>
+              {helpType === "I'm going through something difficult" ? (
+                <Text style={styles.crisisNote}>
+                  {t('care.support.crisis')}
+                </Text>
+              ) : null}
 
-          {submitState !== 'idle' ? (
+              <Text style={[styles.sectionLabel, styles.sectionSpacing]}>
+                {t('care.support.section.message')}
+              </Text>
+              <TextInput
+                style={styles.textInput}
+                multiline
+                numberOfLines={5}
+                value={message}
+                onChangeText={setMessage}
+                placeholder={t('care.support.placeholder')}
+                placeholderTextColor="rgba(255, 255, 255, 0.35)"
+              />
+
+              <Text style={[styles.sectionLabel, styles.sectionSpacing]}>
+                {t('care.support.section.contact')}
+              </Text>
+              <View style={styles.contactRow}>
+                {CONTACT_METHODS.map((method) => {
+                  const selected = method === contactMethod;
+                  return (
+                    <TouchableOpacity
+                      key={method}
+                      onPress={() => setContactMethod(method)}
+                      style={[styles.contactChip, selected && styles.contactChipSelected]}
+                    >
+                      <Text
+                        style={[
+                          styles.contactChipText,
+                          selected && styles.contactChipTextSelected,
+                        ]}
+                      >
+                        {
+                          method === 'Call' ? t('care.support.contact.call') :
+                          method === 'Text' ? t('care.support.contact.text') :
+                          t('care.support.contact.email')
+                        }
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+
+              <View style={styles.buttonContainer}>
+                <CustomButton title={t('care.support.send')} onPress={handleSubmit} />
+              </View>
+            </GlassCard>
+          ) : (
             <GlassCard withGlow style={styles.submitStateCard}>
               {submitState === 'sending' ? (
                 <>
@@ -177,7 +179,7 @@ export default function CareSupportRequest({ navigation, route }: any) {
                 </>
               )}
             </GlassCard>
-          ) : null}
+          )}
         </ScrollView>
       </SafeAreaView>
     </GradientBackground>

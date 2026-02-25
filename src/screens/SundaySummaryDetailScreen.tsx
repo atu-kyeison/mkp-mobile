@@ -6,16 +6,21 @@ import { BackgroundGradient } from '../components/BackgroundGradient';
 import { GlassCard } from '../components/GlassCard';
 import { Colors } from '../../constants/Colors';
 
-type ViewState = 'filled' | 'empty' | 'loading' | 'error' | 'composite';
+type ViewState = 'filled' | 'empty' | 'loading' | 'error';
 
 export const SundaySummaryDetailScreen = ({ navigation, route }: any) => {
   const initialState = (route?.params?.viewState as ViewState) || 'filled';
   const [viewState, setViewState] = useState<ViewState>(initialState);
 
   const showFilled = viewState === 'filled';
-  const showEmpty = viewState === 'empty' || viewState === 'loading' || viewState === 'error' || viewState === 'composite';
-  const showLoading = viewState === 'loading' || viewState === 'composite';
-  const showError = viewState === 'error' || viewState === 'composite';
+  const showEmpty = viewState === 'empty';
+  const showLoading = viewState === 'loading';
+  const showError = viewState === 'error';
+
+  const retryLoading = () => {
+    setViewState('loading');
+    setTimeout(() => setViewState('filled'), 800);
+  };
 
   return (
     <BackgroundGradient style={styles.container}>
@@ -142,7 +147,7 @@ export const SundaySummaryDetailScreen = ({ navigation, route }: any) => {
               {showError ? (
                 <View style={styles.errorWrap}>
                   <Text style={styles.errorText}>Something didn't load. Try again.</Text>
-                  <TouchableOpacity style={styles.retryButton} onPress={() => setViewState('loading')}>
+                  <TouchableOpacity style={styles.retryButton} onPress={retryLoading}>
                     <Text style={styles.retryText}>RETRY</Text>
                   </TouchableOpacity>
                 </View>
