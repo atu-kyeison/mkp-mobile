@@ -37,14 +37,20 @@ const CALENDAR_DAYS: CalendarDay[] = [
 export const JourneyHistoryScreen = ({ navigation }: any) => {
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
-  const [activeTab, setActiveTab] = useState<'LIBRARY' | 'CALENDAR'>('CALENDAR');
+  const [activeTab, setActiveTab] = useState<'LIBRARY' | 'FAVORITES' | 'CALENDAR'>('LIBRARY');
   const [selectedDay, setSelectedDay] = useState<number | null>(null);
   const [detailState, setDetailState] = useState<'loading' | 'ready' | 'empty' | 'error'>('loading');
+  const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
 
   const detailTitle = useMemo(() => {
     if (!selectedDay) return '';
     return `SEP ${selectedDay}, 2024`;
   }, [selectedDay]);
+
+  const favoriteItems = useMemo(
+    () => JOURNEY_ITEMS.filter((item) => favoriteIds.includes(item.id)),
+    [favoriteIds]
+  );
 
   const resolveDayState = (day: CalendarDay) => {
     setDetailState('loading');
@@ -76,6 +82,12 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
     resolveDayState(day);
   };
 
+  const toggleFavorite = (itemId: string) => {
+    setFavoriteIds((prev) =>
+      prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId]
+    );
+  };
+
   return (
     <BackgroundGradient style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -87,6 +99,12 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
               onPress={() => setActiveTab('LIBRARY')}
             >
               <Text style={[styles.segmentedText, activeTab === 'LIBRARY' && styles.segmentedTextActive]}>{t('journey.library')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.segmentedItem, activeTab === 'FAVORITES' && styles.segmentedItemActive]}
+              onPress={() => setActiveTab('FAVORITES')}
+            >
+              <Text style={[styles.segmentedText, activeTab === 'FAVORITES' && styles.segmentedTextActive]}>{t('journey.favorites')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={[styles.segmentedItem, activeTab === 'CALENDAR' && styles.segmentedItemActive]}
@@ -119,7 +137,22 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                   <Text style={styles.itemDate}>{item.date}</Text>
                   <TouchableOpacity onPress={() => item.moodId && navigation.navigate('MoodDetail', { moodId: item.moodId, date: item.date })}>
                     <GlassCard style={styles.itemCard}>
-                      <Text style={styles.itemType}>{item.type}</Text>
+                      <View style={styles.itemHeaderRow}>
+                        <Text style={styles.itemType}>{item.type}</Text>
+                        <TouchableOpacity
+                          onPress={(event) => {
+                            event.stopPropagation();
+                            toggleFavorite(item.id);
+                          }}
+                          hitSlop={10}
+                        >
+                          <MaterialIcons
+                            name={favoriteIds.includes(item.id) ? 'star' : 'star-border'}
+                            size={18}
+                            color={Colors.accentGold}
+                          />
+                        </TouchableOpacity>
+                      </View>
                       {item.icon ? (
                         <View style={styles.iconRow}>
                           <MaterialIcons name={item.icon} size={20} color={Colors.accentGold} />
@@ -133,6 +166,43 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                 </View>
               </View>
             ))}
+          </ScrollView>
+        ) : activeTab === 'FAVORITES' ? (
+          <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 150 + insets.bottom }]} showsVerticalScrollIndicator={false}>
+            {favoriteItems.length === 0 ? (
+              <GlassCard style={styles.favoritesEmptyCard}>
+                <View style={styles.favoritesIconWrap}>
+                  <MaterialIcons name="alt-route" size={28} color={Colors.accentGold} />
+                </View>
+                <Text style={styles.favoritesEmptyText}>{t('journey.favoritesEmpty')}</Text>
+                <TouchableOpacity
+                  style={styles.favoritesCta}
+                  onPress={() =>
+                    navigation.navigate('ReflectionEntry', {
+                      journalVariant: 'mid_week',
+                      openMoodOnEntry: false,
+                    })
+                  }
+                >
+                  <Text style={styles.favoritesCtaText}>{t('journey.favoritesCta')}</Text>
+                </TouchableOpacity>
+              </GlassCard>
+            ) : (
+              <View style={styles.favoritesList}>
+                {favoriteItems.map((item) => (
+                  <GlassCard key={item.id} style={styles.favoriteItemCard}>
+                    <View style={styles.itemHeaderRow}>
+                      <Text style={styles.itemType}>{item.type}</Text>
+                      <TouchableOpacity onPress={() => toggleFavorite(item.id)} hitSlop={10}>
+                        <MaterialIcons name="star" size={18} color={Colors.accentGold} />
+                      </TouchableOpacity>
+                    </View>
+                    <Text style={styles.itemDate}>{item.date}</Text>
+                    <Text style={[styles.itemText, item.isItalic && styles.italicText]}>{item.content}</Text>
+                  </GlassCard>
+                ))}
+              </View>
+            )}
           </ScrollView>
         ) : (
           <ScrollView contentContainerStyle={[styles.calendarScroll, { paddingBottom: 150 + insets.bottom }]} showsVerticalScrollIndicator={false}>
@@ -307,9 +377,9 @@ const styles = StyleSheet.create({
   headerRow: { paddingTop: 44, paddingHorizontal: 24, paddingBottom: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   headerTitle: { fontFamily: 'PlayfairDisplay_400Regular', fontSize: 50, color: '#fff' },
   segmentedControl: { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(229,185,95,0.15)', borderRadius: 999, padding: 2 },
-  segmentedItem: { paddingHorizontal: 16, paddingVertical: 7, borderRadius: 999 },
+  segmentedItem: { paddingHorizontal: 10, paddingVertical: 7, borderRadius: 999 },
   segmentedItemActive: { backgroundColor: 'rgba(229,185,95,0.16)' },
-  segmentedText: { fontFamily: 'Cinzel_700Bold', fontSize: 10, letterSpacing: 2, color: 'rgba(255,255,255,0.45)' },
+  segmentedText: { fontFamily: 'Cinzel_700Bold', fontSize: 9, letterSpacing: 1.6, color: 'rgba(255,255,255,0.45)' },
   segmentedTextActive: { color: Colors.accentGold },
   scrollContent: { paddingHorizontal: 24 },
   quickLinks: { flexDirection: 'row', gap: 12, marginBottom: 24 },
@@ -321,7 +391,44 @@ const styles = StyleSheet.create({
   itemContent: { flex: 1, paddingLeft: 32 },
   itemDate: { fontFamily: 'Inter_400Regular', fontSize: 11, color: 'rgba(255, 255, 255, 0.4)', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 8 },
   itemCard: { padding: 20, backgroundColor: 'rgba(13, 27, 42, 0.6)' },
-  itemType: { fontFamily: 'Cinzel_700Bold', fontSize: 9, color: Colors.accentGold, letterSpacing: 2, marginBottom: 12 },
+  itemHeaderRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 },
+  itemType: { fontFamily: 'Cinzel_700Bold', fontSize: 9, color: Colors.accentGold, letterSpacing: 2 },
+  favoritesList: { gap: 14 },
+  favoriteItemCard: { padding: 20, borderRadius: 20 },
+  favoritesEmptyCard: { borderRadius: 34, paddingVertical: 52, paddingHorizontal: 24, alignItems: 'center' },
+  favoritesIconWrap: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    borderWidth: 1,
+    borderColor: 'rgba(229,185,95,0.22)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(229,185,95,0.06)',
+    marginBottom: 22,
+  },
+  favoritesEmptyText: {
+    fontFamily: 'PlayfairDisplay_400Regular_Italic',
+    fontSize: 18,
+    lineHeight: 32,
+    color: 'rgba(255,255,255,0.82)',
+    textAlign: 'center',
+    marginBottom: 26,
+  },
+  favoritesCta: {
+    width: '100%',
+    borderRadius: 12,
+    backgroundColor: Colors.accentGold,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    shadowColor: Colors.accentGold,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.28,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+  favoritesCtaText: { fontFamily: 'Cinzel_700Bold', fontSize: 12, letterSpacing: 2.2, color: Colors.backgroundDark },
   itemText: { fontFamily: 'PlayfairDisplay_400Regular', fontSize: 17, color: 'rgba(255, 255, 255, 0.9)', lineHeight: 26 },
   italicText: { fontStyle: 'italic' },
   iconRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },

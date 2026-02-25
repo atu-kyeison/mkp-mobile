@@ -141,7 +141,10 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
 
     'journey.title': 'Journey',
     'journey.library': 'LIBRARY',
+    'journey.favorites': 'FAVORITES',
     'journey.calendar': 'CALENDAR',
+    'journey.favoritesEmpty': 'Your journey will appear here over time.',
+    'journey.favoritesCta': 'WRITE YOUR FIRST REFLECTION',
     'journey.quick.insights': 'INSIGHTS HOME',
     'journey.quick.awareness': 'PAST AWARENESS',
     'journey.legend.reflection': 'Reflection',
@@ -362,7 +365,10 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
 
     'journey.title': 'Camino',
     'journey.library': 'BIBLIOTECA',
+    'journey.favorites': 'FAVORITOS',
     'journey.calendar': 'CALENDARIO',
+    'journey.favoritesEmpty': 'Tu camino aparecerá aquí con el tiempo.',
+    'journey.favoritesCta': 'ESCRIBE TU PRIMERA REFLEXIÓN',
     'journey.quick.insights': 'INICIO DE INSIGHTS',
     'journey.quick.awareness': 'AWARENESS PASADA',
     'journey.legend.reflection': 'Reflexión',
