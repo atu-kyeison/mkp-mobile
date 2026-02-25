@@ -6,9 +6,11 @@ import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
 import { openChurchMessage, openScriptureReference, speakWithTTS } from '../../constants/Actions';
+import { getTodayFormationDateLabel } from './dateUtils';
 
 export default function Wednesday({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const dateLabel = getTodayFormationDateLabel();
 
   return (
     <GradientBackground style={styles.container}>
@@ -19,7 +21,7 @@ export default function Wednesday({ navigation }: any) {
             <View style={styles.divider} />
             <Text style={styles.italicLabel}>inner awareness</Text>
             <Text style={styles.greeting}>Good morning.</Text>
-            <Text style={styles.date}>WEDNESDAY • SEPT 20</Text>
+            <Text style={styles.date}>{dateLabel}</Text>
           </View>
 
           <GlassCard style={styles.card}>
@@ -81,8 +83,8 @@ export default function Wednesday({ navigation }: any) {
                 <Text style={styles.prayerIcon}>✨</Text>
               </View>
               <View style={styles.flex1}>
-                <Text style={styles.cardLabel}>PRAYER</Text>
-                <Text style={styles.prayerText}>God, help me see what I usually rush past. Give me courage to be honest with You.</Text>
+                <Text style={styles.cardLabel}>INVITATION TO PRAY</Text>
+                <Text style={styles.prayerText}>Ask God to reveal what is beneath the surface and guide your response with honesty.</Text>
               </View>
             </View>
           </GlassCard>

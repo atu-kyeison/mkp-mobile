@@ -1,27 +1,26 @@
 import React from 'react';
 import { StyleSheet, View, Text, ScrollView } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useWindowDimensions } from 'react-native';
 import { Colors } from '../../constants/Colors';
 import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
+import { getTodayFormationDateLabel } from './dateUtils';
 
 export default function Saturday({ navigation }: any) {
-  const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const allowScroll = height < 820;
+  const dateLabel = getTodayFormationDateLabel();
 
   return (
     <GradientBackground style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 120 + insets.bottom }]} showsVerticalScrollIndicator={false} scrollEnabled={allowScroll}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 170 + insets.bottom }]} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <Text style={styles.topLabel}>TODAY'S FOCUS</Text>
             <View style={styles.divider} />
             <Text style={styles.italicLabel}>rest</Text>
             <Text style={styles.greeting}>Good morning</Text>
-            <Text style={styles.date}>Saturday • Sept 23</Text>
+            <Text style={styles.date}>{dateLabel}</Text>
           </View>
 
           <GlassCard withGlow style={styles.mainCard}>
@@ -52,9 +51,9 @@ export default function Saturday({ navigation }: any) {
                 <Text style={styles.star}>★</Text>
               </View>
               <View style={styles.flex1}>
-                <Text style={styles.cardLabel}>PRAYER</Text>
+                <Text style={styles.cardLabel}>INVITATION TO PRAY</Text>
                 <Text style={styles.prayerText}>
-                  “God, help me release the need to manage everything. Teach me to trust You with what I cannot finish.”
+                  Sit quietly and release unfinished things to God, asking for rest in His care.
                 </Text>
               </View>
             </View>

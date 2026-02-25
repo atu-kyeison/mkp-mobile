@@ -1,28 +1,27 @@
 import React from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useWindowDimensions } from 'react-native';
 import { Colors } from '../../constants/Colors';
 import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
 import { openChurchMessage, openScriptureReference, speakWithTTS } from '../../constants/Actions';
+import { getTodayFormationDateLabel } from './dateUtils';
 
 export default function Friday({ navigation }: any) {
-  const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const allowScroll = height < 820;
+  const dateLabel = getTodayFormationDateLabel();
 
   return (
     <GradientBackground style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 120 + insets.bottom }]} showsVerticalScrollIndicator={false} scrollEnabled={allowScroll}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 170 + insets.bottom }]} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <Text style={styles.topLabel}>TODAY'S FOCUS</Text>
             <View style={styles.divider} />
             <Text style={styles.italicLabel}>gratitude & joy</Text>
             <Text style={styles.greeting}>Good morning</Text>
-            <Text style={styles.date}>Friday • Sept 22</Text>
+            <Text style={styles.date}>{dateLabel}</Text>
           </View>
 
           <GlassCard style={styles.card}>
@@ -91,8 +90,8 @@ export default function Friday({ navigation }: any) {
                 <Text style={styles.star}>★</Text>
               </View>
               <View style={styles.flex1}>
-                <Text style={styles.cardLabel}>PRAYER</Text>
-                <Text style={styles.prayerText}>“Father, thank You for the breath in my lungs and Your presence in my life. Help me to carry a heart of joy today.”</Text>
+                <Text style={styles.cardLabel}>INVITATION TO PRAY</Text>
+                <Text style={styles.prayerText}>Thank God for three signs of grace this week and ask for joy to carry forward.</Text>
               </View>
             </View>
           </GlassCard>
