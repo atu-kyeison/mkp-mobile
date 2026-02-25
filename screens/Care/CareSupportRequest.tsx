@@ -6,6 +6,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GradientBackground } from '../../components/GradientBackground';
@@ -35,14 +37,25 @@ export default function CareSupportRequest({ navigation, route }: any) {
   const [contactMethod, setContactMethod] =
     useState<(typeof CONTACT_METHODS)[number]>('Text');
   const [message, setMessage] = useState('');
+  const [submitState, setSubmitState] = useState<'idle' | 'sending' | 'error'>('idle');
 
   const handleSubmit = () => {
-    navigation.navigate('CareEscalationSuccess', {
-      requestType: helpType,
-      careCategory: helpType === 'I recently gave my life to Christ' ? 'new_believer' : 'general',
-      contactMethod,
-      notes: message,
-    });
+    setSubmitState('sending');
+
+    // Until backend wiring is in place, emulate network behavior and keep both states testable.
+    setTimeout(() => {
+      if (!message.trim()) {
+        setSubmitState('error');
+        return;
+      }
+      setSubmitState('idle');
+      navigation.navigate('CareEscalationSuccess', {
+        requestType: helpType,
+        careCategory: helpType === 'I recently gave my life to Christ' ? 'new_believer' : 'general',
+        contactMethod,
+        notes: message,
+      });
+    }, 900);
   };
 
   return (
@@ -137,6 +150,34 @@ export default function CareSupportRequest({ navigation, route }: any) {
               <CustomButton title={t('care.support.send')} onPress={handleSubmit} />
             </View>
           </GlassCard>
+
+          {submitState !== 'idle' ? (
+            <GlassCard withGlow style={styles.submitStateCard}>
+              {submitState === 'sending' ? (
+                <>
+                  <ActivityIndicator color={Colors.accentGold} size="large" style={styles.stateIcon} />
+                  <Text style={styles.stateTitle}>{t('care.support.sending')}</Text>
+                </>
+              ) : (
+                <>
+                  <Text style={styles.errorIcon}>!</Text>
+                  <Text style={styles.stateErrorTitle}>{t('care.support.error')}</Text>
+                  <View style={styles.stateButtons}>
+                    <CustomButton title={t('care.support.retry')} onPress={handleSubmit} style={styles.stateButton} />
+                    <CustomButton
+                      title={t('care.support.saveLocal')}
+                      variant="outline"
+                      onPress={() => {
+                        setSubmitState('idle');
+                        Alert.alert(t('care.support.saved.title'), t('care.support.saved.body'));
+                      }}
+                      style={styles.stateButton}
+                    />
+                  </View>
+                </>
+              )}
+            </GlassCard>
+          ) : null}
         </ScrollView>
       </SafeAreaView>
     </GradientBackground>
@@ -250,5 +291,40 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     marginTop: 22,
+  },
+  submitStateCard: {
+    marginTop: 20,
+    padding: 20,
+    alignItems: 'center',
+  },
+  stateIcon: {
+    marginBottom: 14,
+  },
+  errorIcon: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 34,
+    color: '#D4A373',
+    marginBottom: 10,
+  },
+  stateTitle: {
+    fontFamily: 'PlayfairDisplay_400Regular_Italic',
+    fontSize: 30,
+    color: Colors.accentGold,
+    textAlign: 'center',
+  },
+  stateErrorTitle: {
+    fontFamily: 'PlayfairDisplay_400Regular',
+    fontSize: 29,
+    lineHeight: 42,
+    color: '#D4A373',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  stateButtons: {
+    width: '100%',
+    gap: 10,
+  },
+  stateButton: {
+    width: '100%',
   },
 });
