@@ -70,6 +70,17 @@ export const ReflectionEntryScreen = ({ navigation, route }: any) => {
             <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
               <Text style={styles.saveButtonText}>SAVE TO JOURNEY</Text>
             </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.supportLink}
+              onPress={() =>
+                navigation.getParent()?.navigate('Church', {
+                  screen: 'CareSupportRequest',
+                  params: { initialHelpType: "I'm going through something difficult" },
+                })
+              }
+            >
+              <Text style={styles.supportLinkText}>Need more than prayer?</Text>
+            </TouchableOpacity>
             <Text style={styles.privacyNote}>
               This space is between you and God. Your reflections stay private.
             </Text>
@@ -180,6 +191,15 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#1C2230',
     letterSpacing: 2.5,
+  },
+  supportLink: {
+    marginBottom: 12,
+  },
+  supportLinkText: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 12,
+    color: Colors.accentGold,
+    textDecorationLine: 'underline',
   },
   privacyNote: {
     fontFamily: 'Inter_400Regular',

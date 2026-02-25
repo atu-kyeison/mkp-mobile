@@ -8,6 +8,7 @@ import SignupScreen from '../screens/auth/SignupScreen';
 import SigninScreen from '../screens/auth/SigninScreen';
 import PasswordResetScreen from '../screens/auth/PasswordResetScreen';
 import PasswordEmailSentScreen from '../screens/auth/PasswordEmailSentScreen';
+import NewBelieverStartScreen from '../screens/auth/NewBelieverStartScreen';
 import TermsScreen from '../screens/legal/TermsScreen';
 import PrivacyPolicyScreen from '../screens/legal/PrivacyPolicyScreen';
 
@@ -19,6 +20,7 @@ export const AuthNavigator = () => {
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
       <Stack.Screen name="ChurchSearch" component={ChurchSearchScreen} />
       <Stack.Screen name="ChurchSuccess" component={ChurchSuccessScreen} />
+      <Stack.Screen name="NewBelieverStart" component={NewBelieverStartScreen} />
       <Stack.Screen name="Signup" component={SignupScreen} />
       <Stack.Screen name="Signin" component={SigninScreen} />
       <Stack.Screen name="PasswordReset" component={PasswordResetScreen} />

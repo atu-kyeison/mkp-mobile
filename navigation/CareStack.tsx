@@ -4,6 +4,7 @@ import CareHome from '../screens/Care/CareHome';
 import PrayerSubmission from '../screens/Care/PrayerSubmission';
 import TestimonySubmission from '../screens/Care/TestimonySubmission';
 import CareSupportRequest from '../screens/Care/CareSupportRequest';
+import CareEscalationSuccess from '../screens/Care/CareEscalationSuccess';
 import { Colors } from '../constants/Colors';
 
 const Stack = createNativeStackNavigator();
@@ -41,6 +42,11 @@ export default function CareStack() {
       <Stack.Screen
         name="CareSupportRequest"
         component={CareSupportRequest}
+        options={{ title: '' }}
+      />
+      <Stack.Screen
+        name="CareEscalationSuccess"
+        component={CareEscalationSuccess}
         options={{ title: '' }}
       />
     </Stack.Navigator>

@@ -1,7 +1,8 @@
 export type AuthStackParamList = {
   Welcome: undefined;
   ChurchSearch: { error?: boolean };
-  ChurchSuccess: { churchName: string };
+  ChurchSuccess: { churchName: string; isNewBeliever?: boolean };
+  NewBelieverStart: { churchName: string };
   Signup: undefined;
   Signin: { error?: boolean };
   PasswordReset: undefined;

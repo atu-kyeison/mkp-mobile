@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import {
-  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -15,26 +14,32 @@ import { CustomButton } from '../../components/CustomButton';
 import { Colors } from '../../constants/Colors';
 
 const HELP_TYPES = [
-  "I'd like someone to contact me",
-  'I need practical help',
-  "I'm in crisis / urgent",
+  'A conversation with a pastor',
+  'Discipleship / next steps',
+  'Accountability support',
+  'Prayer in person or by call',
+  "I'm going through something difficult",
+  'I recently gave my life to Christ',
+  'Other',
 ] as const;
 
 const CONTACT_METHODS = ['Call', 'Text', 'Email'] as const;
 
-export default function CareSupportRequest({ navigation }: any) {
+export default function CareSupportRequest({ navigation, route }: any) {
+  const preselectedType = route?.params?.initialHelpType as (typeof HELP_TYPES)[number] | undefined;
   const [helpType, setHelpType] =
-    useState<(typeof HELP_TYPES)[number]>(HELP_TYPES[0]);
+    useState<(typeof HELP_TYPES)[number]>(preselectedType && HELP_TYPES.includes(preselectedType) ? preselectedType : HELP_TYPES[0]);
   const [contactMethod, setContactMethod] =
     useState<(typeof CONTACT_METHODS)[number]>('Text');
   const [message, setMessage] = useState('');
 
   const handleSubmit = () => {
-    Alert.alert(
-      'Support Request Received',
-      'Thank you for sharing this with us. A care team member will follow up.',
-      [{ text: 'OK', onPress: () => navigation.goBack() }]
-    );
+    navigation.navigate('CareEscalationSuccess', {
+      requestType: helpType,
+      careCategory: helpType === 'I recently gave my life to Christ' ? 'new_believer' : 'general',
+      contactMethod,
+      notes: message,
+    });
   };
 
   return (
@@ -51,7 +56,7 @@ export default function CareSupportRequest({ navigation }: any) {
           </View>
 
           <GlassCard withGlow style={styles.card}>
-            <Text style={styles.sectionLabel}>KIND OF SUPPORT</Text>
+            <Text style={styles.sectionLabel}>WHAT KIND OF SUPPORT?</Text>
             <View style={styles.chipsRow}>
               {HELP_TYPES.map((option) => {
                 const selected = option === helpType;
@@ -69,7 +74,7 @@ export default function CareSupportRequest({ navigation }: any) {
               })}
             </View>
 
-            {helpType === "I'm in crisis / urgent" ? (
+            {helpType === "I'm going through something difficult" ? (
               <Text style={styles.crisisNote}>
                 If you are in immediate danger, call local emergency services.
               </Text>

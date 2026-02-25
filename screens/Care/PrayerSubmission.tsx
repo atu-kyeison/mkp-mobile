@@ -15,7 +15,16 @@ export default function PrayerSubmission({ navigation }: any) {
     Alert.alert(
       'Prayer Submitted',
       'Your request has been received. A pastor will review it in the dashboard.',
-      [{ text: 'OK', onPress: () => navigation.goBack() }]
+      [
+        { text: 'DONE', onPress: () => navigation.goBack() },
+        {
+          text: 'NEED MORE SUPPORT',
+          onPress: () =>
+            navigation.navigate('CareSupportRequest', {
+              initialHelpType: 'A conversation with a pastor',
+            }),
+        },
+      ]
     );
   };
 

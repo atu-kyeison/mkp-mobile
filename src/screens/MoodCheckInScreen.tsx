@@ -85,6 +85,17 @@ export const MoodCheckInScreen = ({ navigation, route }: any) => {
             <Text style={styles.continueText}>CONTINUE</Text>
           </TouchableOpacity>
           <Text style={styles.footerNote}>A moment for inner reflection.</Text>
+          <TouchableOpacity
+            style={styles.supportLink}
+            onPress={() =>
+              navigation.getParent()?.navigate('Church', {
+                screen: 'CareSupportRequest',
+                params: { initialHelpType: "I'm going through something difficult" },
+              })
+            }
+          >
+            <Text style={styles.supportLinkText}>Need more than prayer?</Text>
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
     </BackgroundGradient>
@@ -207,5 +218,14 @@ const styles = StyleSheet.create({
     letterSpacing: 1.5,
     marginTop: 32,
     textTransform: 'uppercase',
+  },
+  supportLink: {
+    marginTop: 12,
+  },
+  supportLinkText: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 12,
+    color: Colors.accentGold,
+    textDecorationLine: 'underline',
   },
 });

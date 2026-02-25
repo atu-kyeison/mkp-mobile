@@ -6,7 +6,7 @@ import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { openChurchMessage, openScriptureReference } from '../../constants/Actions';
 
-export default function Sunday() {
+export default function Sunday({ navigation }: any) {
   return (
     <GradientBackground variant="sacred" style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -32,6 +32,17 @@ export default function Sunday() {
               <Text style={styles.recapText}>
                 "A serene reflection on abiding in the vine, emphasizing the sacred connection between the branch and the source. We are not called to produce, but to remain."
               </Text>
+              <TouchableOpacity
+                style={styles.escalationLink}
+                onPress={() =>
+                  navigation.navigate('Church', {
+                    screen: 'CareSupportRequest',
+                    params: { initialHelpType: 'A conversation with a pastor' },
+                  })
+                }
+              >
+                <Text style={styles.escalationLinkText}>Need more than prayer?</Text>
+              </TouchableOpacity>
             </GlassCard>
           </View>
 
@@ -175,6 +186,16 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.9)',
     lineHeight: 22,
+  },
+  escalationLink: {
+    marginTop: 12,
+    alignSelf: 'flex-start',
+  },
+  escalationLinkText: {
+    fontFamily: 'Inter_700Bold',
+    fontSize: 11,
+    color: Colors.accentGold,
+    textDecorationLine: 'underline',
   },
   truthsSection: {
     marginBottom: 32,
