@@ -1,16 +1,17 @@
 import React from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
 import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { openChurchMessage, openScriptureReference } from '../../constants/Actions';
 
 export default function Sunday({ navigation }: any) {
+  const insets = useSafeAreaInsets();
   return (
     <GradientBackground variant="sacred" style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 140 + insets.bottom }]} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <Text style={styles.topLabel}>Sunday • Sept 15</Text>
             <Text style={styles.title}>Abiding in Christ</Text>
@@ -119,7 +120,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 60,
-    paddingBottom: 140,
   },
   header: {
     alignItems: 'center',

@@ -1,6 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, Text, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWindowDimensions } from 'react-native';
 import { Colors } from '../../constants/Colors';
 import { GradientBackground } from '../../components/GradientBackground';
@@ -9,12 +9,13 @@ import { CustomButton } from '../../components/CustomButton';
 
 export default function Saturday({ navigation }: any) {
   const { height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
   const allowScroll = height < 820;
 
   return (
     <GradientBackground style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false} scrollEnabled={allowScroll}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 120 + insets.bottom }]} showsVerticalScrollIndicator={false} scrollEnabled={allowScroll}>
           <View style={styles.header}>
             <Text style={styles.topLabel}>TODAY'S FOCUS</Text>
             <View style={styles.divider} />
@@ -81,7 +82,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 24,
     paddingTop: 40,
-    paddingBottom: 120,
   },
   header: {
     alignItems: 'center',
