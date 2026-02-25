@@ -186,8 +186,41 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
               ) : null}
 
               {detailState === 'ready' ? (
-                <View style={styles.sheetBodyCentered}>
-                  <Text style={styles.sheetReadyText}>Open this day from library detail links.</Text>
+                <View style={styles.sheetBodyReady}>
+                  <TouchableOpacity style={styles.readySection} onPress={() => navigation.navigate('MoodDetail', { moodId: 'peaceful', date: detailTitle })}>
+                    <View style={styles.readySectionHeader}>
+                      <Text style={styles.readyLabel}>INNER POSTURE</Text>
+                      <MaterialIcons name="chevron-right" size={16} color="rgba(229,185,95,0.35)" />
+                    </View>
+                    <View style={styles.moodPill}>
+                      <Text style={styles.moodEmoji}>🌿</Text>
+                      <Text style={styles.moodPillText}>Peaceful</Text>
+                    </View>
+                    <Text style={styles.readySubText}>A quiet morning with the Word.</Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity style={styles.readySection} onPress={() => navigation.navigate('ReflectionEntry', { journalVariant: 'mid_week', openMoodOnEntry: false })}>
+                    <View style={styles.readySectionHeader}>
+                      <Text style={styles.readyLabel}>REFLECTION</Text>
+                      <MaterialIcons name="chevron-right" size={16} color="rgba(229,185,95,0.35)" />
+                    </View>
+                    <Text style={styles.readyReflectionText}>
+                      "I felt a deep sense of stillness this morning during the scripture reading. It reminded me that abiding isn't about..."
+                    </Text>
+                  </TouchableOpacity>
+
+                  <TouchableOpacity style={[styles.readySection, styles.readySundaySection]} onPress={() => navigation.getParent()?.navigate('Home')}>
+                    <View style={styles.readySectionHeader}>
+                      <Text style={styles.readyLabel}>FROM SUNDAY</Text>
+                      <MaterialIcons name="chevron-right" size={16} color="rgba(229,185,95,0.35)" />
+                    </View>
+                    <View style={styles.sundayRow}>
+                      <View style={styles.sundayAccent} />
+                      <Text style={styles.sundayText}>
+                        Abiding in Christ <Text style={styles.sundayTextMuted}>- The Vine and the Branches</Text>
+                      </Text>
+                    </View>
+                  </TouchableOpacity>
                 </View>
               ) : null}
 
@@ -293,7 +326,32 @@ const styles = StyleSheet.create({
   closeButton: { width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.05)' },
   sheetBodyCentered: { flex: 1, minHeight: 170, alignItems: 'center', justifyContent: 'center', gap: 12 },
   sheetLoadingText: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 16, color: 'rgba(229,185,95,0.85)' },
-  sheetReadyText: { fontFamily: 'Inter_400Regular', fontSize: 14, color: 'rgba(255,255,255,0.72)' },
+  sheetBodyReady: { flex: 1, minHeight: 300, paddingTop: 2 },
+  readySection: { marginBottom: 20 },
+  readySectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  readyLabel: { fontFamily: 'Cinzel_700Bold', fontSize: 10, letterSpacing: 3, color: Colors.accentGold },
+  moodPill: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(229,185,95,0.25)',
+    backgroundColor: 'rgba(229,185,95,0.08)',
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginBottom: 10,
+  },
+  moodEmoji: { fontSize: 18 },
+  moodPillText: { fontFamily: 'Inter_400Regular', fontSize: 13, color: 'rgba(255,255,255,0.85)' },
+  readySubText: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 16, color: 'rgba(255,255,255,0.72)' },
+  readyReflectionText: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 18, lineHeight: 42, color: 'rgba(255,255,255,0.86)' },
+  readySundaySection: { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)', paddingTop: 16, marginBottom: 0 },
+  sundayRow: { flexDirection: 'row', alignItems: 'center' },
+  sundayAccent: { width: 5, height: 45, borderRadius: 3, backgroundColor: 'rgba(229,185,95,0.3)', marginRight: 12 },
+  sundayText: { flex: 1, fontFamily: 'PlayfairDisplay_400Regular', fontSize: 16, color: 'rgba(255,255,255,0.78)' },
+  sundayTextMuted: { color: 'rgba(255,255,255,0.42)' },
   sheetEmptyText: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 17, color: 'rgba(148,163,184,0.88)' },
   addReflectionButton: {
     marginTop: 8,
