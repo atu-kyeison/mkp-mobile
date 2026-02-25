@@ -23,14 +23,16 @@ const ChurchSuccessScreen = ({ navigation, route }: any) => {
               <View style={styles.header}><Text style={styles.title}>{t('auth.churchSuccess.title')}</Text><Text style={styles.churchName}>{churchName.toUpperCase()}</Text></View>
               <View style={styles.logoSlot}><View style={styles.logoCircle}><Svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke={Colors.antiqueGold} strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"><Path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></Svg></View></View>
               <Text style={styles.description}>{t('auth.churchSuccess.description')}</Text>
-              <GoldButton
-                title={isNewBeliever ? t('auth.churchSuccess.continue') : t('auth.churchSuccess.submit')}
-                onPress={() =>
-                  isNewBeliever
-                    ? navigation.navigate('NewBelieverStart', { churchName })
-                    : navigation.getParent()?.navigate('Main', { screen: 'Home' })
-                }
-              />
+              <View style={styles.primaryButtonWrap}>
+                <GoldButton
+                  title={isNewBeliever ? t('auth.churchSuccess.continue') : t('auth.churchSuccess.submit')}
+                  onPress={() =>
+                    isNewBeliever
+                      ? navigation.navigate('NewBelieverStart', { churchName })
+                      : navigation.getParent()?.navigate('Main', { screen: 'Home' })
+                  }
+                />
+              </View>
               {!isNewBeliever ? (
                 <View style={styles.secondaryButton}>
                   <GoldButton
@@ -59,9 +61,10 @@ const styles = StyleSheet.create({
   iconContainer: { marginBottom: 24 }, iconCircle: { width: 64, height: 64, borderRadius: 32, backgroundColor: 'rgba(229, 185, 95, 0.05)', borderWidth: 1, borderColor: 'rgba(229, 185, 95, 0.1)', justifyContent: 'center', alignItems: 'center' },
   header: { alignItems: 'center', marginBottom: 24 }, title: { fontFamily: 'PlayfairDisplay_500Medium', fontSize: 28, color: 'white', textAlign: 'center', marginBottom: 8 },
   churchName: { fontFamily: 'Cinzel_400Regular', fontSize: 13, color: Colors.antiqueGold, letterSpacing: 2, textAlign: 'center' },
-  logoSlot: { marginBottom: 24 }, logoCircle: { width: 80, height: 80, borderRadius: 40, borderWidth: 2, borderColor: 'rgba(229, 185, 95, 0.2)', backgroundColor: 'rgba(13, 27, 42, 0.4)', justifyContent: 'center', alignItems: 'center' },
+  logoSlot: { marginBottom: 24, width: '100%', alignItems: 'center' }, logoCircle: { width: 80, height: 80, borderRadius: 40, borderWidth: 2, borderColor: 'rgba(229, 185, 95, 0.2)', backgroundColor: 'rgba(13, 27, 42, 0.4)', justifyContent: 'center', alignItems: 'center' },
   description: { fontFamily: 'Inter_300Light', fontSize: 14, color: '#94a3b8', textAlign: 'center', lineHeight: 22, marginBottom: 28, paddingHorizontal: 16 },
-  secondaryButton: { marginTop: 10, width: '100%' },
+  primaryButtonWrap: { width: '100%', alignSelf: 'stretch' },
+  secondaryButton: { marginTop: 10, width: '100%', alignSelf: 'stretch' },
   footer: { marginTop: 'auto', paddingTop: 24, alignItems: 'center' }, footerText: { fontFamily: 'Inter_300Light', fontSize: 10, color: 'rgba(255, 255, 255, 0.3)', textAlign: 'center', lineHeight: 16, maxWidth: 280 }, footerLink: { textDecorationLine: 'underline' },
 });
 
