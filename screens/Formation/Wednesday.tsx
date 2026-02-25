@@ -1,7 +1,6 @@
 import React from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useWindowDimensions } from 'react-native';
 import { Colors } from '../../constants/Colors';
 import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
@@ -9,14 +8,12 @@ import { CustomButton } from '../../components/CustomButton';
 import { openChurchMessage, openScriptureReference, speakWithTTS } from '../../constants/Actions';
 
 export default function Wednesday({ navigation }: any) {
-  const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
-  const allowScroll = height < 820;
 
   return (
     <GradientBackground style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 120 + insets.bottom }]} showsVerticalScrollIndicator={false} scrollEnabled={allowScroll}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 170 + insets.bottom }]} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <Text style={styles.topLabel}>TODAY'S FOCUS</Text>
             <View style={styles.divider} />
@@ -222,9 +219,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   practiceText: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 19,
-    fontWeight: '500',
+    fontFamily: 'PlayfairDisplay_400Regular_Italic',
+    fontSize: 18,
     color: Colors.text,
     lineHeight: 28,
     marginBottom: 32,
