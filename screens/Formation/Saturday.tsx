@@ -6,34 +6,34 @@ import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
 import { getTodayFormationDateLabel } from './dateUtils';
+import { getFormationDayContent } from './formationContent';
 
 export default function Saturday({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const dateLabel = getTodayFormationDateLabel();
+  const content = getFormationDayContent('saturday');
 
   return (
     <GradientBackground style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 170 + insets.bottom }]} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 112 + insets.bottom }]} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
-            <Text style={styles.topLabel}>TODAY'S FOCUS</Text>
+            <Text style={styles.topLabel}>{content.topLabel}</Text>
             <View style={styles.divider} />
-            <Text style={styles.italicLabel}>rest</Text>
-            <Text style={styles.greeting}>Good morning</Text>
+            <Text style={styles.italicLabel}>{content.focusTagline}</Text>
+            <Text style={styles.greeting}>{content.greeting}</Text>
             <Text style={styles.date}>{dateLabel}</Text>
           </View>
 
           <GlassCard withGlow style={styles.mainCard}>
-            <Text style={styles.cardLabel}>TODAY’S POSTURE</Text>
-            <Text style={styles.mainText}>
-              Nothing needs to be accomplished today. Rest is not a break from formation — it is part of it.
-            </Text>
+            <Text style={styles.cardLabel}>{content.practiceLabel}</Text>
+            <Text style={styles.mainText}>{content.practiceText}</Text>
             <CustomButton
-              title="BE STILL"
+              title={content.practiceButton}
               onPress={() =>
                 navigation.navigate('Journey', {
                   screen: 'ReflectionEntry',
-                  params: { journalVariant: 'mid_week', openMoodOnEntry: true },
+                  params: { journalVariant: content.practiceVariant, openMoodOnEntry: true },
                 })
               }
             />
@@ -51,19 +51,17 @@ export default function Saturday({ navigation }: any) {
                 <Text style={styles.star}>★</Text>
               </View>
               <View style={styles.flex1}>
-                <Text style={styles.cardLabel}>INVITATION TO PRAY</Text>
+                <Text style={styles.cardLabel}>{content.prayerLabel}</Text>
                 <Text style={styles.prayerText}>
-                  Sit quietly and release unfinished things to God, asking for rest in His care.
+                  {content.prayerText}
                 </Text>
               </View>
             </View>
           </GlassCard>
 
           <GlassCard style={styles.identityCard}>
-            <Text style={styles.cardLabel}>IDENTITY</Text>
-            <Text style={styles.identityText}>
-              You are held, not measured. You are loved, not evaluated.
-            </Text>
+            <Text style={styles.cardLabel}>{content.identityLabel}</Text>
+            <Text style={styles.identityText}>{content.identityText}</Text>
           </GlassCard>
         </ScrollView>
       </SafeAreaView>

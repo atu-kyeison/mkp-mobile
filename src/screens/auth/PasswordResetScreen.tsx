@@ -23,7 +23,7 @@ const PasswordResetScreen = ({ navigation }: any) => {
             <GlassCard style={styles.card}>
               <View style={styles.header}><Text style={styles.title}>{t('auth.passwordReset.title')}</Text><Text style={styles.subtitle}>{t('auth.passwordReset.subtitle')}</Text></View>
               <View style={styles.form}>
-                <View style={styles.inputGroup}><Text style={styles.label}>{t('auth.signin.emailLabel')}</Text><TextInput style={styles.input} placeholder="your@email.com" placeholderTextColor="rgba(255, 255, 255, 0.25)" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} /></View>
+                <View style={styles.inputGroup}><Text style={styles.label}>{t('auth.signin.emailLabel')}</Text><TextInput style={styles.input} placeholder={t('auth.input.emailPlaceholder')} placeholderTextColor="rgba(255, 255, 255, 0.25)" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} /></View>
                 <View style={styles.buttonWrapper}><GoldButton title={t('auth.passwordReset.submit')} onPress={() => navigation.navigate('PasswordEmailSent', { email })} /></View>
                 <TouchableOpacity style={styles.signinLink} onPress={() => navigation.navigate('Signin', {})}><Text style={styles.signinText}>{t('auth.passwordReset.remembered')} <Text style={styles.signinHighlight}>{t('auth.signup.signin')}</Text></Text></TouchableOpacity>
               </View>

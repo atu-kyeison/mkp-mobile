@@ -1,19 +1,22 @@
 import React from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
 import { BackgroundGradient } from '../components/BackgroundGradient';
 import { GlassCard } from '../components/GlassCard';
 import { Colors } from '../../constants/Colors';
+import { useI18n } from '../i18n/I18nProvider';
 
 export const ReflectionDetailScreen = ({ navigation, route }: any) => {
-  const date = route.params?.date || 'MONDAY - SEPT 18';
-  const invitation = route.params?.invitation || '"What stayed with you today?"';
-  const content =
-    route.params?.content ||
-    "I felt a deep sense of stillness this morning during the scripture reading. It reminded me that abiding isn't about doing more, but about being present. I want to carry this unhurried peace into my meetings today.";
-  const mood = route.params?.mood || 'Peaceful';
-  const fromSunday = route.params?.fromSunday ?? true;
+  const { t } = useI18n();
+  const insets = useSafeAreaInsets();
+  const date =
+    route.params?.date ||
+    new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).replace(',', ' -').toUpperCase();
+  const invitation = route.params?.invitation || '';
+  const content = route.params?.content || '';
+  const mood = route.params?.mood;
+  const fromSunday = route.params?.fromSunday ?? false;
 
   return (
     <BackgroundGradient style={styles.container}>
@@ -22,7 +25,7 @@ export const ReflectionDetailScreen = ({ navigation, route }: any) => {
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <MaterialIcons name="chevron-left" size={24} color={Colors.accentGold} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>REFLECTION</Text>
+          <Text style={styles.headerTitle}>{t('reflection.detail.title')}</Text>
           <View style={styles.backSpacer} />
         </View>
 
@@ -32,32 +35,34 @@ export const ReflectionDetailScreen = ({ navigation, route }: any) => {
             {fromSunday ? (
               <View style={styles.sundayPill}>
                 <View style={styles.sundayDot} />
-                <Text style={styles.sundayPillText}>SUNDAY'S MESSAGE</Text>
+                <Text style={styles.sundayPillText}>{t('reflection.detail.sundayMessage')}</Text>
               </View>
             ) : null}
           </View>
 
           <GlassCard style={styles.invitationCard}>
-            <Text style={styles.sectionLabel}>THE INVITATION</Text>
-            <Text style={styles.invitationText}>{invitation}</Text>
+            <Text style={styles.sectionLabel}>{t('reflection.detail.invitation')}</Text>
+            <Text style={styles.invitationText}>{invitation || '—'}</Text>
           </GlassCard>
 
           <GlassCard style={styles.wordsCard}>
-            <Text style={styles.sectionLabel}>YOUR WORDS</Text>
-            <Text style={styles.wordsText}>{content}</Text>
-            <View style={styles.moodPill}>
-              <Text style={styles.moodEmoji}>🌿</Text>
-              <Text style={styles.moodText}>{mood}</Text>
-            </View>
+            <Text style={styles.sectionLabel}>{t('reflection.detail.words')}</Text>
+            <Text style={styles.wordsText}>{content || t('reflection.detail.empty')}</Text>
+            {mood ? (
+              <View style={styles.moodPill}>
+                <Text style={styles.moodEmoji}>🌿</Text>
+                <Text style={styles.moodText}>{mood}</Text>
+              </View>
+            ) : null}
           </GlassCard>
         </ScrollView>
 
-        <View style={styles.footer}>
+        <View style={[styles.footer, { paddingBottom: 96 + insets.bottom }]}>
           <TouchableOpacity style={styles.backToJourneyButton} onPress={() => navigation.navigate('JourneyHistory')}>
-            <Text style={styles.backToJourneyText}>BACK TO JOURNEY</Text>
+            <Text style={styles.backToJourneyText}>{t('reflection.detail.backToJourney')}</Text>
           </TouchableOpacity>
           <Text style={styles.privacyText}>
-            This space is between you and God. Your reflections stay private.
+            {t('reflection.privacy')}
           </Text>
         </View>
       </SafeAreaView>

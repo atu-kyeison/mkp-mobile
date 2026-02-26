@@ -2,7 +2,9 @@ import React from 'react';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createStackNavigator } from '@react-navigation/stack';
 import { getFocusedRouteNameFromRoute } from '@react-navigation/native';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { MainTabParamList } from './types';
 import { NavigationBar } from '../components/NavigationBar';
@@ -52,6 +54,21 @@ const ProfileStackNavigator = () => {
   );
 };
 
+const TabChrome = ({ activeTab, onTabPress }: { activeTab: 'HOME' | 'JOURNEY' | 'CHURCH' | 'PROFILE'; onTabPress: (tab: 'HOME' | 'JOURNEY' | 'CHURCH' | 'PROFILE') => void; }) => {
+  const insets = useSafeAreaInsets();
+
+  return (
+    <>
+      <LinearGradient
+        pointerEvents="none"
+        colors={['transparent', 'rgba(13, 27, 42, 0.88)', Colors.backgroundDark]}
+        style={[styles.bottomFade, { height: 132 + insets.bottom }]}
+      />
+      <NavigationBar activeTab={activeTab} onTabPress={onTabPress} />
+    </>
+  );
+};
+
 export const MainTabNavigator = () => {
   return (
     <Tab.Navigator
@@ -64,10 +81,19 @@ export const MainTabNavigator = () => {
           return null;
         }
 
+        const handleTabPress = (tab: 'HOME' | 'JOURNEY' | 'CHURCH' | 'PROFILE') => {
+          if (tab === 'JOURNEY') {
+            props.navigation.navigate('Journey', { screen: 'JourneyHistory' });
+            return;
+          }
+
+          props.navigation.navigate(tab.charAt(0) + tab.slice(1).toLowerCase());
+        };
+
         return (
-          <NavigationBar
-            activeTab={props.state.routeNames[props.state.index].toUpperCase() as any}
-            onTabPress={(tab) => props.navigation.navigate(tab.charAt(0) + tab.slice(1).toLowerCase())}
+          <TabChrome
+            activeTab={props.state.routeNames[props.state.index].toUpperCase() as 'HOME' | 'JOURNEY' | 'CHURCH' | 'PROFILE'}
+            onTabPress={handleTabPress}
           />
         );
       }}
@@ -80,3 +106,12 @@ export const MainTabNavigator = () => {
     </Tab.Navigator>
   );
 };
+
+const styles = StyleSheet.create({
+  bottomFade: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+});

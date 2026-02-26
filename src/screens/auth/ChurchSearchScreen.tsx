@@ -40,7 +40,7 @@ const ChurchSearchScreen = ({ navigation }: any) => {
                 <Text style={styles.label}>{t('auth.churchSearch.codeLabel')}</Text>
                 <TextInput
                   style={styles.input}
-                  placeholder="E.G. KINGDOM-24"
+                  placeholder={t('auth.churchSearch.codePlaceholder')}
                   placeholderTextColor="rgba(255, 255, 255, 0.25)"
                   autoCapitalize="characters"
                   value={code}
@@ -90,7 +90,12 @@ const styles = StyleSheet.create({
   cardFooter: { marginTop: 'auto', paddingTop: 24, alignItems: 'center' },
   footerText: { fontFamily: 'Inter_300Light', fontSize: 10, color: 'rgba(255, 255, 255, 0.2)', textAlign: 'center', lineHeight: 16, maxWidth: 280 },
   footerLinks: { flexDirection: 'row', alignItems: 'center' },
-  footerLink: { textDecorationLine: 'underline' },
+  footerLink: {
+    fontFamily: 'Inter_300Light',
+    fontSize: 10,
+    color: 'rgba(255, 255, 255, 0.35)',
+    textDecorationLine: 'underline',
+  },
 });
 
 export default ChurchSearchScreen;

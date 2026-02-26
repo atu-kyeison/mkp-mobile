@@ -1,85 +1,137 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Modal, StyleSheet, View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { Colors } from '../../constants/Colors';
 import { BackgroundGradient } from '../components/BackgroundGradient';
 import { GlassCard } from '../components/GlassCard';
 import { useI18n } from '../i18n/I18nProvider';
-
-const JOURNEY_ITEMS = [
-  { id: '1', date: 'Friday - Sept 22', type: 'REFLECTION', content: "'I noticed God's hand in the quietness of the morning...'", isItalic: true },
-  { id: '2', date: 'Thursday - Sept 21', type: 'FROM SUNDAY', content: 'Sermon Echo: Abiding teaches us to respond, not react.', isItalic: false },
-  { id: '3', date: 'Wednesday - Sept 20', type: 'INNER AWARENESS', content: 'Posture: Peaceful', icon: 'psychology-alt' as const, isItalic: false, moodId: 'peaceful' },
-];
+import { getJournalEntries, JournalEntry } from '../storage/journalStore';
 
 type CalendarDay = {
   day: number;
+  isoDate: string;
   muted?: boolean;
   reflection?: boolean;
   mood?: boolean;
   sunday?: boolean;
-  hasDetail?: boolean;
 };
 
-const CALENDAR_DAYS: CalendarDay[] = [
-  { day: 1, reflection: true, mood: true, sunday: true, hasDetail: true },
-  { day: 2, reflection: true, hasDetail: true },
-  { day: 3, reflection: true, mood: true, hasDetail: true },
-  { day: 4 }, { day: 5, mood: true, hasDetail: true }, { day: 6 }, { day: 7, reflection: true, hasDetail: true },
-  { day: 8, sunday: true, hasDetail: true }, { day: 9, mood: true, hasDetail: true }, { day: 10 }, { day: 11, reflection: true, mood: true, hasDetail: true }, { day: 12 }, { day: 13 }, { day: 14, reflection: true, hasDetail: true },
-  { day: 15, sunday: true, reflection: true, hasDetail: true }, { day: 16 }, { day: 17, hasDetail: true }, { day: 18 }, { day: 19 }, { day: 20 }, { day: 21 },
-  { day: 22, sunday: true, hasDetail: true }, { day: 23 }, { day: 24 }, { day: 25 }, { day: 26 }, { day: 27 }, { day: 28 },
-  { day: 29, sunday: true, hasDetail: true }, { day: 30 },
-  { day: 1, muted: true }, { day: 2, muted: true }, { day: 3, muted: true }, { day: 4, muted: true }, { day: 5, muted: true },
-];
+const toIsoDate = (date: Date) => {
+  const year = date.getFullYear();
+  const month = `${date.getMonth() + 1}`.padStart(2, '0');
+  const day = `${date.getDate()}`.padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const buildCalendarDays = (monthCursor: Date, entriesByDate: Map<string, JournalEntry[]>) => {
+  const year = monthCursor.getFullYear();
+  const month = monthCursor.getMonth();
+  const firstDayOfMonth = new Date(year, month, 1);
+  const startOffset = firstDayOfMonth.getDay();
+  const gridStart = new Date(year, month, 1 - startOffset);
+
+  const days: CalendarDay[] = [];
+  for (let i = 0; i < 35; i += 1) {
+    const current = new Date(gridStart);
+    current.setDate(gridStart.getDate() + i);
+    const isoDate = toIsoDate(current);
+    const dayEntries = entriesByDate.get(isoDate) || [];
+    days.push({
+      day: current.getDate(),
+      isoDate,
+      muted: current.getMonth() !== month,
+      reflection: dayEntries.length > 0,
+      mood: dayEntries.some((entry) => Boolean(entry.mood)),
+      sunday: current.getDay() === 0,
+    });
+  }
+  return days;
+};
 
 export const JourneyHistoryScreen = ({ navigation }: any) => {
   const { t } = useI18n();
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'LIBRARY' | 'FAVORITES' | 'CALENDAR'>('LIBRARY');
-  const [selectedDay, setSelectedDay] = useState<number | null>(null);
+  const [entries, setEntries] = useState<JournalEntry[]>([]);
+  const [monthCursor, setMonthCursor] = useState(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), 1);
+  });
+  const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
   const [detailState, setDetailState] = useState<'loading' | 'ready' | 'empty' | 'error'>('loading');
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
+  const [selectedDayEntries, setSelectedDayEntries] = useState<JournalEntry[]>([]);
+
+  useFocusEffect(
+    useCallback(() => {
+      setEntries(getJournalEntries());
+    }, [])
+  );
+
+  const entriesByDate = useMemo(() => {
+    const map = new Map<string, JournalEntry[]>();
+    entries.forEach((entry) => {
+      const key = toIsoDate(new Date(entry.createdAt));
+      const current = map.get(key) || [];
+      current.push(entry);
+      map.set(key, current);
+    });
+    return map;
+  }, [entries]);
+
+  const calendarDays = useMemo(() => buildCalendarDays(monthCursor, entriesByDate), [monthCursor, entriesByDate]);
+
+  const journeyItems = useMemo(
+    () =>
+      entries.map((entry) => ({
+        id: entry.id,
+        date: new Date(entry.createdAt).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).replace(',', ' -'),
+        type: 'REFLECTION',
+        content: entry.body,
+        isItalic: false,
+      })),
+    [entries]
+  );
 
   const detailTitle = useMemo(() => {
     if (!selectedDay) return '';
-    return `SEP ${selectedDay}, 2024`;
+    const date = new Date(selectedDay.isoDate);
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
   }, [selectedDay]);
+  const isSelectedDayToday = useMemo(
+    () => (selectedDay ? selectedDay.isoDate === toIsoDate(new Date()) : false),
+    [selectedDay]
+  );
+
+  const activeDayEntry = selectedDayEntries[0];
 
   const favoriteItems = useMemo(
-    () => JOURNEY_ITEMS.filter((item) => favoriteIds.includes(item.id)),
-    [favoriteIds]
+    () => journeyItems.filter((item) => favoriteIds.includes(item.id)),
+    [favoriteIds, journeyItems]
   );
 
   const resolveDayState = (day: CalendarDay) => {
     setDetailState('loading');
     setTimeout(() => {
-      if (day.hasDetail) {
-        setDetailState(day.day === 17 ? 'empty' : 'ready');
-      } else {
-        setDetailState('error');
-      }
+      const dayEntries = entriesByDate.get(day.isoDate) || [];
+      setSelectedDayEntries(dayEntries);
+      setDetailState(dayEntries.length > 0 ? 'ready' : 'empty');
     }, 700);
   };
 
   const openDay = (day: CalendarDay) => {
-    if (day.muted) return;
-    setSelectedDay(day.day);
+    setSelectedDay(day);
     resolveDayState(day);
   };
 
   const retrySelectedDay = () => {
-    if (selectedDay == null) {
+    if (!selectedDay) {
       setDetailState('error');
       return;
     }
-    const day = CALENDAR_DAYS.find((candidate) => !candidate.muted && candidate.day === selectedDay);
-    if (!day) {
-      setDetailState('error');
-      return;
-    }
-    resolveDayState(day);
+    resolveDayState(selectedDay);
   };
 
   const toggleFavorite = (itemId: string) => {
@@ -92,7 +144,6 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
     <BackgroundGradient style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.headerRow}>
-          <Text style={styles.headerTitle}>{t('journey.title')}</Text>
           <View style={styles.segmentedControl}>
             <TouchableOpacity
               style={[styles.segmentedItem, activeTab === 'LIBRARY' && styles.segmentedItemActive]}
@@ -113,6 +164,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
               <Text style={[styles.segmentedText, activeTab === 'CALENDAR' && styles.segmentedTextActive]}>{t('journey.calendar')}</Text>
             </TouchableOpacity>
           </View>
+          <Text style={styles.headerTitle}>{t('journey.title')}</Text>
         </View>
 
         {activeTab === 'LIBRARY' ? (
@@ -130,12 +182,36 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
             </View>
 
             <View style={styles.timelineLine} />
-            {JOURNEY_ITEMS.map((item) => (
+            {journeyItems.length === 0 ? (
+              <GlassCard style={styles.emptyPromptCard}>
+                <Text style={styles.emptyPromptText}>{t('journey.favoritesEmpty')}</Text>
+                <TouchableOpacity
+                  style={styles.favoritesCta}
+                  onPress={() =>
+                    navigation.navigate('ReflectionEntry', {
+                      journalVariant: 'mid_week',
+                      openMoodOnEntry: false,
+                    })
+                  }
+                >
+                  <Text style={styles.favoritesCtaText}>{t('journey.favoritesCta')}</Text>
+                </TouchableOpacity>
+              </GlassCard>
+            ) : null}
+            {journeyItems.map((item) => (
               <View key={item.id} style={styles.itemContainer}>
                 <View style={styles.timelineDot} />
                 <View style={styles.itemContent}>
                   <Text style={styles.itemDate}>{item.date}</Text>
-                  <TouchableOpacity onPress={() => item.moodId && navigation.navigate('MoodDetail', { moodId: item.moodId, date: item.date })}>
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate('ReflectionDetail', {
+                        date: item.date.toUpperCase(),
+                        invitation: '',
+                        content: item.content,
+                      })
+                    }
+                  >
                     <GlassCard style={styles.itemCard}>
                       <View style={styles.itemHeaderRow}>
                         <Text style={styles.itemType}>{item.type}</Text>
@@ -153,14 +229,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                           />
                         </TouchableOpacity>
                       </View>
-                      {item.icon ? (
-                        <View style={styles.iconRow}>
-                          <MaterialIcons name={item.icon} size={20} color={Colors.accentGold} />
-                          <Text style={styles.itemText}>{item.content}</Text>
-                        </View>
-                      ) : (
-                        <Text style={[styles.itemText, item.isItalic && styles.italicText]}>{item.content}</Text>
-                      )}
+                      <Text style={[styles.itemText, item.isItalic && styles.italicText]}>{item.content}</Text>
                     </GlassCard>
                   </TouchableOpacity>
                 </View>
@@ -207,11 +276,19 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
         ) : (
           <ScrollView contentContainerStyle={[styles.calendarScroll, { paddingBottom: 150 + insets.bottom }]} showsVerticalScrollIndicator={false}>
             <View style={styles.monthHeader}>
-              <TouchableOpacity style={styles.chevronButton}>
+              <TouchableOpacity
+                style={styles.chevronButton}
+                onPress={() => setMonthCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() - 1, 1))}
+              >
                 <MaterialIcons name="chevron-left" size={20} color="rgba(229, 185, 95, 0.45)" />
               </TouchableOpacity>
-              <Text style={styles.monthTitle}>SEPTEMBER 2024</Text>
-              <TouchableOpacity style={styles.chevronButton}>
+              <Text style={styles.monthTitle}>
+                {monthCursor.toLocaleDateString('en-US', { month: 'long', year: 'numeric' }).toUpperCase()}
+              </Text>
+              <TouchableOpacity
+                style={styles.chevronButton}
+                onPress={() => setMonthCursor((prev) => new Date(prev.getFullYear(), prev.getMonth() + 1, 1))}
+              >
                 <MaterialIcons name="chevron-right" size={20} color="rgba(229, 185, 95, 0.45)" />
               </TouchableOpacity>
             </View>
@@ -223,10 +300,10 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
             </View>
 
             <View style={styles.daysGrid}>
-              {CALENDAR_DAYS.map((day, idx) => (
-                <TouchableOpacity key={`${day.day}-${idx}`} style={styles.dayCell} onPress={() => openDay(day)} disabled={day.muted}>
-                  {!day.muted && selectedDay === day.day ? <View style={styles.selectedRing} /> : null}
-                  <Text style={[styles.dayNumber, day.muted && styles.mutedDayNumber, !day.muted && selectedDay === day.day && styles.selectedDayNumber]}>
+              {calendarDays.map((day, idx) => (
+                <TouchableOpacity key={`${day.isoDate}-${idx}`} style={styles.dayCell} onPress={() => openDay(day)}>
+                  {!day.muted && selectedDay?.isoDate === day.isoDate ? <View style={styles.selectedRing} /> : null}
+                  <Text style={[styles.dayNumber, day.muted && styles.mutedDayNumber, !day.muted && selectedDay?.isoDate === day.isoDate && styles.selectedDayNumber]}>
                     {day.day}
                   </Text>
                   <View style={styles.dayMeta}>
@@ -284,9 +361,9 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                     </View>
                     <View style={styles.moodPill}>
                       <Text style={styles.moodEmoji}>🌿</Text>
-                      <Text style={styles.moodPillText}>Peaceful</Text>
+                      <Text style={styles.moodPillText}>{activeDayEntry?.mood || 'Reflection logged'}</Text>
                     </View>
-                    <Text style={styles.readySubText}>A quiet morning with the Word.</Text>
+                    <Text style={styles.readySubText}>{activeDayEntry?.invitationText || 'Your saved reflection for this day.'}</Text>
                   </TouchableOpacity>
 
                   <TouchableOpacity
@@ -294,11 +371,10 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                     onPress={() =>
                       navigation.navigate('ReflectionDetail', {
                         date: detailTitle,
-                        invitation: '"What stayed with you today?"',
-                        mood: 'Peaceful',
-                        fromSunday: true,
-                        content:
-                          "I felt a deep sense of stillness this morning during the scripture reading. It reminded me that abiding isn't about...",
+                        invitation: activeDayEntry?.invitationText || '',
+                        mood: activeDayEntry?.mood,
+                        fromSunday: Boolean(activeDayEntry?.linkedSermonTitle),
+                        content: activeDayEntry?.body || '',
                       })
                     }
                   >
@@ -307,11 +383,15 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                       <MaterialIcons name="chevron-right" size={16} color="rgba(229,185,95,0.35)" />
                     </View>
                     <Text style={styles.readyReflectionText}>
-                      "I felt a deep sense of stillness this morning during the scripture reading. It reminded me that abiding isn't about..."
+                      {activeDayEntry?.body || 'No reflection saved for this day.'}
                     </Text>
                   </TouchableOpacity>
 
-                  <TouchableOpacity style={[styles.readySection, styles.readySundaySection]} onPress={() => navigation.navigate('SundaySummaryDetail')}>
+                  <TouchableOpacity
+                    style={[styles.readySection, styles.readySundaySection]}
+                    onPress={() => navigation.navigate('SundaySummaryDetail')}
+                    disabled={!activeDayEntry?.linkedSermonTitle}
+                  >
                     <View style={styles.readySectionHeader}>
                       <Text style={styles.readyLabel}>{t('journey.dayDetail.fromSunday')}</Text>
                       <MaterialIcons name="chevron-right" size={16} color="rgba(229,185,95,0.35)" />
@@ -319,7 +399,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                     <View style={styles.sundayRow}>
                       <View style={styles.sundayAccent} />
                       <Text style={styles.sundayText}>
-                        Abiding in Christ <Text style={styles.sundayTextMuted}>- The Vine and the Branches</Text>
+                        {activeDayEntry?.linkedSermonTitle || 'No Sunday link for this entry'}
                       </Text>
                     </View>
                   </TouchableOpacity>
@@ -329,29 +409,35 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
               {detailState === 'empty' ? (
                 <View style={styles.sheetBodyCentered}>
                   <Text style={styles.sheetEmptyText}>{t('journey.dayDetail.empty')}</Text>
-                  <TouchableOpacity
-                    style={styles.addReflectionButton}
-                    onPress={() => {
-                      setSelectedDay(null);
-                      navigation.navigate('ReflectionEntry', {
-                        journalVariant: 'mid_week',
-                        openMoodOnEntry: false,
-                      });
-                    }}
-                  >
-                    <Text style={styles.addReflectionText}>{t('journey.dayDetail.addReflection')}</Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={styles.logMoodLink}
-                    onPress={() => {
-                      setSelectedDay(null);
-                      navigation.navigate('MoodCheckIn', {
-                        nextScreen: 'JourneyHistory',
-                      });
-                    }}
-                  >
-                    <Text style={styles.logMoodText}>{t('journey.dayDetail.logMood')}</Text>
-                  </TouchableOpacity>
+                  {isSelectedDayToday ? (
+                    <>
+                      <TouchableOpacity
+                        style={styles.addReflectionButton}
+                        onPress={() => {
+                          setSelectedDay(null);
+                          navigation.navigate('ReflectionEntry', {
+                            journalVariant: 'mid_week',
+                            openMoodOnEntry: false,
+                          });
+                        }}
+                      >
+                        <Text style={styles.addReflectionText}>{t('journey.dayDetail.addReflection')}</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.logMoodLink}
+                        onPress={() => {
+                          setSelectedDay(null);
+                          navigation.navigate('MoodCheckIn', {
+                            nextScreen: 'JourneyHistory',
+                          });
+                        }}
+                      >
+                        <Text style={styles.logMoodText}>{t('journey.dayDetail.logMood')}</Text>
+                      </TouchableOpacity>
+                    </>
+                  ) : (
+                    <Text style={styles.readOnlyNote}>{t('journey.dayDetail.readOnlyPast')}</Text>
+                  )}
                 </View>
               ) : null}
 
@@ -374,8 +460,8 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1 },
-  headerRow: { paddingTop: 44, paddingHorizontal: 24, paddingBottom: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  headerTitle: { fontFamily: 'PlayfairDisplay_400Regular', fontSize: 50, color: '#fff' },
+  headerRow: { paddingTop: 34, paddingHorizontal: 24, paddingBottom: 18, alignItems: 'center', justifyContent: 'center' },
+  headerTitle: { fontFamily: 'PlayfairDisplay_400Regular', fontSize: 44, color: '#fff', marginTop: 14 },
   segmentedControl: { flexDirection: 'row', backgroundColor: 'rgba(255,255,255,0.05)', borderWidth: 1, borderColor: 'rgba(229,185,95,0.15)', borderRadius: 999, padding: 2 },
   segmentedItem: { paddingHorizontal: 10, paddingVertical: 7, borderRadius: 999 },
   segmentedItemActive: { backgroundColor: 'rgba(229,185,95,0.16)' },
@@ -527,4 +613,12 @@ const styles = StyleSheet.create({
   sheetErrorText: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 17, color: '#D97B66' },
   retryButton: { borderWidth: 1, borderColor: 'rgba(229,185,95,0.4)', borderRadius: 12, paddingHorizontal: 28, paddingVertical: 11, backgroundColor: 'rgba(255,255,255,0.03)' },
   retryText: { fontFamily: 'Cinzel_700Bold', fontSize: 11, letterSpacing: 2, color: 'rgba(255,255,255,0.82)' },
+  readOnlyNote: {
+    marginTop: 8,
+    fontFamily: 'Inter_400Regular',
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.55)',
+    textAlign: 'center',
+    lineHeight: 18,
+  },
 });

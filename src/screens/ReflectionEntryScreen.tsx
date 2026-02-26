@@ -5,6 +5,7 @@ import { Colors } from '../../constants/Colors';
 import { BackgroundGradient } from '../components/BackgroundGradient';
 import { GlassCard } from '../components/GlassCard';
 import { useI18n } from '../i18n/I18nProvider';
+import { addJournalEntry } from '../storage/journalStore';
 
 export const ReflectionEntryScreen = ({ navigation, route }: any) => {
   const { t } = useI18n();
@@ -36,6 +37,17 @@ export const ReflectionEntryScreen = ({ navigation, route }: any) => {
   }, [journalVariant, t]);
 
   const handleSave = () => {
+    const trimmed = reflection.trim();
+    if (trimmed) {
+      addJournalEntry({
+        id: `${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        body: trimmed,
+        invitationText: content.invitationText,
+        journalVariant,
+        mood: typeof mood === 'string' ? mood : undefined,
+      });
+    }
     openMoodCheckIn('JourneyHistory');
   };
 
@@ -50,23 +62,23 @@ export const ReflectionEntryScreen = ({ navigation, route }: any) => {
             <Text style={styles.subtitle}>{content.subtitle}</Text>
             <View style={styles.divider} />
             <Text style={styles.greeting}>Good morning.</Text>
-            <Text style={styles.date}>Monday • Sept 18</Text>
+            <Text style={styles.date}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).replace(',', ' •').toUpperCase()}</Text>
           </View>
 
           <View style={styles.content}>
-            <GlassCard style={styles.invitationCard}>
+            <GlassCard style={styles.entryCard}>
               <Text style={styles.invitationLabel}>{content.invitationLabel}</Text>
               <Text style={styles.invitationText}>{content.invitationText}</Text>
+              <View style={styles.entryDivider} />
+              <TextInput
+                style={styles.input}
+                placeholder={t('reflection.placeholder')}
+                placeholderTextColor="rgba(148, 163, 184, 0.6)"
+                multiline
+                value={reflection}
+                onChangeText={setReflection}
+              />
             </GlassCard>
-
-            <TextInput
-              style={styles.input}
-              placeholder={t('reflection.placeholder')}
-              placeholderTextColor="rgba(148, 163, 184, 0.6)"
-              multiline
-              value={reflection}
-              onChangeText={setReflection}
-            />
           </View>
 
           <View style={styles.footer}>
@@ -148,10 +160,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     paddingTop: 32,
   },
-  invitationCard: {
+  entryCard: {
     padding: 24,
-    marginBottom: 32,
     borderColor: 'rgba(229, 185, 95, 0.2)',
+    flex: 1,
+    minHeight: 320,
   },
   invitationLabel: {
     fontFamily: 'Inter_700Bold',
@@ -162,10 +175,16 @@ const styles = StyleSheet.create({
   },
   invitationText: {
     fontFamily: 'PlayfairDisplay_400Regular',
-    fontSize: 20,
+    fontSize: 18,
     color: '#FFFFFF',
     fontStyle: 'italic',
-    lineHeight: 28,
+    lineHeight: 26,
+    marginBottom: 14,
+  },
+  entryDivider: {
+    height: 1,
+    backgroundColor: 'rgba(229, 185, 95, 0.18)',
+    marginBottom: 12,
   },
   input: {
     flex: 1,
@@ -173,7 +192,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: 'rgba(255, 255, 255, 0.9)',
     textAlignVertical: 'top',
-    padding: 8,
+    paddingHorizontal: 0,
+    paddingVertical: 6,
   },
   footer: {
     paddingHorizontal: 24,

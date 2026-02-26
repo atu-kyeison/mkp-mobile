@@ -5,23 +5,40 @@ import { MidnightBackground } from '../../components/MidnightBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { MaterialIcons } from '@expo/vector-icons';
 import Colors from '../../constants/Colors';
+import { useI18n } from '../../i18n/I18nProvider';
 
-const FAQScreen = ({ navigation }: any) => (
-  <MidnightBackground>
-    <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <View style={styles.header}><TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}><MaterialIcons name="chevron-left" size={24} color={Colors.antiqueGold} /></TouchableOpacity><Text style={styles.headerLabel}>HELP</Text><View style={styles.headerDivider} /><Text style={styles.title}>Frequently Asked Questions</Text></View>
-        <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-          <FAQItem question="Is my journey really private?" answer="Yes. Your reflections stay on your device in this MVP and are only visible to you." />
-          <FAQItem question="What if I miss a formation day?" answer="There are no streaks here. God meets you exactly where you are." />
-          <FAQItem question="How can I support others?" answer="You can submit prayer and testimony in Care so your church team can follow up." />
-          <View style={styles.footer}><Text style={styles.footerHint}>Still seeking guidance?</Text><TouchableOpacity style={styles.supportButton} onPress={() => navigation.navigate('Main', { screen: 'Profile', params: { screen: 'TechnicalSupport' } })}><Text style={styles.supportButtonText}>CONTACT PASTORAL SUPPORT</Text></TouchableOpacity></View>
-          <View style={{ height: 100 }} />
-        </ScrollView>
-      </View>
-    </SafeAreaView>
-  </MidnightBackground>
-);
+const FAQScreen = ({ navigation }: any) => {
+  const { t } = useI18n();
+
+  return (
+    <MidnightBackground>
+      <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+          <View style={styles.header}>
+            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+              <MaterialIcons name="chevron-left" size={24} color={Colors.antiqueGold} />
+            </TouchableOpacity>
+            <Text style={styles.headerLabel}>{t('support.header')}</Text>
+            <View style={styles.headerDivider} />
+            <Text style={styles.title}>{t('faq.title')}</Text>
+          </View>
+          <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+            <FAQItem question={t('faq.q1')} answer={t('faq.a1')} />
+            <FAQItem question={t('faq.q2')} answer={t('faq.a2')} />
+            <FAQItem question={t('faq.q3')} answer={t('faq.a3')} />
+            <View style={styles.footer}>
+              <Text style={styles.footerHint}>{t('faq.footerHint')}</Text>
+              <TouchableOpacity style={styles.supportButton} onPress={() => navigation.navigate('Main', { screen: 'Profile', params: { screen: 'TechnicalSupport' } })}>
+                <Text style={styles.supportButtonText}>{t('faq.supportCta')}</Text>
+              </TouchableOpacity>
+            </View>
+            <View style={{ height: 100 }} />
+          </ScrollView>
+        </View>
+      </SafeAreaView>
+    </MidnightBackground>
+  );
+};
 
 const FAQItem = ({ question, answer }: any) => {
   const [isOpen, setIsOpen] = useState(true);

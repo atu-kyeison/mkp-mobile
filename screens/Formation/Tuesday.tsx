@@ -7,35 +7,37 @@ import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
 import { openChurchMessage, openScriptureReference, speakWithTTS } from '../../constants/Actions';
 import { getTodayFormationDateLabel } from './dateUtils';
+import { getFormationDayContent } from './formationContent';
 
 export default function Tuesday({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const dateLabel = getTodayFormationDateLabel();
+  const content = getFormationDayContent('tuesday');
 
   return (
     <GradientBackground style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 170 + insets.bottom }]} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 112 + insets.bottom }]} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
-            <Text style={styles.topLabel}>TODAY'S FOCUS</Text>
+            <Text style={styles.topLabel}>{content.topLabel}</Text>
             <View style={styles.divider} />
-            <Text style={styles.italicLabel}>take a step</Text>
-            <Text style={styles.greeting}>Good morning.</Text>
+            <Text style={styles.italicLabel}>{content.focusTagline}</Text>
+            <Text style={styles.greeting}>{content.greeting}</Text>
             <Text style={styles.date}>{dateLabel}</Text>
           </View>
 
           <GlassCard style={styles.card}>
             <View style={styles.cardHeader}>
               <View style={styles.flex1}>
-                <Text style={styles.cardLabel}>Today’s Scripture</Text>
-                <Text style={styles.scriptureText}>“Trust in the Lord with all your heart…”</Text>
-                <TouchableOpacity onPress={() => openScriptureReference('Proverbs 3:5-6')}>
-                  <Text style={styles.reference}>Proverbs 3:5–6</Text>
+                <Text style={styles.cardLabel}>{content.scriptureLabel}</Text>
+                <Text style={styles.scriptureText}>{content.scriptureText}</Text>
+                <TouchableOpacity onPress={() => openScriptureReference(content.scriptureReference || '')}>
+                  <Text style={styles.reference}>{content.scriptureReference}</Text>
                 </TouchableOpacity>
               </View>
               <TouchableOpacity
                 style={styles.playButton}
-                onPress={() => speakWithTTS('Trust in the Lord with all your heart. Proverbs 3:5-6')}
+                onPress={() => speakWithTTS(content.scriptureSpeech || '')}
               >
                 <Text style={styles.playIcon}>▶</Text>
               </TouchableOpacity>
@@ -45,30 +47,28 @@ export default function Tuesday({ navigation }: any) {
           <GlassCard style={styles.card}>
             <View style={styles.cardHeader}>
               <View style={styles.flex1}>
-                <Text style={styles.cardLabel}>From Sunday’s Message</Text>
-                <Text style={styles.messageText}>Fruit comes from remaining, not striving.</Text>
+                <Text style={styles.cardLabel}>{content.sundayMessageLabel}</Text>
+                <Text style={styles.messageText}>{content.sundayMessageText}</Text>
               </View>
               <TouchableOpacity
                 style={styles.listenButton}
                 onPress={openChurchMessage}
               >
                 <Text style={styles.listenIcon}>🎧</Text>
-                <Text style={styles.listenText}>Listen</Text>
+                <Text style={styles.listenText}>{content.listenLabel}</Text>
               </TouchableOpacity>
             </View>
           </GlassCard>
 
           <GlassCard withGlow style={styles.practiceCard}>
-            <Text style={styles.cardLabel}>Today’s Practice</Text>
-            <Text style={styles.practiceText}>
-              Before you make a decision today, ask: “Am I acting from trust or from control?”
-            </Text>
+            <Text style={styles.cardLabel}>{content.practiceLabel}</Text>
+            <Text style={styles.practiceText}>{content.practiceText}</Text>
             <CustomButton
-              title="STEP INTO PRACTICE"
+              title={content.practiceButton}
               onPress={() =>
                 navigation.navigate('Journey', {
                   screen: 'ReflectionEntry',
-                  params: { journalVariant: 'early_week', openMoodOnEntry: true },
+                  params: { journalVariant: content.practiceVariant, openMoodOnEntry: true },
                 })
               }
             />
@@ -82,8 +82,8 @@ export default function Tuesday({ navigation }: any) {
                 <Text style={styles.prayerIcon}>✨</Text>
               </View>
               <View style={styles.flex1}>
-                <Text style={styles.cardLabel}>INVITATION TO PRAY</Text>
-                <Text style={styles.prayerText}>Ask God for courage to take one faithful step instead of staying in hesitation.</Text>
+                <Text style={styles.cardLabel}>{content.prayerLabel}</Text>
+                <Text style={styles.prayerText}>{content.prayerText}</Text>
               </View>
             </View>
           </GlassCard>

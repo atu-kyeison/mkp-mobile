@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import React, { createContext, useContext, useMemo, useState } from 'react';
+import { Settings } from 'react-native';
 import { Colors as RootColors } from '../../constants/Colors';
 import LocalColors from '../constants/Colors';
 
@@ -11,7 +12,6 @@ type ThemeContextValue = {
 };
 
 const themeOptions: Array<{ id: ThemeId; labelKey: string }> = [
-  { id: 'midnight_reverence', labelKey: 'settings.theme.midnight' },
   { id: 'dawn_mercy', labelKey: 'settings.theme.dawn' },
 ];
 
@@ -77,11 +77,19 @@ const applyThemePalette = (themeId: ThemeId) => {
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [themeId, setThemeId] = useState<ThemeId>('midnight_reverence');
+  const [themeIdState, setThemeIdState] = useState<ThemeId>(() => {
+    // Product decision: lock active production look to day mist for now.
+    applyThemePalette('dawn_mercy');
+    Settings.set({ 'mkp.theme': 'dawn_mercy' });
+    return 'dawn_mercy';
+  });
 
-  useEffect(() => {
-    applyThemePalette(themeId);
-  }, [themeId]);
+  const setThemeId = (nextTheme: ThemeId) => {
+    Settings.set({ 'mkp.theme': nextTheme });
+    applyThemePalette(nextTheme);
+    setThemeIdState(nextTheme);
+  };
+  const themeId = themeIdState;
 
   const value = useMemo(
     () => ({
@@ -102,4 +110,3 @@ export const useTheme = (): ThemeContextValue => {
   }
   return context;
 };
-

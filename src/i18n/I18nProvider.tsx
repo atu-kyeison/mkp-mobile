@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import { Settings } from 'react-native';
 
 type SupportedLocale = 'en' | 'es';
 
@@ -20,11 +21,25 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     'auth.footer.terms': 'Terms of Service',
     'auth.footer.and': 'and',
     'auth.footer.privacy': 'Privacy Policy',
+    'legal.header': 'LEGAL',
+    'legal.terms.title': 'Terms of Service',
+    'legal.terms.accept': 'ACCEPT TERMS',
+    'legal.terms.quote': '"This agreement supports our community and your journey."',
+    'legal.terms.s1.title': 'Acceptance of Terms',
+    'legal.terms.s1.body': 'By entering this digital sanctuary, you acknowledge and agree to abide by the principles of our community. Your journey with us is built upon mutual respect and spiritual integrity.',
+    'legal.terms.s2.title': 'User Conduct',
+    'legal.terms.s2.body': 'Members are expected to engage with kindness and compassion. Harassment, divisive language, or any behavior that disrupts the tranquility of the Kingdom Pal environment is strictly prohibited.',
+    'legal.terms.s3.title': 'Sacred Use Guidelines',
+    'legal.terms.s3.body': 'The resources, messages, and tools provided are for personal spiritual growth and communal edification. Reproduction or commercial redistribution of these sacred materials is not permitted without divine or administrative consent.',
+    'legal.terms.s4.title': 'Privacy & Grace',
+    'legal.terms.s4.body': 'Your personal information is handled with the utmost reverence. We protect your data as we would a sacred trust, ensuring your journey remains private and secure.',
 
     'auth.signin.title': 'Welcome back',
     'auth.signin.subtitle': 'Continue your walk',
     'auth.signin.emailLabel': 'EMAIL ADDRESS',
     'auth.signin.passwordLabel': 'PASSWORD',
+    'auth.input.emailPlaceholder': 'your@email.com',
+    'auth.input.passwordPlaceholder': '••••••••',
     'auth.signin.error': "That didn't match our records. Check your details or reset your password.",
     'auth.signin.tryAgain': 'TRY AGAIN',
     'auth.signin.submit': 'SIGN IN',
@@ -43,6 +58,7 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     'auth.churchSearch.title': 'Find your church',
     'auth.churchSearch.subtitle': 'Enter the code your church gave you to join the community.',
     'auth.churchSearch.codeLabel': 'CHURCH CODE',
+    'auth.churchSearch.codePlaceholder': 'E.G. KINGDOM-24',
     'auth.churchSearch.submit': 'CONNECT',
     'auth.churchSearch.codeHelp': 'Where can I find my code?',
     'auth.churchSearch.helpTitle': 'Find Your Church Code',
@@ -64,8 +80,18 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     'auth.passwordEmailSent.submit': 'RETURN TO SIGN IN',
     'auth.passwordEmailSent.resend': 'RESEND EMAIL',
     'auth.passwordEmailSent.useDifferent': 'USE A DIFFERENT EMAIL',
+    'newBeliever.title': 'Welcome home.',
+    'newBeliever.subtitle': 'We’re grateful you’re here. You don’t have to have it all figured out. This is a gentle beginning.',
+    'newBeliever.next': 'WHAT HAPPENS NEXT',
+    'newBeliever.step1': 'Join your church community',
+    'newBeliever.step2': 'Receive Sunday’s message in a simple recap',
+    'newBeliever.step3': 'Walk one small step each day this week',
+    'newBeliever.privacy': 'Your journal is private — a space between you and God.',
+    'newBeliever.prayerStart': 'I want to start with a prayer',
 
     'settings.section.language': 'LANGUAGE',
+    'settings.header': 'SETTINGS',
+    'settings.title': 'Adjust your experience, not your formation.',
     'settings.language.label': 'App Language',
     'settings.language.en': 'English',
     'settings.language.es': 'Español',
@@ -73,8 +99,24 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     'settings.theme.label': 'Atmosphere',
     'settings.theme.midnight': 'Midnight Reverence',
     'settings.theme.dawn': 'Dawn Mercy',
+    'settings.section.formation': 'FORMATION PREFERENCES',
+    'settings.formation.reminders': 'Gentle Reminders',
+    'settings.formation.remindersHint': 'Receive a quiet daily nudge to pause.',
+    'settings.formation.privacyInfo': 'Your reflections remain private. You choose what to share.',
+    'settings.section.care': 'CARE & COMMUNICATION',
+    'settings.care.churchMessages': 'Church Messages',
+    'settings.care.encouragement': 'Encouragement',
+    'settings.section.help': 'HELP & SUPPORT',
+    'settings.help.faq': 'Get Help & FAQ',
+    'settings.section.account': 'ACCOUNT',
+    'settings.account.connectedChurch': 'Connected Church',
+    'settings.account.connectedChurchUnknown': 'No church connected yet',
+    'settings.account.changeChurch': 'Change church',
+    'settings.account.signOut': 'Sign Out',
+    'settings.footer': 'MKP supports your journey — your church leads it.',
 
     'care.home.title': 'How can we walk with you?',
+    'care.header': 'CARE',
     'care.home.prayer.label': 'PRAYER REQUEST',
     'care.home.prayer.prompt': 'What would you like prayer for today?',
     'care.home.prayer.action': 'SHARE PRAYER',
@@ -159,6 +201,7 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     'journey.dayDetail.empty': 'No entries saved for this day.',
     'journey.dayDetail.addReflection': 'ADD A REFLECTION',
     'journey.dayDetail.logMood': 'LOG A MOOD',
+    'journey.dayDetail.readOnlyPast': 'Past days are view-only.',
     'journey.dayDetail.error': 'Could not load this day.',
     'journey.dayDetail.retry': 'RETRY',
 
@@ -172,6 +215,12 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     'reflection.save': 'SAVE TO JOURNEY',
     'reflection.needMore': 'Need more than prayer?',
     'reflection.privacy': 'This space is between you and God. Your reflections stay private.',
+    'reflection.detail.title': 'REFLECTION',
+    'reflection.detail.sundayMessage': "SUNDAY'S MESSAGE",
+    'reflection.detail.invitation': 'THE INVITATION',
+    'reflection.detail.words': 'YOUR WORDS',
+    'reflection.detail.empty': 'No reflection saved for this entry.',
+    'reflection.detail.backToJourney': 'BACK TO JOURNEY',
     'reflection.moodCurrent': 'Current mood:',
     'reflection.quote': '"A moment with God is never wasted."',
 
@@ -228,6 +277,15 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     'support.faq': 'Browse FAQs',
     'support.guidelines': 'Sacred Use Guidelines',
     'support.footer': 'Our team is here to support your journey.',
+    'faq.title': 'Frequently Asked Questions',
+    'faq.q1': 'Is my journey really private?',
+    'faq.a1': 'Yes. Your reflections stay on your device in this MVP and are only visible to you.',
+    'faq.q2': 'What if I miss a formation day?',
+    'faq.a2': 'There are no streaks here. God meets you exactly where you are.',
+    'faq.q3': 'How can I support others?',
+    'faq.a3': 'You can submit prayer and testimony in Care so your church team can follow up.',
+    'faq.footerHint': 'Still seeking guidance?',
+    'faq.supportCta': 'CONTACT PASTORAL SUPPORT',
   },
   es: {
     'nav.home': 'INICIO',
@@ -244,11 +302,25 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     'auth.footer.terms': 'Términos de Servicio',
     'auth.footer.and': 'y la',
     'auth.footer.privacy': 'Política de Privacidad',
+    'legal.header': 'LEGAL',
+    'legal.terms.title': 'Términos de Servicio',
+    'legal.terms.accept': 'ACEPTAR TÉRMINOS',
+    'legal.terms.quote': '"Este acuerdo respalda a nuestra comunidad y tu caminar."',
+    'legal.terms.s1.title': 'Aceptación de Términos',
+    'legal.terms.s1.body': 'Al entrar en este santuario digital, reconoces y aceptas cumplir los principios de nuestra comunidad. Tu caminar con nosotros se construye sobre respeto mutuo e integridad espiritual.',
+    'legal.terms.s2.title': 'Conducta del Usuario',
+    'legal.terms.s2.body': 'Se espera que los miembros participen con bondad y compasión. El acoso, el lenguaje divisivo o cualquier conducta que altere la tranquilidad del entorno de Kingdom Pal está estrictamente prohibida.',
+    'legal.terms.s3.title': 'Lineamientos de Uso Sagrado',
+    'legal.terms.s3.body': 'Los recursos, mensajes y herramientas provistos son para crecimiento espiritual personal y edificación comunitaria. La reproducción o redistribución comercial de estos materiales sagrados no está permitida sin consentimiento administrativo.',
+    'legal.terms.s4.title': 'Privacidad y Gracia',
+    'legal.terms.s4.body': 'Tu información personal se maneja con la máxima reverencia. Protegemos tus datos como un encargo sagrado, asegurando que tu caminar permanezca privado y seguro.',
 
     'auth.signin.title': 'Bienvenido de nuevo',
     'auth.signin.subtitle': 'Continúa tu caminar',
     'auth.signin.emailLabel': 'CORREO ELECTRÓNICO',
     'auth.signin.passwordLabel': 'CONTRASEÑA',
+    'auth.input.emailPlaceholder': 'tu@correo.com',
+    'auth.input.passwordPlaceholder': '••••••••',
     'auth.signin.error': 'No coincide con nuestros registros. Verifica tus datos o restablece tu contraseña.',
     'auth.signin.tryAgain': 'INTENTAR DE NUEVO',
     'auth.signin.submit': 'INICIAR SESIÓN',
@@ -267,6 +339,7 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     'auth.churchSearch.title': 'Encuentra tu iglesia',
     'auth.churchSearch.subtitle': 'Ingresa el código que te dio tu iglesia para unirte.',
     'auth.churchSearch.codeLabel': 'CÓDIGO DE IGLESIA',
+    'auth.churchSearch.codePlaceholder': 'EJ. REINO-24',
     'auth.churchSearch.submit': 'CONECTAR',
     'auth.churchSearch.codeHelp': '¿Dónde encuentro mi código?',
     'auth.churchSearch.helpTitle': 'Encuentra el código de tu iglesia',
@@ -288,8 +361,18 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     'auth.passwordEmailSent.submit': 'VOLVER A INICIAR SESIÓN',
     'auth.passwordEmailSent.resend': 'REENVIAR CORREO',
     'auth.passwordEmailSent.useDifferent': 'USAR OTRO CORREO',
+    'newBeliever.title': 'Bienvenido a casa.',
+    'newBeliever.subtitle': 'Nos alegra que estés aquí. No tienes que tener todo resuelto. Este es un comienzo con gracia.',
+    'newBeliever.next': 'LO QUE SIGUE',
+    'newBeliever.step1': 'Únete a la comunidad de tu iglesia',
+    'newBeliever.step2': 'Recibe el mensaje del domingo en un resumen sencillo',
+    'newBeliever.step3': 'Da un paso pequeño cada día esta semana',
+    'newBeliever.privacy': 'Tu journal es privado: un espacio entre tú y Dios.',
+    'newBeliever.prayerStart': 'Quiero empezar con una oración',
 
     'settings.section.language': 'IDIOMA',
+    'settings.header': 'AJUSTES',
+    'settings.title': 'Ajusta tu experiencia, no tu formación.',
     'settings.language.label': 'Idioma de la app',
     'settings.language.en': 'Inglés',
     'settings.language.es': 'Español',
@@ -297,8 +380,24 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     'settings.theme.label': 'Atmósfera',
     'settings.theme.midnight': 'Reverencia de Medianoche',
     'settings.theme.dawn': 'Misericordia del Alba',
+    'settings.section.formation': 'PREFERENCIAS DE FORMACIÓN',
+    'settings.formation.reminders': 'Recordatorios suaves',
+    'settings.formation.remindersHint': 'Recibe un recordatorio diario para pausar.',
+    'settings.formation.privacyInfo': 'Tus reflexiones permanecen privadas. Tú decides qué compartir.',
+    'settings.section.care': 'CUIDADO Y COMUNICACIÓN',
+    'settings.care.churchMessages': 'Mensajes de la iglesia',
+    'settings.care.encouragement': 'Mensajes de ánimo',
+    'settings.section.help': 'AYUDA Y SOPORTE',
+    'settings.help.faq': 'Ayuda y preguntas frecuentes',
+    'settings.section.account': 'CUENTA',
+    'settings.account.connectedChurch': 'Iglesia conectada',
+    'settings.account.connectedChurchUnknown': 'Aún no hay una iglesia conectada',
+    'settings.account.changeChurch': 'Cambiar iglesia',
+    'settings.account.signOut': 'Cerrar sesión',
+    'settings.footer': 'MKP apoya tu camino; tu iglesia lo guía.',
 
     'care.home.title': '¿Cómo podemos caminar contigo?',
+    'care.header': 'CUIDADO',
     'care.home.prayer.label': 'PETICIÓN DE ORACIÓN',
     'care.home.prayer.prompt': '¿Por qué te gustaría que oremos hoy?',
     'care.home.prayer.action': 'COMPARTIR ORACIÓN',
@@ -383,6 +482,7 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     'journey.dayDetail.empty': 'No hay entradas guardadas para este día.',
     'journey.dayDetail.addReflection': 'AGREGAR REFLEXIÓN',
     'journey.dayDetail.logMood': 'REGISTRAR ESTADO',
+    'journey.dayDetail.readOnlyPast': 'Los días pasados son solo de lectura.',
     'journey.dayDetail.error': 'No se pudo cargar este día.',
     'journey.dayDetail.retry': 'REINTENTAR',
 
@@ -396,6 +496,12 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     'reflection.save': 'GUARDAR EN CAMINO',
     'reflection.needMore': '¿Necesitas más que oración?',
     'reflection.privacy': 'Este espacio es entre tú y Dios. Tus reflexiones permanecen privadas.',
+    'reflection.detail.title': 'REFLEXIÓN',
+    'reflection.detail.sundayMessage': 'MENSAJE DEL DOMINGO',
+    'reflection.detail.invitation': 'LA INVITACIÓN',
+    'reflection.detail.words': 'TUS PALABRAS',
+    'reflection.detail.empty': 'No hay reflexión guardada para esta entrada.',
+    'reflection.detail.backToJourney': 'VOLVER AL CAMINO',
     'reflection.moodCurrent': 'Estado actual:',
     'reflection.quote': '"Un momento con Dios nunca se desperdicia."',
 
@@ -452,10 +558,24 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     'support.faq': 'Ver FAQs',
     'support.guidelines': 'Guías de uso sagrado',
     'support.footer': 'Nuestro equipo está aquí para apoyar tu camino.',
+    'faq.title': 'Preguntas Frecuentes',
+    'faq.q1': '¿Mi camino realmente es privado?',
+    'faq.a1': 'Sí. Tus reflexiones permanecen en tu dispositivo en este MVP y solo tú las puedes ver.',
+    'faq.q2': '¿Qué pasa si me pierdo un día de formación?',
+    'faq.a2': 'Aquí no hay rachas. Dios te encuentra exactamente donde estás.',
+    'faq.q3': '¿Cómo puedo apoyar a otros?',
+    'faq.a3': 'Puedes enviar oración y testimonio en Cuidado para que tu equipo de iglesia dé seguimiento.',
+    'faq.footerHint': '¿Aún buscas guía?',
+    'faq.supportCta': 'CONTACTAR APOYO PASTORAL',
   },
 };
 
 const getDefaultLocale = (): SupportedLocale => {
+  const savedLocale = Settings.get('mkp.locale');
+  if (savedLocale === 'en' || savedLocale === 'es') {
+    return savedLocale;
+  }
+
   const locale = Intl.DateTimeFormat().resolvedOptions().locale.toLowerCase();
   if (locale.startsWith('es')) {
     return 'es';
@@ -475,6 +595,7 @@ export const I18nProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [locale, setLocaleState] = useState<SupportedLocale>(getDefaultLocale);
 
   const setLocale = useCallback((nextLocale: SupportedLocale) => {
+    Settings.set({ 'mkp.locale': nextLocale });
     setLocaleState(nextLocale);
   }, []);
 

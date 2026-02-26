@@ -1,17 +1,67 @@
-import React from 'react';
-import { StyleSheet, View, Text, ScrollView } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { MaterialIcons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
 import { BackgroundGradient } from '../components/BackgroundGradient';
 import { GlassCard } from '../components/GlassCard';
 import { useI18n } from '../i18n/I18nProvider';
+import { getJournalEntries } from '../storage/journalStore';
 
 export const InsightsScreen = () => {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
+  const navigation = useNavigation<any>();
+  const [entriesThisWeek, setEntriesThisWeek] = useState(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      const now = new Date();
+      const weekAgo = new Date(now);
+      weekAgo.setDate(now.getDate() - 6);
+      weekAgo.setHours(0, 0, 0, 0);
+
+      const uniqueDays = new Set(
+        getJournalEntries()
+          .filter((entry) => {
+            const created = new Date(entry.createdAt);
+            return !Number.isNaN(created.getTime()) && created >= weekAgo && created <= now;
+          })
+          .map((entry) => entry.createdAt.slice(0, 10))
+      );
+      setEntriesThisWeek(uniqueDays.size);
+    }, [])
+  );
+
+  const reflectionStatText = useMemo(() => {
+    if (locale === 'es') {
+      if (entriesThisWeek === 1) return 'Hiciste una pausa para reflexionar 1 día esta semana';
+      return `Hiciste una pausa para reflexionar ${entriesThisWeek} días esta semana`;
+    }
+    if (entriesThisWeek === 1) return 'You paused to reflect 1 day this week';
+    return `You paused to reflect ${entriesThisWeek} days this week`;
+  }, [entriesThisWeek, locale]);
+
+  const noticedText = useMemo(() => {
+    if (locale === 'es') {
+      if (entriesThisWeek >= 4) return '"Mostraste un ritmo constante esta semana. Sigue con pasos pequeños y fieles."';
+      if (entriesThisWeek >= 2) return '"Ya hay señales de ritmo esta semana. Una pausa más puede afirmarlo."';
+      if (entriesThisWeek === 1) return '"Un momento de reflexión abre espacio para escuchar mejor."';
+      return '"Aún no registras pausas esta semana. Empieza con una sola reflexión breve."';
+    }
+    if (entriesThisWeek >= 4) return '"You showed a steady rhythm this week. Keep taking small, faithful steps."';
+    if (entriesThisWeek >= 2) return '"You started building rhythm this week. One more pause can strengthen it."';
+    if (entriesThisWeek === 1) return '"One reflective pause can open room to listen more clearly."';
+    return '"No reflection pauses logged yet this week. Start with one short entry."';
+  }, [entriesThisWeek, locale]);
+
   return (
     <BackgroundGradient style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <MaterialIcons name="arrow-back-ios-new" size={20} color={Colors.accentGold} />
+          </TouchableOpacity>
           <Text style={styles.headerSubtitle}>{t('insights.header')}</Text>
           <View style={styles.divider} />
           <Text style={styles.title}>{t('insights.title')}</Text>
@@ -32,9 +82,7 @@ export const InsightsScreen = () => {
 
           <GlassCard style={[styles.sectionCard, styles.centeredCard]}>
             <Text style={styles.sectionLabel}>{t('insights.reflectionPresence')}</Text>
-            <Text style={styles.statText}>
-              {t('insights.reflectionStat')}
-            </Text>
+            <Text style={styles.statText}>{reflectionStatText}</Text>
             <View style={styles.smallDivider} />
             <Text style={styles.statSubtext}>
               {t('insights.reflectionSub')}
@@ -43,9 +91,7 @@ export const InsightsScreen = () => {
 
           <GlassCard style={styles.sectionCard}>
             <Text style={styles.sectionLabel}>{t('insights.notice')}</Text>
-            <Text style={styles.noticeText}>
-              {t('insights.noticeText')}
-            </Text>
+            <Text style={styles.noticeText}>{noticedText}</Text>
           </GlassCard>
 
           <Text style={styles.footerText}>
@@ -69,6 +115,16 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
     alignItems: 'center',
     paddingHorizontal: 24,
+    position: 'relative',
+  },
+  backButton: {
+    position: 'absolute',
+    left: 24,
+    top: 40,
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   headerSubtitle: {
     fontFamily: 'Inter_700Bold',

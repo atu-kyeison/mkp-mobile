@@ -7,39 +7,37 @@ import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
 import { openChurchMessage, openScriptureReference, speakWithTTS } from '../../constants/Actions';
 import { getTodayFormationDateLabel } from './dateUtils';
+import { getFormationDayContent } from './formationContent';
 
 export default function Friday({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const dateLabel = getTodayFormationDateLabel();
+  const content = getFormationDayContent('friday');
 
   return (
     <GradientBackground style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 170 + insets.bottom }]} showsVerticalScrollIndicator={false}>
+        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 112 + insets.bottom }]} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
-            <Text style={styles.topLabel}>TODAY'S FOCUS</Text>
+            <Text style={styles.topLabel}>{content.topLabel}</Text>
             <View style={styles.divider} />
-            <Text style={styles.italicLabel}>gratitude & joy</Text>
-            <Text style={styles.greeting}>Good morning</Text>
+            <Text style={styles.italicLabel}>{content.focusTagline}</Text>
+            <Text style={styles.greeting}>{content.greeting}</Text>
             <Text style={styles.date}>{dateLabel}</Text>
           </View>
 
           <GlassCard style={styles.card}>
             <View style={styles.cardHeader}>
               <View style={styles.flex1}>
-                <Text style={styles.cardLabel}>TODAY’S SCRIPTURE</Text>
-                <Text style={styles.scriptureText}>“Give thanks in all circumstances; for this is God’s will for you in Christ Jesus.”</Text>
-                <TouchableOpacity onPress={() => openScriptureReference('1 Thessalonians 5:18')}>
-                  <Text style={styles.reference}>1 Thessalonians 5:18</Text>
+                <Text style={styles.cardLabel}>{content.scriptureLabel}</Text>
+                <Text style={styles.scriptureText}>{content.scriptureText}</Text>
+                <TouchableOpacity onPress={() => openScriptureReference(content.scriptureReference || '')}>
+                  <Text style={styles.reference}>{content.scriptureReference}</Text>
                 </TouchableOpacity>
               </View>
               <TouchableOpacity
                 style={styles.playButton}
-                onPress={() =>
-                  speakWithTTS(
-                    'Give thanks in all circumstances, for this is God’s will for you in Christ Jesus. 1 Thessalonians 5:18'
-                  )
-                }
+                onPress={() => speakWithTTS(content.scriptureSpeech || '')}
               >
                 <Text style={styles.playIcon}>⦿</Text>
               </TouchableOpacity>
@@ -49,30 +47,28 @@ export default function Friday({ navigation }: any) {
           <GlassCard style={styles.card}>
             <View style={styles.cardHeader}>
               <View style={styles.flex1}>
-                <Text style={styles.cardLabel}>FROM SUNDAY</Text>
-                <Text style={styles.messageText}>Gratitude turns what we have into enough, and more.</Text>
+                <Text style={styles.cardLabel}>{content.sundayMessageLabel}</Text>
+                <Text style={styles.messageText}>{content.sundayMessageText}</Text>
               </View>
               <TouchableOpacity
                 style={styles.listenButton}
                 onPress={openChurchMessage}
               >
                 <Text style={styles.listenIcon}>🎧</Text>
-                <Text style={styles.listenText}>Listen</Text>
+                <Text style={styles.listenText}>{content.listenLabel}</Text>
               </TouchableOpacity>
             </View>
           </GlassCard>
 
           <GlassCard withGlow style={styles.practiceCard}>
-            <Text style={styles.cardLabel}>TODAY’S INVITATION</Text>
-            <Text style={styles.practiceText}>
-              What are three small things you are grateful for today? How have you seen God’s goodness throughout this past week?
-            </Text>
+            <Text style={styles.cardLabel}>{content.practiceLabel}</Text>
+            <Text style={styles.practiceText}>{content.practiceText}</Text>
             <CustomButton
-              title="REFLECT"
+              title={content.practiceButton}
               onPress={() =>
                 navigation.navigate('Journey', {
                   screen: 'ReflectionEntry',
-                  params: { journalVariant: 'mid_week', openMoodOnEntry: true },
+                  params: { journalVariant: content.practiceVariant, openMoodOnEntry: true },
                 })
               }
             />
@@ -90,8 +86,8 @@ export default function Friday({ navigation }: any) {
                 <Text style={styles.star}>★</Text>
               </View>
               <View style={styles.flex1}>
-                <Text style={styles.cardLabel}>INVITATION TO PRAY</Text>
-                <Text style={styles.prayerText}>Thank God for three signs of grace this week and ask for joy to carry forward.</Text>
+                <Text style={styles.cardLabel}>{content.prayerLabel}</Text>
+                <Text style={styles.prayerText}>{content.prayerText}</Text>
               </View>
             </View>
           </GlassCard>

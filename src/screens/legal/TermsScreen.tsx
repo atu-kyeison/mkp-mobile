@@ -5,8 +5,11 @@ import { MidnightBackground } from '../../components/MidnightBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { GoldButton } from '../../components/GoldButton';
 import Colors from '../../constants/Colors';
+import { useI18n } from '../../i18n/I18nProvider';
 
 const TermsScreen = ({ navigation, route }: any) => {
+  const { t } = useI18n();
+
   const handleAccept = () => {
     if (route.params?.nextScreen === 'ChurchSearch') {
       navigation.navigate('ChurchSearch');
@@ -20,17 +23,17 @@ const TermsScreen = ({ navigation, route }: any) => {
   <MidnightBackground>
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <View style={styles.header}><Text style={styles.headerLabel}>LEGAL</Text><View style={styles.headerDivider} /><Text style={styles.title}>Terms of Service</Text></View>
+        <View style={styles.header}><Text style={styles.headerLabel}>{t('legal.header')}</Text><View style={styles.headerDivider} /><Text style={styles.title}>{t('legal.terms.title')}</Text></View>
         <View style={styles.contentContainer}>
           <GlassCard style={styles.card}>
             <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={true}>
-              <Section number="1" title="Acceptance of Terms" content="By entering this digital sanctuary, you acknowledge and agree to abide by the principles of our community. Your journey with us is built upon mutual respect and spiritual integrity." />
-              <Section number="2" title="User Conduct" content="Members are expected to engage with kindness and compassion. Harassment, divisive language, or any behavior that disrupts the tranquility of the Kingdom Pal environment is strictly prohibited." />
-              <Section number="3" title="Sacred Use Guidelines" content="The resources, messages, and tools provided are for personal spiritual growth and communal edification. Reproduction or commercial redistribution of these sacred materials is not permitted without divine or administrative consent." />
-              <Section number="4" title="Privacy & Grace" content="Your personal information is handled with the utmost reverence. We protect your data as we would a sacred trust, ensuring your journey remains private and secure." />
+              <Section number="1" title={t('legal.terms.s1.title')} content={t('legal.terms.s1.body')} />
+              <Section number="2" title={t('legal.terms.s2.title')} content={t('legal.terms.s2.body')} />
+              <Section number="3" title={t('legal.terms.s3.title')} content={t('legal.terms.s3.body')} />
+              <Section number="4" title={t('legal.terms.s4.title')} content={t('legal.terms.s4.body')} />
               <View style={{ height: 20 }} />
             </ScrollView>
-            <View style={styles.cardFooter}><Text style={styles.footerQuote}>"This agreement supports our community and your journey."</Text><GoldButton title="ACCEPT TERMS" onPress={handleAccept} /></View>
+            <View style={styles.cardFooter}><Text style={styles.footerQuote}>{t('legal.terms.quote')}</Text><GoldButton title={t('legal.terms.accept')} onPress={handleAccept} /></View>
           </GlassCard>
         </View>
       </View>

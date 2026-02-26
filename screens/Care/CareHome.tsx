@@ -14,14 +14,10 @@ export default function CareHome({ navigation }: any) {
   return (
     <GradientBackground style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 120 + insets.bottom }]} showsVerticalScrollIndicator={false}>
-          <View style={styles.header}>
-            <View style={styles.divider} />
-            <Text style={styles.title}>{t('care.home.title')}</Text>
-          </View>
-
+        <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 112 + insets.bottom }]} showsVerticalScrollIndicator={false}>
           <View style={styles.section}>
             <GlassCard withGlow style={styles.mainCard}>
+              <Text style={styles.title}>{t('care.home.title')}</Text>
               <Text style={styles.cardLabel}>{t('care.home.prayer.label')}</Text>
               <Text style={styles.cardText}>
                 {t('care.home.prayer.prompt')}
@@ -70,26 +66,17 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
-  scrollContent: {
-    paddingHorizontal: 24,
-    paddingTop: 40,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 40,
-  },
-  divider: {
-    width: 48,
-    height: 1,
-    backgroundColor: 'rgba(229, 185, 95, 0.4)',
-    marginBottom: 32,
-  },
   title: {
     fontFamily: 'PlayfairDisplay_400Regular_Italic',
     fontSize: 24,
     color: Colors.text,
     textAlign: 'center',
     lineHeight: 36,
+    marginBottom: 20,
+  },
+  scrollContent: {
+    paddingHorizontal: 24,
+    paddingTop: 20,
   },
   section: {
     alignItems: 'center',

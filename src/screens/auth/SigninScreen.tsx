@@ -31,10 +31,10 @@ const SigninScreen = ({ navigation, route }: any) => {
               <GlassCard style={styles.card}>
                 <View style={styles.header}><Text style={styles.title}>{t('auth.signin.title')}</Text><Text style={styles.subtitle}>{t('auth.signin.subtitle')}</Text></View>
                 <View style={styles.form}>
-                  <View style={styles.inputGroup}><Text style={styles.label}>{t('auth.signin.emailLabel')}</Text><TextInput style={styles.input} placeholder="your@email.com" placeholderTextColor="rgba(255, 255, 255, 0.25)" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} /></View>
+                  <View style={styles.inputGroup}><Text style={styles.label}>{t('auth.signin.emailLabel')}</Text><TextInput style={styles.input} placeholder={t('auth.input.emailPlaceholder')} placeholderTextColor="rgba(255, 255, 255, 0.25)" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} /></View>
                   <View style={styles.inputGroup}>
                     <Text style={styles.label}>{t('auth.signin.passwordLabel')}</Text>
-                    <TextInput style={[styles.input, isError && styles.inputError]} placeholder="••••••••" placeholderTextColor="rgba(255, 255, 255, 0.25)" secureTextEntry value={password} onChangeText={(text) => { setPassword(text); if (isError) setIsError(false); }} />
+                    <TextInput style={[styles.input, isError && styles.inputError]} placeholder={t('auth.input.passwordPlaceholder')} placeholderTextColor="rgba(255, 255, 255, 0.25)" secureTextEntry value={password} onChangeText={(text) => { setPassword(text); if (isError) setIsError(false); }} />
                     {isError && <Text style={styles.errorHint}>{t('auth.signin.error')}</Text>}
                   </View>
                   <View style={styles.buttonWrapper}>

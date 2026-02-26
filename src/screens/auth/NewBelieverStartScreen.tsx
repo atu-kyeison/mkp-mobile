@@ -6,8 +6,11 @@ import { GlassCard } from '../../components/GlassCard';
 import { GoldButton } from '../../components/GoldButton';
 import { MaterialIcons } from '@expo/vector-icons';
 import Colors from '../../constants/Colors';
+import { useI18n } from '../../i18n/I18nProvider';
 
 const NewBelieverStartScreen = ({ navigation }: any) => {
+  const { t } = useI18n();
+
   return (
     <MidnightBackground>
       <SafeAreaView style={styles.safeArea}>
@@ -17,47 +20,47 @@ const NewBelieverStartScreen = ({ navigation }: any) => {
               <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
                 <MaterialIcons name="chevron-left" size={28} color={Colors.antiqueGold} />
               </TouchableOpacity>
-              <Text style={styles.brand}>MY KINGDOM PAL</Text>
+              <Text style={styles.brand}>{t('auth.brand')}</Text>
               <View style={styles.backButtonSpacer} />
             </View>
 
             <GlassCard style={styles.card}>
-              <Text style={styles.title}>Welcome home.</Text>
+              <Text style={styles.title}>{t('newBeliever.title')}</Text>
               <Text style={styles.subtitle}>
-                We’re grateful you’re here. You don’t have to have it all figured out. This is a gentle beginning.
+                {t('newBeliever.subtitle')}
               </Text>
 
-              <Text style={styles.sectionLabel}>WHAT HAPPENS NEXT</Text>
+              <Text style={styles.sectionLabel}>{t('newBeliever.next')}</Text>
 
               <View style={styles.stepRow}>
                 <View style={styles.stepIcon}>
                   <MaterialIcons name="check" size={16} color={Colors.antiqueGold} />
                 </View>
-                <Text style={styles.stepText}>Join your church community</Text>
+                <Text style={styles.stepText}>{t('newBeliever.step1')}</Text>
               </View>
               <View style={styles.stepRow}>
                 <View style={styles.stepIcon}>
                   <MaterialIcons name="auto-awesome" size={16} color={Colors.antiqueGold} />
                 </View>
-                <Text style={styles.stepText}>Receive Sunday’s message in a simple recap</Text>
+                <Text style={styles.stepText}>{t('newBeliever.step2')}</Text>
               </View>
               <View style={styles.stepRow}>
                 <View style={styles.stepIcon}>
                   <MaterialIcons name="map" size={16} color={Colors.antiqueGold} />
                 </View>
-                <Text style={styles.stepText}>Walk one small step each day this week</Text>
+                <Text style={styles.stepText}>{t('newBeliever.step3')}</Text>
               </View>
 
               <View style={styles.cardDivider} />
               <Text style={styles.privacyLine}>
-                Your journal is private — a space between you and God.
+                {t('newBeliever.privacy')}
               </Text>
             </GlassCard>
           </ScrollView>
 
           <View style={styles.bottomSheet}>
             <GoldButton
-              title="GO TO MY CHURCH"
+              title={t('auth.churchSuccess.submit')}
               onPress={() => navigation.getParent()?.navigate('Main', { screen: 'Home' })}
             />
             <TouchableOpacity
@@ -72,13 +75,13 @@ const NewBelieverStartScreen = ({ navigation }: any) => {
                 })
               }
             >
-              <Text style={styles.prayerLinkText}>I want to start with a prayer</Text>
+              <Text style={styles.prayerLinkText}>{t('newBeliever.prayerStart')}</Text>
             </TouchableOpacity>
 
             <View style={styles.legalRow}>
-              <Text style={styles.legalLink} onPress={() => navigation.navigate('Terms')}>TERMS OF SERVICE</Text>
+              <Text style={styles.legalLink} onPress={() => navigation.navigate('Terms')}>{t('auth.footer.terms').toUpperCase()}</Text>
               <Text style={styles.legalDot}>•</Text>
-              <Text style={styles.legalLink} onPress={() => navigation.navigate('Privacy')}>PRIVACY POLICY</Text>
+              <Text style={styles.legalLink} onPress={() => navigation.navigate('Privacy')}>{t('auth.footer.privacy').toUpperCase()}</Text>
             </View>
           </View>
         </View>

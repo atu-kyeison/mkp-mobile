@@ -11,8 +11,6 @@ import {
   PlayfairDisplay_400Regular,
   PlayfairDisplay_500Medium,
   PlayfairDisplay_700Bold,
-  PlayfairDisplay_400Regular_Italic,
-  PlayfairDisplay_700Bold_Italic
 } from '@expo-google-fonts/playfair-display';
 import {
   Inter_300Light,
@@ -21,13 +19,6 @@ import {
   Inter_600SemiBold,
   Inter_700Bold
 } from '@expo-google-fonts/inter';
-import {
-  Newsreader_400Regular,
-  Newsreader_400Regular_Italic,
-  Newsreader_500Medium,
-  Newsreader_600SemiBold,
-  Newsreader_700Bold
-} from '@expo-google-fonts/newsreader';
 import { Colors } from './constants/Colors';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
@@ -43,18 +34,20 @@ export default function App() {
     PlayfairDisplay_400Regular,
     PlayfairDisplay_500Medium,
     PlayfairDisplay_700Bold,
-    PlayfairDisplay_400Regular_Italic,
-    PlayfairDisplay_700Bold_Italic,
+    // Normalize to the more readable non-italic style across screens.
+    PlayfairDisplay_400Regular_Italic: PlayfairDisplay_400Regular,
+    PlayfairDisplay_700Bold_Italic: PlayfairDisplay_700Bold,
     Inter_300Light,
     Inter_400Regular,
     Inter_500Medium,
     Inter_600SemiBold,
     Inter_700Bold,
-    Newsreader_400Regular,
-    Newsreader_400Regular_Italic,
-    Newsreader_500Medium,
-    Newsreader_600SemiBold,
-    Newsreader_700Bold,
+    // Map legacy display families to readable settings-era typography.
+    Newsreader_400Regular: PlayfairDisplay_400Regular,
+    Newsreader_400Regular_Italic: PlayfairDisplay_400Regular,
+    Newsreader_500Medium: PlayfairDisplay_500Medium,
+    Newsreader_600SemiBold: PlayfairDisplay_700Bold,
+    Newsreader_700Bold: PlayfairDisplay_700Bold,
   });
 
   const onLayoutRootView = useCallback(async () => {

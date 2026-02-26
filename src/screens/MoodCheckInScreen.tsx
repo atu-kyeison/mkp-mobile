@@ -169,6 +169,8 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 12,
     gap: 12,
     borderRadius: 28,
   },
@@ -178,6 +180,7 @@ const styles = StyleSheet.create({
   },
   moodIcon: {
     opacity: 0.9,
+    alignSelf: 'center',
   },
   moodLabel: {
     fontFamily: 'Inter_700Bold',
@@ -185,6 +188,8 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.7)',
     letterSpacing: 2,
     textTransform: 'uppercase',
+    textAlign: 'center',
+    width: '100%',
   },
   footer: {
     paddingTop: 12,
