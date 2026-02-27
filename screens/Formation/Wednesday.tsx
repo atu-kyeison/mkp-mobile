@@ -7,7 +7,7 @@ import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
 import { openChurchMessage, openScriptureReference, speakWithTTS } from '../../constants/Actions';
 import { getTodayFormationDateLabel } from './dateUtils';
-import { getFormationDayContent } from './formationContent';
+import { getFormationDayContent, getPrimaryScripture } from './formationContent';
 import { useI18n } from '../../src/i18n/I18nProvider';
 import { useTheme } from '../../src/theme/ThemeProvider';
 
@@ -18,6 +18,7 @@ export default function Wednesday({ navigation }: any) {
   const styles = useMemo(() => createStyles(), [themeId]);
   const dateLabel = getTodayFormationDateLabel(locale === 'es' ? 'es-ES' : 'en-US');
   const content = getFormationDayContent('wednesday', locale);
+  const scripture = getPrimaryScripture(content);
 
   return (
     <GradientBackground style={styles.container}>
@@ -34,15 +35,15 @@ export default function Wednesday({ navigation }: any) {
           <GlassCard style={styles.card}>
             <View style={styles.cardHeader}>
               <View style={styles.flex1}>
-                <Text style={styles.cardLabel}>{content.scriptureLabel}</Text>
-                <Text style={styles.scriptureText}>{content.scriptureText}</Text>
-                <TouchableOpacity onPress={() => openScriptureReference(content.scriptureReference || '')}>
-                  <Text style={styles.reference}>{content.scriptureReference}</Text>
+                <Text style={styles.cardLabel}>{scripture?.label || content.scriptureLabel}</Text>
+                <Text style={styles.scriptureText}>{scripture?.text || content.scriptureText}</Text>
+                <TouchableOpacity onPress={() => openScriptureReference(scripture?.reference || '')}>
+                  <Text style={styles.reference}>{scripture?.reference}</Text>
                 </TouchableOpacity>
               </View>
               <TouchableOpacity
                 style={styles.playButton}
-                onPress={() => speakWithTTS(content.scriptureSpeech || '')}
+                onPress={() => speakWithTTS(scripture?.speech || '')}
               >
                 <Text style={styles.playIcon}>▶</Text>
               </TouchableOpacity>

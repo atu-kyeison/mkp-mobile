@@ -8,10 +8,18 @@ export type FormationDayKey =
 
 export type ReflectionVariant = 'early_week' | 'mid_week';
 
+export interface FormationScriptureEntry {
+  label?: string;
+  text: string;
+  reference: string;
+  speech?: string;
+}
+
 export interface FormationDayContent {
   topLabel: string;
   focusTagline: string;
   greeting: string;
+  scriptures?: FormationScriptureEntry[];
   scriptureLabel?: string;
   scriptureText?: string;
   scriptureReference?: string;
@@ -245,4 +253,19 @@ export const getFormationDayContent = (
   const base = FORMATION_CONTENT[day];
   const overrides = locale === 'es' ? FORMATION_CONTENT_ES[day] : undefined;
   return overrides ? { ...base, ...overrides } : base;
+};
+
+export const getPrimaryScripture = (content: FormationDayContent): FormationScriptureEntry | null => {
+  if (content.scriptures && content.scriptures.length > 0) {
+    return content.scriptures[0];
+  }
+  if (content.scriptureText && content.scriptureReference) {
+    return {
+      label: content.scriptureLabel,
+      text: content.scriptureText,
+      reference: content.scriptureReference,
+      speech: content.scriptureSpeech,
+    };
+  }
+  return null;
 };
