@@ -13,6 +13,7 @@ type ThemeContextValue = {
 
 const themeOptions: Array<{ id: ThemeId; labelKey: string }> = [
   { id: 'dawn_mercy', labelKey: 'settings.theme.dawn' },
+  { id: 'midnight_reverence', labelKey: 'settings.theme.midnight' },
 ];
 
 const themePalettes: Record<ThemeId, Record<string, string>> = {
@@ -76,12 +77,25 @@ const applyThemePalette = (themeId: ThemeId) => {
 
 const ThemeContext = createContext<ThemeContextValue | null>(null);
 
+const getDefaultThemeByTime = (): ThemeId => {
+  const hour = new Date().getHours();
+  if (hour >= 19 || hour < 6) {
+    return 'midnight_reverence';
+  }
+  return 'dawn_mercy';
+};
+
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [themeIdState, setThemeIdState] = useState<ThemeId>(() => {
-    // Product decision: lock active production look to day mist for now.
-    applyThemePalette('dawn_mercy');
-    Settings.set({ 'mkp.theme': 'dawn_mercy' });
-    return 'dawn_mercy';
+    const saved = Settings.get('mkp.theme');
+    if (saved === 'dawn_mercy' || saved === 'midnight_reverence') {
+      applyThemePalette(saved);
+      return saved;
+    }
+    const initial = getDefaultThemeByTime();
+    applyThemePalette(initial);
+    Settings.set({ 'mkp.theme': initial });
+    return initial;
   });
 
   const setThemeId = (nextTheme: ThemeId) => {
