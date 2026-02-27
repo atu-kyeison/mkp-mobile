@@ -163,14 +163,14 @@ const SettingsScreen = ({ navigation, route }: any) => {
               <GlassCard style={[styles.settingCard, styles.accountCard]}>
                 <View style={styles.accountHeaderRow}>
                   <Text style={styles.settingLabel}>{t('settings.account.connectedChurch')}</Text>
+                  <TouchableOpacity
+                    style={styles.changeChurchButton}
+                    onPress={() => navigation.getParent()?.getParent()?.navigate('Auth', { screen: 'ChurchSearch' })}
+                  >
+                    <Text style={styles.changeText}>{t('settings.account.changeChurch')}</Text>
+                  </TouchableOpacity>
                 </View>
                 <Text style={styles.accountChurchName}>{connectedChurchName}</Text>
-                <TouchableOpacity
-                  style={styles.changeChurchButton}
-                  onPress={() => navigation.getParent()?.getParent()?.navigate('Auth', { screen: 'ChurchSearch' })}
-                >
-                  <Text style={styles.changeText}>{t('settings.account.changeChurch')}</Text>
-                </TouchableOpacity>
               </GlassCard>
 
               <View style={styles.signOutContainer}>
@@ -179,9 +179,9 @@ const SettingsScreen = ({ navigation, route }: any) => {
                   style={styles.signOutButton}
                   onPress={() => navigation.getParent()?.getParent()?.navigate('Auth', { screen: 'Welcome' })}
                 >
-                  <GlassCard style={styles.signOutCard}>
+                  <View style={styles.signOutCard}>
                     <Text style={styles.signOutText}>{t('settings.account.signOut')}</Text>
-                  </GlassCard>
+                  </View>
                 </TouchableOpacity>
               </View>
             </Section>
@@ -218,14 +218,18 @@ const styles = StyleSheet.create({
   },
   accountHeaderRow: {
     width: '100%',
-    marginBottom: 6,
+    marginBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
   },
   accountChurchName: {
     fontFamily: 'PlayfairDisplay_400Regular',
-    fontSize: 20,
-    lineHeight: 28,
+    fontSize: 18,
+    lineHeight: 26,
     color: 'white',
-    marginBottom: 12,
+    marginBottom: 4,
+    width: '100%',
   },
   settingRow: { width: '100%' },
   settingInfo: { flex: 1, marginRight: 12 },
@@ -243,18 +247,19 @@ const styles = StyleSheet.create({
   themeOptionText: { fontFamily: 'Inter_500Medium', fontSize: 14, color: 'rgba(255,255,255,0.86)' },
   themeOptionTextActive: { color: Colors.antiqueGold },
   sectionInfo: { fontFamily: 'Inter_300Light', fontStyle: 'italic', fontSize: 11, color: 'rgba(255, 255, 255, 0.4)', textAlign: 'center', paddingHorizontal: 16, lineHeight: 18 },
-  changeChurchButton: { alignSelf: 'flex-start', marginTop: 2 },
+  changeChurchButton: { marginTop: 0, marginLeft: 12 },
   changeText: { fontFamily: 'Inter_700Bold', fontSize: 10, color: Colors.antiqueGold, letterSpacing: 1, textTransform: 'uppercase', borderBottomWidth: 1, borderBottomColor: 'rgba(229, 185, 95, 0.2)' },
   signOutContainer: { alignItems: 'center', marginTop: 32 },
   signOutDivider: { width: 64, height: 1, backgroundColor: 'rgba(229, 185, 95, 0.3)', marginBottom: 40 },
   signOutButton: { alignSelf: 'center' },
   signOutCard: {
     alignSelf: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 22,
+    paddingVertical: 11,
+    paddingHorizontal: 18,
     borderRadius: 999,
-    flexGrow: 0,
-    flexShrink: 1,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 185, 95, 0.26)',
+    backgroundColor: 'rgba(255, 255, 255, 0.04)',
   },
   signOutText: { fontFamily: 'Cinzel_400Regular', fontSize: 11, color: 'rgba(255, 255, 255, 0.6)', letterSpacing: 2, textDecorationLine: 'underline' },
 });

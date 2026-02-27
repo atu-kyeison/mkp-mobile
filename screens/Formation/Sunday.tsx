@@ -5,104 +5,147 @@ import { Colors } from '../../constants/Colors';
 import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { openChurchMessage, openScriptureReference } from '../../constants/Actions';
+import { useI18n } from '../../src/i18n/I18nProvider';
 
 export default function Sunday({ navigation }: any) {
   const insets = useSafeAreaInsets();
+  const { locale } = useI18n();
+  const isEs = locale === 'es';
+  const copy = isEs
+    ? {
+        topLabel: 'Domingo • Sept 15',
+        sermonTitle: 'La Vid y los Pámpanos',
+        sermonPart: 'Parte 1',
+        preacherName: 'Pastor Elias Vance',
+        churchName: 'Grace Fellowship',
+        listen: '🔊 Escuchar el mensaje de esta semana',
+        recapLabel: 'Resumen del domingo',
+        recapText:
+          '“Una reflexión serena sobre permanecer en la vid, resaltando la conexión sagrada entre la rama y la fuente. No somos llamados a producir, sino a permanecer.”',
+        keyTruths: 'Verdades clave',
+        truths: [
+          'Soy una rama, diseñada para depender de la Vid Verdadera.',
+          'La poda no es castigo; es una invitación a la fructificación.',
+          'Separado de Él, mis esfuerzos se secan; en Él, mi gozo se completa.',
+        ],
+        scriptureSection: 'Escritura',
+        scriptures: [
+          {
+            quote: '“Permanezcan en mí, y yo en ustedes. Así como la rama no puede dar fruto por sí misma…”',
+            reference: 'Juan 15:4',
+          },
+          {
+            quote: '“Es como árbol plantado junto a corrientes de agua, que da su fruto…”',
+            reference: 'Salmo 1:2-3',
+          },
+        ],
+        identityLabel: 'Descanso e identidad',
+        identityMain:
+          'Que hoy descanses sabiendo que tu identidad está segura en el Amado. Eres sostenido, conocido y amado.',
+        footer: 'La formación comienza mañana.',
+      }
+    : {
+        topLabel: 'Sunday • Sept 15',
+        sermonTitle: 'The Vine and the Branches',
+        sermonPart: 'Part 1',
+        preacherName: 'Pastor Elias Vance',
+        churchName: 'Grace Fellowship',
+        listen: '🔊 Listen to This Week’s Message',
+        recapLabel: 'Sunday Recap',
+        recapText:
+          '"A serene reflection on abiding in the vine, emphasizing the sacred connection between the branch and the source. We are not called to produce, but to remain."',
+        keyTruths: 'Key Truths',
+        truths: [
+          'I am a branch, designed for dependence upon the True Vine.',
+          'Pruning is not punishment; it is the invitation to fruitfulness.',
+          'Apart from Him, my efforts are dry; in Him, my joy is made complete.',
+        ],
+        scriptureSection: 'Scripture',
+        scriptures: [
+          {
+            quote: '"Abide in me, and I in you. As the branch cannot bear fruit by itself..."',
+            reference: 'John 15:4',
+          },
+          {
+            quote: '"He is like a tree planted by streams of water that yields its fruit..."',
+            reference: 'Psalm 1:2-3',
+          },
+        ],
+        identityLabel: 'Rest & Identity',
+        identityMain:
+          'May you find rest tonight knowing your identity is secure in the Beloved. You are held, you are known, and you are cherished.',
+        footer: 'Formation begins tomorrow.',
+      };
   return (
     <GradientBackground variant="sacred" style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 140 + insets.bottom }]} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
-            <Text style={styles.topLabel}>Sunday • Sept 15</Text>
-            <Text style={styles.title}>Abiding in Christ</Text>
-            <Text style={styles.subtitle}>The Vine and the Branches • Part 1</Text>
+            <Text style={styles.topLabel}>{copy.topLabel}</Text>
+            <Text style={styles.title}>{copy.sermonTitle}</Text>
+            <Text style={styles.subtitle}>{copy.sermonPart}</Text>
             <TouchableOpacity onPress={() => openScriptureReference('John 15:1-8')}>
               <Text style={styles.scriptureRef}>John 15:1-8</Text>
             </TouchableOpacity>
-            <Text style={styles.pastorInfo}>Pastor Elias Vance • Grace Fellowship</Text>
+            <Text style={styles.pastorInfo}>{copy.preacherName}</Text>
+            <Text style={styles.churchInfo}>{copy.churchName}</Text>
 
             <TouchableOpacity
               style={styles.listenLink}
               onPress={openChurchMessage}
             >
-              <Text style={styles.listenLinkText}>🔊 Listen to This Week’s Message</Text>
+              <Text style={styles.listenLinkText}>{copy.listen}</Text>
             </TouchableOpacity>
 
             <GlassCard style={styles.recapCard}>
-              <Text style={styles.recapLabel}>Sunday Recap</Text>
-              <Text style={styles.recapText}>
-                "A serene reflection on abiding in the vine, emphasizing the sacred connection between the branch and the source. We are not called to produce, but to remain."
-              </Text>
-              <TouchableOpacity
-                style={styles.escalationLink}
-                onPress={() =>
-                  navigation.navigate('Church', {
-                    screen: 'CareSupportRequest',
-                    params: { initialHelpType: 'A conversation with a pastor' },
-                  })
-                }
-              >
-                <Text style={styles.escalationLinkText}>Need more than prayer?</Text>
-              </TouchableOpacity>
+              <Text style={styles.recapLabel}>{copy.recapLabel}</Text>
+              <Text style={styles.recapText}>{copy.recapText}</Text>
             </GlassCard>
           </View>
 
           <View style={styles.truthsSection}>
             <View style={styles.sectionHeader}>
               <View style={styles.glowLine} />
-              <Text style={styles.sectionTitle}>Key Truths</Text>
+              <Text style={styles.sectionTitle}>{copy.keyTruths}</Text>
               <View style={styles.glowLine} />
             </View>
 
             <View style={styles.truthsGrid}>
-              <GlassCard style={styles.truthItem}>
-                <View style={styles.truthDot} />
-                <Text style={styles.truthText}>I am a branch, designed for dependence upon the True Vine.</Text>
-              </GlassCard>
-              <GlassCard style={styles.truthItem}>
-                <View style={styles.truthDot} />
-                <Text style={styles.truthText}>Pruning is not punishment; it is the invitation to fruitfulness.</Text>
-              </GlassCard>
-              <GlassCard style={styles.truthFull}>
-                <View style={styles.truthDot} />
-                <Text style={styles.truthText}>Apart from Him, my efforts are dry; in Him, my joy is made complete.</Text>
-              </GlassCard>
+              {copy.truths.map((truth) => (
+                <GlassCard key={truth} style={styles.truthFull}>
+                  <View style={styles.truthDot} />
+                  <Text style={styles.truthText}>{truth}</Text>
+                </GlassCard>
+              ))}
             </View>
           </View>
 
           <View style={styles.scriptureSection}>
             <GlassCard style={styles.scriptureOuter}>
-              <Text style={styles.scriptureSectionLabel}>Scripture</Text>
-              <View style={styles.scriptureGrid}>
-                <View style={styles.scriptureItem}>
-                  <Text style={styles.bookIcon}>📖</Text>
-                  <Text style={styles.scriptureQuote}>"Abide in me, and I in you. As the branch cannot bear fruit by itself..."</Text>
-                  <TouchableOpacity onPress={() => openScriptureReference('John 15:4')}>
-                    <Text style={styles.scriptureReference}>John 15:4</Text>
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.scriptureItem}>
-                  <Text style={styles.bookIcon}>📖</Text>
-                  <Text style={styles.scriptureQuote}>"He is like a tree planted by streams of water that yields its fruit..."</Text>
-                  <TouchableOpacity onPress={() => openScriptureReference('Psalm 1:2-3')}>
-                    <Text style={styles.scriptureReference}>Psalm 1:2-3</Text>
-                  </TouchableOpacity>
-                </View>
+              <Text style={styles.scriptureSectionLabel}>{copy.scriptureSection}</Text>
+              <View style={styles.scriptureList}>
+                {copy.scriptures.map((entry) => (
+                  <View key={`${entry.reference}-${entry.quote}`} style={styles.scriptureItem}>
+                    <Text style={styles.bookIcon}>📖</Text>
+                    <Text style={styles.scriptureQuote}>{entry.quote}</Text>
+                    <TouchableOpacity onPress={() => openScriptureReference(entry.reference)}>
+                      <Text style={styles.scriptureReference}>{entry.reference}</Text>
+                    </TouchableOpacity>
+                  </View>
+                ))}
               </View>
             </GlassCard>
           </View>
 
           <GlassCard style={styles.identitySection}>
             <View style={styles.glowDivider} />
-            <Text style={styles.identityLabel}>Rest & Identity</Text>
-            <Text style={styles.identityMainText}>
-              May you find rest tonight knowing your identity is secure in the Beloved. You are held, you are known, and you are cherished.
-            </Text>
+            <Text style={styles.identityLabel}>{copy.identityLabel}</Text>
+            <Text style={styles.identityMainText}>{copy.identityMain}</Text>
             <View style={styles.glowDivider} />
           </GlassCard>
 
           <View style={styles.footer}>
-            <Text style={styles.footerLabel}>Formation begins tomorrow.</Text>
+            <Text style={styles.footerLabel}>{copy.footer}</Text>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -154,8 +197,16 @@ const styles = StyleSheet.create({
   },
   pastorInfo: {
     fontFamily: 'Inter_700Bold',
+    fontSize: 9,
+    color: 'rgba(148, 163, 184, 0.9)',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
+    marginBottom: 4,
+  },
+  churchInfo: {
+    fontFamily: 'Inter_700Bold',
     fontSize: 8,
-    color: 'rgba(148, 163, 184, 0.8)',
+    color: 'rgba(148, 163, 184, 0.75)',
     textTransform: 'uppercase',
     letterSpacing: 2,
     marginBottom: 20,
@@ -187,16 +238,6 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.9)',
     lineHeight: 22,
   },
-  escalationLink: {
-    marginTop: 12,
-    alignSelf: 'flex-start',
-  },
-  escalationLinkText: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 11,
-    color: Colors.accentGold,
-    textDecorationLine: 'underline',
-  },
   truthsSection: {
     marginBottom: 32,
   },
@@ -220,15 +261,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   truthsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 12,
-  },
-  truthItem: {
-    flex: 1,
-    minWidth: '45%',
-    padding: 16,
-    minHeight: 100,
+    gap: 10,
   },
   truthFull: {
     width: '100%',
@@ -267,12 +300,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 16,
   },
-  scriptureGrid: {
-    flexDirection: 'row',
-    gap: 12,
+  scriptureList: {
+    gap: 10,
   },
   scriptureItem: {
-    flex: 1,
+    width: '100%',
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderRadius: 8,
     padding: 12,

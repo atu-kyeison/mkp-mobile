@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
@@ -8,11 +8,16 @@ import { CustomButton } from '../../components/CustomButton';
 import { openChurchMessage, openScriptureReference, speakWithTTS } from '../../constants/Actions';
 import { getTodayFormationDateLabel } from './dateUtils';
 import { getFormationDayContent } from './formationContent';
+import { useI18n } from '../../src/i18n/I18nProvider';
+import { useTheme } from '../../src/theme/ThemeProvider';
 
 export default function Friday({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const dateLabel = getTodayFormationDateLabel();
-  const content = getFormationDayContent('friday');
+  const { locale } = useI18n();
+  const { themeId } = useTheme();
+  const styles = useMemo(() => createStyles(), [themeId]);
+  const dateLabel = getTodayFormationDateLabel(locale === 'es' ? 'es-ES' : 'en-US');
+  const content = getFormationDayContent('friday', locale);
 
   return (
     <GradientBackground style={styles.container}>
@@ -39,7 +44,7 @@ export default function Friday({ navigation }: any) {
                 style={styles.playButton}
                 onPress={() => speakWithTTS(content.scriptureSpeech || '')}
               >
-                <Text style={styles.playIcon}>⦿</Text>
+                <Text style={styles.playIcon}>▶</Text>
               </TouchableOpacity>
             </View>
           </GlassCard>
@@ -97,7 +102,7 @@ export default function Friday({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = () => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -189,7 +194,8 @@ const styles = StyleSheet.create({
   },
   playIcon: {
     color: Colors.accentGold,
-    fontSize: 20,
+    fontSize: 14,
+    marginLeft: 2,
   },
   messageText: {
     fontFamily: 'PlayfairDisplay_400Regular_Italic',
@@ -210,12 +216,12 @@ const styles = StyleSheet.create({
   listenIcon: {
     fontSize: 12,
     marginRight: 6,
-    color: 'rgba(229, 185, 95, 0.5)',
+    opacity: 0.6,
   },
   listenText: {
     fontFamily: 'Inter_700Bold',
     fontSize: 9,
-    color: 'rgba(229, 185, 95, 0.5)',
+    color: 'rgba(229, 185, 95, 0.6)',
     textTransform: 'uppercase',
   },
   practiceCard: {

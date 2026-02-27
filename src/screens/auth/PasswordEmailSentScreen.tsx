@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MidnightBackground } from '../../components/MidnightBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { GoldButton } from '../../components/GoldButton';
@@ -10,39 +10,45 @@ import { useI18n } from '../../i18n/I18nProvider';
 
 const PasswordEmailSentScreen = ({ navigation }: any) => {
   const { t } = useI18n();
+  const insets = useSafeAreaInsets();
   return (
     <MidnightBackground>
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <View style={styles.headerContainer}>
-          <View style={styles.logoCircle}><MaterialIcons name="church" size={32} color={Colors.antiqueGold} /></View>
-          <Text style={styles.brandText}>{t('auth.brand')}</Text>
-        </View>
-        <GlassCard style={styles.card}>
-          <View style={styles.content}>
-            <View style={styles.iconCircle}><MaterialIcons name="mail-lock" size={48} color={Colors.antiqueGold} /></View>
-            <Text style={styles.title}>{t('auth.passwordEmailSent.title')}</Text>
-            <Text style={styles.subtitle}>{t('auth.passwordEmailSent.subtitle')}</Text>
-            <View style={styles.buttonWrapper}><GoldButton title={t('auth.passwordEmailSent.submit')} onPress={() => navigation.navigate('Signin', {})} /></View>
-            <View style={styles.linksContainer}>
-              <TouchableOpacity style={styles.linkButton} onPress={() => navigation.navigate('Signin', {})}><Text style={styles.linkText}>{t('auth.passwordEmailSent.resend')}</Text></TouchableOpacity>
-              <TouchableOpacity style={styles.linkButton} onPress={() => navigation.navigate('Signin', {})}><Text style={styles.linkText}>{t('auth.passwordEmailSent.useDifferent')}</Text></TouchableOpacity>
+      <ScrollView
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 32 + insets.bottom }]}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={styles.container}>
+          <View style={styles.headerContainer}>
+            <View style={styles.logoCircle}><MaterialIcons name="church" size={32} color={Colors.antiqueGold} /></View>
+            <Text style={styles.brandText}>{t('auth.brand')}</Text>
+          </View>
+          <GlassCard style={styles.card}>
+            <View style={styles.content}>
+              <View style={styles.iconCircle}><MaterialIcons name="mail-lock" size={48} color={Colors.antiqueGold} /></View>
+              <Text style={styles.title}>{t('auth.passwordEmailSent.title')}</Text>
+              <Text style={styles.subtitle}>{t('auth.passwordEmailSent.subtitle')}</Text>
+              <View style={styles.buttonWrapper}><GoldButton title={t('auth.passwordEmailSent.submit')} onPress={() => navigation.navigate('Signin', {})} /></View>
+              <View style={styles.linksContainer}>
+                <TouchableOpacity style={styles.linkButton} onPress={() => navigation.navigate('Signin', {})}><Text style={styles.linkText}>{t('auth.passwordEmailSent.resend')}</Text></TouchableOpacity>
+                <TouchableOpacity style={styles.linkButton} onPress={() => navigation.navigate('Signin', {})}><Text style={styles.linkText}>{t('auth.passwordEmailSent.useDifferent')}</Text></TouchableOpacity>
+              </View>
             </View>
-          </View>
-          <View style={styles.cardFooter}>
-            <Text style={styles.footerText}>
-              {t('auth.footer.prefix')} <Text style={styles.footerLink} onPress={() => navigation.navigate('Terms')}>{t('auth.footer.terms')}</Text> {t('auth.footer.and')} <Text style={styles.footerLink} onPress={() => navigation.navigate('Privacy')}>{t('auth.footer.privacy')}</Text>.
-            </Text>
-          </View>
-        </GlassCard>
-      </View>
+            <View style={styles.cardFooter}>
+              <Text style={styles.footerText}>
+                {t('auth.footer.prefix')} <Text style={styles.footerLink} onPress={() => navigation.navigate('Terms')}>{t('auth.footer.terms')}</Text> {t('auth.footer.and')} <Text style={styles.footerLink} onPress={() => navigation.navigate('Privacy')}>{t('auth.footer.privacy')}</Text>.
+              </Text>
+            </View>
+          </GlassCard>
+        </View>
+      </ScrollView>
     </SafeAreaView>
   </MidnightBackground>
   );
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1 }, container: { flex: 1, paddingTop: 60 },
+  safeArea: { flex: 1 }, scrollContent: { flexGrow: 1 }, container: { flex: 1, paddingTop: 60 },
   headerContainer: { alignItems: 'center', marginBottom: 32 },
   logoCircle: { width: 64, height: 64, borderRadius: 32, borderWidth: 1, borderColor: 'rgba(229, 185, 95, 0.2)', backgroundColor: 'rgba(255, 255, 255, 0.05)', justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
   brandText: { fontFamily: 'Cinzel_400Regular', fontSize: 11, letterSpacing: 5, color: Colors.antiqueGold },

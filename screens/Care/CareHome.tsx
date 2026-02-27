@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
@@ -6,18 +6,26 @@ import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
 import { useI18n } from '../../src/i18n/I18nProvider';
+import { useTheme } from '../../src/theme/ThemeProvider';
 
 export default function CareHome({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { t } = useI18n();
+  const { themeId } = useTheme();
+  const styles = useMemo(() => createStyles(), [themeId]);
 
   return (
     <GradientBackground style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
+        <View style={styles.header}>
+          <Text style={styles.headerLabel}>{t('care.header')}</Text>
+          <View style={styles.headerDivider} />
+          <Text style={styles.headerTitle}>{t('care.home.title')}</Text>
+        </View>
+
         <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 112 + insets.bottom }]} showsVerticalScrollIndicator={false}>
           <View style={styles.section}>
             <GlassCard withGlow style={styles.mainCard}>
-              <Text style={styles.title}>{t('care.home.title')}</Text>
               <Text style={styles.cardLabel}>{t('care.home.prayer.label')}</Text>
               <Text style={styles.cardText}>
                 {t('care.home.prayer.prompt')}
@@ -59,37 +67,55 @@ export default function CareHome({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = () => StyleSheet.create({
   container: {
     flex: 1,
   },
   safeArea: {
     flex: 1,
   },
-  title: {
-    fontFamily: 'PlayfairDisplay_400Regular_Italic',
-    fontSize: 24,
-    color: Colors.text,
-    textAlign: 'center',
-    lineHeight: 36,
-    marginBottom: 20,
-  },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingTop: 20,
+    paddingTop: 2,
+  },
+  header: {
+    alignItems: 'center',
+    paddingTop: 0,
+    paddingHorizontal: 24,
+    marginBottom: 0,
+  },
+  headerLabel: {
+    fontFamily: 'Cinzel_700Bold',
+    fontSize: 10,
+    color: Colors.accentGold,
+    letterSpacing: 4,
+    marginBottom: 4,
+  },
+  headerDivider: {
+    width: 48,
+    height: 1,
+    backgroundColor: 'rgba(229, 185, 95, 0.4)',
+    marginBottom: 6,
+  },
+  headerTitle: {
+    fontFamily: 'PlayfairDisplay_400Regular_Italic',
+    fontSize: 21,
+    color: Colors.text,
+    textAlign: 'center',
+    lineHeight: 30,
   },
   section: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 22,
   },
   mainCard: {
     width: '100%',
-    padding: 32,
+    padding: 26,
     alignItems: 'center',
   },
   gratitudeCard: {
     width: '100%',
-    padding: 28,
+    padding: 24,
     alignItems: 'center',
   },
   cardLabel: {

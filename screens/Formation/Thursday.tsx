@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
@@ -8,11 +8,16 @@ import { CustomButton } from '../../components/CustomButton';
 import { openChurchMessage, openScriptureReference, speakWithTTS } from '../../constants/Actions';
 import { getTodayFormationDateLabel } from './dateUtils';
 import { getFormationDayContent } from './formationContent';
+import { useI18n } from '../../src/i18n/I18nProvider';
+import { useTheme } from '../../src/theme/ThemeProvider';
 
 export default function Thursday({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const dateLabel = getTodayFormationDateLabel();
-  const content = getFormationDayContent('thursday');
+  const { locale } = useI18n();
+  const { themeId } = useTheme();
+  const styles = useMemo(() => createStyles(), [themeId]);
+  const dateLabel = getTodayFormationDateLabel(locale === 'es' ? 'es-ES' : 'en-US');
+  const content = getFormationDayContent('thursday', locale);
 
   return (
     <GradientBackground style={styles.container}>
@@ -93,7 +98,7 @@ export default function Thursday({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = () => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -171,7 +176,7 @@ const styles = StyleSheet.create({
   reference: {
     fontFamily: 'PlayfairDisplay_400Regular_Italic',
     fontSize: 11,
-    color: 'rgba(229, 185, 95, 0.4)',
+    color: 'rgba(229, 185, 95, 0.3)',
   },
   playButton: {
     width: 36,
@@ -184,7 +189,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   playIcon: {
-    color: 'rgba(229, 185, 95, 0.8)',
+    color: Colors.accentGold,
     fontSize: 14,
     marginLeft: 2,
   },
@@ -207,12 +212,12 @@ const styles = StyleSheet.create({
   listenIcon: {
     fontSize: 12,
     marginRight: 6,
-    color: 'rgba(229, 185, 95, 0.5)',
+    opacity: 0.6,
   },
   listenText: {
     fontFamily: 'Inter_700Bold',
     fontSize: 9,
-    color: 'rgba(229, 185, 95, 0.5)',
+    color: 'rgba(229, 185, 95, 0.6)',
     textTransform: 'uppercase',
   },
   practiceCard: {
@@ -243,14 +248,14 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   prayerIconContainer: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: 'rgba(229, 185, 95, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 16,
-    marginTop: 2,
+    marginTop: 4,
   },
   prayerIcon: {
     fontSize: 16,

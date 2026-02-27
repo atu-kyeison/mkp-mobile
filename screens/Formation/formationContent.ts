@@ -29,6 +29,8 @@ export interface FormationDayContent {
   identityText?: string;
 }
 
+type SupportedFormationLocale = 'en' | 'es';
+
 const FORMATION_CONTENT: Record<FormationDayKey, FormationDayContent> = {
   monday: {
     topLabel: "TODAY'S FOCUS",
@@ -135,7 +137,112 @@ const FORMATION_CONTENT: Record<FormationDayKey, FormationDayContent> = {
   },
 };
 
+const FORMATION_CONTENT_ES: Partial<Record<FormationDayKey, Partial<FormationDayContent>>> = {
+  monday: {
+    topLabel: 'ENFOQUE DE HOY',
+    focusTagline: 'un comienzo apacible',
+    greeting: 'Buenos días.',
+    scriptureLabel: 'Escritura de hoy',
+    scriptureText: '“Confía en el Señor con todo tu corazón…”',
+    scriptureReference: 'Proverbios 3:5-6',
+    scriptureSpeech: 'Confía en el Señor con todo tu corazón. Proverbios 3:5-6',
+    sundayMessageLabel: 'Del mensaje del domingo',
+    sundayMessageText: 'El fruto viene de permanecer, no de esforzarse.',
+    listenLabel: 'Escuchar',
+    practiceLabel: 'Práctica de hoy',
+    practiceText: 'Antes de tomar una decisión hoy, pregúntate: “¿Actúo desde la confianza o desde el control?”',
+    practiceButton: 'ENTRAR EN PRÁCTICA',
+    prayerLabel: 'INVITACIÓN A ORAR',
+    prayerText: 'Haz una pausa e invita a Dios a tus decisiones de hoy, pidiéndole confianza en lugar de tensión.',
+  },
+  tuesday: {
+    topLabel: 'ENFOQUE DE HOY',
+    focusTagline: 'da un paso',
+    greeting: 'Buenos días.',
+    scriptureLabel: 'Escritura de hoy',
+    scriptureText: '“Confía en el Señor con todo tu corazón…”',
+    scriptureReference: 'Proverbios 3:5-6',
+    scriptureSpeech: 'Confía en el Señor con todo tu corazón. Proverbios 3:5-6',
+    sundayMessageLabel: 'Del mensaje del domingo',
+    sundayMessageText: 'El fruto viene de permanecer, no de esforzarse.',
+    listenLabel: 'Escuchar',
+    practiceLabel: 'Práctica de hoy',
+    practiceText: 'Antes de tomar una decisión hoy, pregúntate: “¿Actúo desde la confianza o desde el control?”',
+    practiceButton: 'ENTRAR EN PRÁCTICA',
+    prayerLabel: 'INVITACIÓN A ORAR',
+    prayerText: 'Pídele a Dios valor para dar un paso fiel en lugar de quedarte en la duda.',
+  },
+  wednesday: {
+    topLabel: 'ENFOQUE DE HOY',
+    focusTagline: 'conciencia interior',
+    greeting: 'Buenos días.',
+    scriptureLabel: 'ESCRITURA DE HOY',
+    scriptureText: '“Examíname, oh Dios, y conoce mi corazón…”',
+    scriptureReference: 'Salmo 139:23',
+    scriptureSpeech: 'Examíname, oh Dios, y conoce mi corazón. Salmo 139:23',
+    sundayMessageLabel: 'DEL MENSAJE DEL DOMINGO',
+    sundayMessageText: 'Permanecer en Cristo revela lo que el esfuerzo oculta.',
+    listenLabel: 'ESCUCHAR',
+    practiceLabel: 'PERSPECTIVA DE HOY',
+    practiceText: 'Observa qué se está moviendo bajo la superficie hoy. Dios a menudo nos encuentra en lo que intentamos ignorar.',
+    practiceButton: 'PAUSA Y OBSERVA',
+    prayerLabel: 'INVITACIÓN A ORAR',
+    prayerText: 'Pídele a Dios que revele lo que está bajo la superficie y guíe tu respuesta con honestidad.',
+  },
+  thursday: {
+    topLabel: 'ENFOQUE DE HOY',
+    focusTagline: 'soltar y confiar',
+    greeting: 'Buenos días',
+    scriptureLabel: 'Escritura de hoy',
+    scriptureText: '“Y si a alguno de ustedes le falta sabiduría, pídasela a Dios…”',
+    scriptureReference: 'Santiago 1:5',
+    scriptureSpeech: 'Y si a alguno de ustedes le falta sabiduría, pídasela a Dios. Santiago 1:5',
+    sundayMessageLabel: 'Del mensaje del domingo',
+    sundayMessageText: 'Permanecer nos enseña a responder, no a reaccionar.',
+    listenLabel: 'Escuchar',
+    practiceLabel: 'Entrega de hoy',
+    practiceText: '¿En qué parte de esta semana estás reaccionando en lugar de responder? ¿Cómo se vería la sabiduría en ese momento?',
+    practiceButton: 'REFLEXIONAR',
+    prayerLabel: 'INVITACIÓN A ORAR',
+    prayerText: 'Trae tu reacción más fuerte a Dios y pídele sabiduría antes de responder.',
+  },
+  friday: {
+    topLabel: 'ENFOQUE DE HOY',
+    focusTagline: 'gratitud y gozo',
+    greeting: 'Buenos días',
+    scriptureLabel: 'ESCRITURA DE HOY',
+    scriptureText: '“Den gracias en toda circunstancia, porque esta es la voluntad de Dios para ustedes en Cristo Jesús.”',
+    scriptureReference: '1 Tesalonicenses 5:18',
+    scriptureSpeech: 'Den gracias en toda circunstancia, porque esta es la voluntad de Dios para ustedes en Cristo Jesús. 1 Tesalonicenses 5:18',
+    sundayMessageLabel: 'DESDE EL DOMINGO',
+    sundayMessageText: 'La gratitud transforma lo que tenemos en suficiente, y más.',
+    listenLabel: 'ESCUCHAR',
+    practiceLabel: 'INVITACIÓN DE HOY',
+    practiceText: '¿Cuáles son tres cosas pequeñas por las que estás agradecido hoy? ¿Cómo has visto la bondad de Dios esta semana?',
+    practiceButton: 'REFLEXIONAR',
+    prayerLabel: 'INVITACIÓN A ORAR',
+    prayerText: 'Agradece a Dios por tres señales de gracia esta semana y pídele gozo para continuar.',
+  },
+  saturday: {
+    topLabel: 'ENFOQUE DE HOY',
+    focusTagline: 'descanso',
+    greeting: 'Buenos días',
+    practiceLabel: 'POSTURA DE HOY',
+    practiceText: 'Hoy no tienes que lograr nada. El descanso no es una pausa de la formación, es parte de ella.',
+    practiceButton: 'PERMANECE EN CALMA',
+    prayerLabel: 'INVITACIÓN A ORAR',
+    prayerText: 'Siéntate en silencio y entrega a Dios lo que quedó pendiente, pidiéndole descanso en su cuidado.',
+    identityLabel: 'IDENTIDAD',
+    identityText: 'Eres sostenido, no medido. Eres amado, no evaluado.',
+  },
+};
+
 // Backend handoff: replace this resolver with STT -> Gemini content payload.
-export const getFormationDayContent = (day: FormationDayKey): FormationDayContent => {
-  return FORMATION_CONTENT[day];
+export const getFormationDayContent = (
+  day: FormationDayKey,
+  locale: SupportedFormationLocale = 'en'
+): FormationDayContent => {
+  const base = FORMATION_CONTENT[day];
+  const overrides = locale === 'es' ? FORMATION_CONTENT_ES[day] : undefined;
+  return overrides ? { ...base, ...overrides } : base;
 };

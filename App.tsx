@@ -23,15 +23,14 @@ import { Colors } from './constants/Colors';
 import { RootNavigator } from './src/navigation/RootNavigator';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { I18nProvider } from './src/i18n/I18nProvider';
-import { ThemeProvider, useTheme } from './src/theme/ThemeProvider';
+import { ThemeProvider } from './src/theme/ThemeProvider';
 
 SplashScreen.preventAutoHideAsync();
 
 const ThemedAppShell = ({ onLayoutRootView }: { onLayoutRootView: () => Promise<void> }) => {
-  const { themeId } = useTheme();
   return (
     <View style={styles.container} onLayout={onLayoutRootView}>
-      <RootNavigator key={`theme-${themeId}`} />
+      <RootNavigator />
       <StatusBar style="light" />
     </View>
   );

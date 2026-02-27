@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
@@ -8,11 +8,16 @@ import { CustomButton } from '../../components/CustomButton';
 import { openChurchMessage, openScriptureReference, speakWithTTS } from '../../constants/Actions';
 import { getTodayFormationDateLabel } from './dateUtils';
 import { getFormationDayContent } from './formationContent';
+import { useI18n } from '../../src/i18n/I18nProvider';
+import { useTheme } from '../../src/theme/ThemeProvider';
 
 export default function Tuesday({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const dateLabel = getTodayFormationDateLabel();
-  const content = getFormationDayContent('tuesday');
+  const { locale } = useI18n();
+  const { themeId } = useTheme();
+  const styles = useMemo(() => createStyles(), [themeId]);
+  const dateLabel = getTodayFormationDateLabel(locale === 'es' ? 'es-ES' : 'en-US');
+  const content = getFormationDayContent('tuesday', locale);
 
   return (
     <GradientBackground style={styles.container}>
@@ -78,8 +83,12 @@ export default function Tuesday({ navigation }: any) {
 
           <GlassCard style={styles.prayerCard}>
             <View style={styles.prayerHeader}>
-              <View style={styles.prayerIconContainer}>
-                <Text style={styles.prayerIcon}>✨</Text>
+              <View style={styles.stars}>
+                <View style={styles.starRow}>
+                  <Text style={styles.star}>★</Text>
+                  <Text style={styles.star}>★</Text>
+                </View>
+                <Text style={styles.star}>★</Text>
               </View>
               <View style={styles.flex1}>
                 <Text style={styles.cardLabel}>{content.prayerLabel}</Text>
@@ -93,7 +102,7 @@ export default function Tuesday({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = () => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -114,34 +123,35 @@ const styles = StyleSheet.create({
     color: Colors.accentGold,
     letterSpacing: 4,
     marginBottom: 8,
+    textTransform: 'uppercase',
   },
   divider: {
-    width: 40,
+    width: 48,
     height: 1,
     backgroundColor: 'rgba(229, 185, 95, 0.3)',
     marginBottom: 8,
   },
   italicLabel: {
     fontFamily: 'PlayfairDisplay_400Regular_Italic',
-    fontSize: 11,
+    fontSize: 14,
     color: Colors.accentGold,
-    letterSpacing: 2,
-    marginBottom: 40,
+    letterSpacing: 1,
+    marginBottom: 24,
   },
   greeting: {
     fontFamily: 'PlayfairDisplay_400Regular_Italic',
-    fontSize: 20,
-    color: 'rgba(255, 255, 255, 0.8)',
-    marginBottom: 8,
+    fontSize: 16,
+    color: 'rgba(255, 255, 255, 0.4)',
+    marginBottom: 4,
   },
   date: {
     fontFamily: 'Inter_400Regular',
-    fontSize: 10,
-    color: 'rgba(255, 255, 255, 0.4)',
+    fontSize: 14,
+    color: 'rgba(255, 255, 255, 0.9)',
     letterSpacing: 1,
   },
   card: {
-    marginBottom: 20,
+    marginBottom: 16,
     padding: 20,
   },
   cardHeader: {
@@ -168,10 +178,9 @@ const styles = StyleSheet.create({
     lineHeight: 28,
   },
   reference: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 10,
-    color: Colors.referenceGold,
-    textTransform: 'uppercase',
+    fontFamily: 'PlayfairDisplay_400Regular_Italic',
+    fontSize: 11,
+    color: 'rgba(229, 185, 95, 0.3)',
   },
   playButton: {
     width: 36,
@@ -179,7 +188,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     borderWidth: 1,
-    borderColor: 'rgba(229, 185, 95, 0.2)',
+    borderColor: 'rgba(229, 185, 95, 0.15)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -217,7 +226,7 @@ const styles = StyleSheet.create({
   },
   practiceCard: {
     padding: 24,
-    marginBottom: 20,
+    marginBottom: 16,
   },
   practiceText: {
     fontFamily: 'Inter_400Regular',
@@ -230,30 +239,31 @@ const styles = StyleSheet.create({
   separator: {
     height: 1,
     width: '100%',
-    backgroundColor: 'rgba(229, 185, 95, 0.2)',
+    backgroundColor: 'rgba(229, 185, 95, 0.15)',
     marginVertical: 8,
     alignSelf: 'center',
   },
   prayerCard: {
-    padding: 16,
+    padding: 20,
     marginTop: 8,
   },
   prayerHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
   },
-  prayerIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(229, 185, 95, 0.1)',
+  stars: {
+    flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'center',
     marginRight: 16,
+    marginTop: 4,
   },
-  prayerIcon: {
-    fontSize: 16,
-    color: 'rgba(229, 185, 95, 0.6)',
+  starRow: {
+    flexDirection: 'row',
+    gap: 2,
+  },
+  star: {
+    color: Colors.accentGold,
+    fontSize: 10,
   },
   prayerText: {
     fontFamily: 'Inter_400Regular',

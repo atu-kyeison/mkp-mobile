@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
-import { StyleSheet, View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
 import { BackgroundGradient } from '../components/BackgroundGradient';
 import { GlassCard } from '../components/GlassCard';
@@ -9,6 +9,7 @@ import { addJournalEntry, getJournalEntryById, updateJournalEntry } from '../sto
 
 export const ReflectionEntryScreen = ({ navigation, route }: any) => {
   const { t } = useI18n();
+  const insets = useSafeAreaInsets();
   const editEntryId = route.params?.editEntryId as string | undefined;
   const existingEntry = useMemo(
     () => (editEntryId ? getJournalEntryById(editEntryId) : null),
@@ -73,54 +74,60 @@ export const ReflectionEntryScreen = ({ navigation, route }: any) => {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           style={styles.keyboardView}
         >
-          <View style={styles.header}>
-            <Text style={styles.subtitle}>{content.subtitle}</Text>
-            <View style={styles.divider} />
-            <Text style={styles.greeting}>Good morning.</Text>
-            <Text style={styles.date}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).replace(',', ' •').toUpperCase()}</Text>
-          </View>
+          <ScrollView
+            contentContainerStyle={[styles.scrollContent, { paddingBottom: 112 + insets.bottom }]}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.header}>
+              <Text style={styles.subtitle}>{content.subtitle}</Text>
+              <View style={styles.divider} />
+              <Text style={styles.greeting}>Good morning.</Text>
+              <Text style={styles.date}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).replace(',', ' •').toUpperCase()}</Text>
+            </View>
 
-          <View style={styles.content}>
-            <GlassCard style={styles.entryCard}>
-              <Text style={styles.invitationLabel}>{content.invitationLabel}</Text>
-              <Text style={styles.invitationText}>{content.invitationText}</Text>
-              <View style={styles.entryDivider} />
-              <TextInput
-                style={styles.input}
-                placeholder={t('reflection.placeholder')}
-                placeholderTextColor="rgba(148, 163, 184, 0.6)"
-                multiline
-                value={reflection}
-                onChangeText={setReflection}
-              />
-            </GlassCard>
-          </View>
+            <View style={styles.content}>
+              <GlassCard style={styles.entryCard}>
+                <Text style={styles.invitationLabel}>{content.invitationLabel}</Text>
+                <Text style={styles.invitationText}>{content.invitationText}</Text>
+                <View style={styles.entryDivider} />
+                <TextInput
+                  style={styles.input}
+                  placeholder={t('reflection.placeholder')}
+                  placeholderTextColor="rgba(148, 163, 184, 0.6)"
+                  multiline
+                  value={reflection}
+                  onChangeText={setReflection}
+                />
+              </GlassCard>
+            </View>
 
-          <View style={styles.footer}>
-            <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-              <Text style={styles.saveButtonText}>{editEntryId ? t('reflection.update') : t('reflection.save')}</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.supportLink}
-              onPress={() =>
-                navigation.getParent()?.navigate('Church', {
-                  screen: 'CareSupportRequest',
-                  params: { initialHelpType: "I'm going through something difficult" },
-                })
-              }
-            >
-              <Text style={styles.supportLinkText}>{t('reflection.needMore')}</Text>
-            </TouchableOpacity>
-            <Text style={styles.privacyNote}>
-              {t('reflection.privacy')}
-            </Text>
-            {mood ? (
-              <Text style={styles.moodTag}>{t('reflection.moodCurrent')} {String(mood).toUpperCase()}</Text>
-            ) : null}
-            <Text style={styles.quote}>
-              {t('reflection.quote')}
-            </Text>
-          </View>
+            <View style={styles.footer}>
+              <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
+                <Text style={styles.saveButtonText}>{editEntryId ? t('reflection.update') : t('reflection.save')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.supportLink}
+                onPress={() =>
+                  navigation.getParent()?.navigate('Church', {
+                    screen: 'CareSupportRequest',
+                    params: { initialHelpType: "I'm going through something difficult" },
+                  })
+                }
+              >
+                <Text style={styles.supportLinkText}>{t('reflection.needMore')}</Text>
+              </TouchableOpacity>
+              <Text style={styles.privacyNote}>
+                {t('reflection.privacy')}
+              </Text>
+              {mood ? (
+                <Text style={styles.moodTag}>{t('reflection.moodCurrent')} {String(mood).toUpperCase()}</Text>
+              ) : null}
+              <Text style={styles.quote}>
+                {t('reflection.quote')}
+              </Text>
+            </View>
+          </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </BackgroundGradient>
@@ -137,10 +144,13 @@ const styles = StyleSheet.create({
   keyboardView: {
     flex: 1,
   },
-  header: {
-    paddingTop: 40,
-    alignItems: 'center',
+  scrollContent: {
     paddingHorizontal: 24,
+    paddingTop: 12,
+  },
+  header: {
+    paddingTop: 8,
+    alignItems: 'center',
   },
   subtitle: {
     fontFamily: 'Inter_700Bold',
@@ -171,15 +181,12 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   content: {
-    flex: 1,
-    paddingHorizontal: 24,
-    paddingTop: 32,
+    paddingTop: 20,
   },
   entryCard: {
-    padding: 24,
+    padding: 22,
     borderColor: 'rgba(229, 185, 95, 0.2)',
-    flex: 1,
-    minHeight: 320,
+    minHeight: 300,
   },
   invitationLabel: {
     fontFamily: 'Inter_700Bold',
@@ -211,8 +218,7 @@ const styles = StyleSheet.create({
     paddingVertical: 6,
   },
   footer: {
-    paddingHorizontal: 24,
-    paddingBottom: 100, // Space for navigation bar
+    paddingTop: 14,
     alignItems: 'center',
   },
   saveButton: {

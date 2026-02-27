@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   ScrollView,
   StyleSheet,
@@ -10,11 +10,13 @@ import {
   Alert,
 } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MaterialIcons } from '@expo/vector-icons';
 import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
 import { Colors } from '../../constants/Colors';
 import { useI18n } from '../../src/i18n/I18nProvider';
+import { useTheme } from '../../src/theme/ThemeProvider';
 
 const HELP_TYPES = [
   'A conversation with a pastor',
@@ -31,6 +33,8 @@ const CONTACT_METHODS = ['Call', 'Text', 'Email'] as const;
 export default function CareSupportRequest({ navigation, route }: any) {
   const insets = useSafeAreaInsets();
   const { t } = useI18n();
+  const { themeId } = useTheme();
+  const styles = useMemo(() => createStyles(), [themeId]);
   const preselectedType = route?.params?.initialHelpType as (typeof HELP_TYPES)[number] | undefined;
   const [helpType, setHelpType] =
     useState<(typeof HELP_TYPES)[number]>(preselectedType && HELP_TYPES.includes(preselectedType) ? preselectedType : HELP_TYPES[0]);
@@ -41,7 +45,8 @@ export default function CareSupportRequest({ navigation, route }: any) {
 
   const completeSendAttempt = () => {
     if (!message.trim()) {
-      setSubmitState('error');
+      setSubmitState('idle');
+      Alert.alert(t('care.support.validation.title'), t('care.support.validation.messageRequired'));
       return;
     }
     setSubmitState('idle');
@@ -49,6 +54,7 @@ export default function CareSupportRequest({ navigation, route }: any) {
       requestType: helpType,
       careCategory: helpType === 'I recently gave my life to Christ' ? 'new_believer' : 'general',
       contactMethod,
+      followUpChannel: contactMethod === 'Email' ? 'auth_email' : 'in_app',
       notes: message,
     });
   };
@@ -60,19 +66,27 @@ export default function CareSupportRequest({ navigation, route }: any) {
     setTimeout(completeSendAttempt, 900);
   };
 
+  const handleBack = () => {
+    navigation.navigate('CareHome');
+  };
+
   return (
     <GradientBackground style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
+            <MaterialIcons name="chevron-left" size={26} color={Colors.accentGold} />
+          </TouchableOpacity>
+          <Text style={styles.headerLabel}>{t('care.header')}</Text>
+          <View style={styles.divider} />
+          <Text style={styles.title}>{t('care.support.title')}</Text>
+        </View>
+
         <ScrollView
           contentContainerStyle={[styles.scrollContent, { paddingBottom: 120 + insets.bottom }]}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <View style={styles.header}>
-            <View style={styles.divider} />
-            <Text style={styles.title}>{t('care.support.title')}</Text>
-          </View>
-
           {submitState === 'idle' ? (
             <GlassCard withGlow style={styles.card}>
               <Text style={styles.sectionLabel}>{t('care.support.section.type')}</Text>
@@ -148,6 +162,7 @@ export default function CareSupportRequest({ navigation, route }: any) {
                   );
                 })}
               </View>
+              <Text style={styles.contactHelpText}>{t('care.support.contactNote')}</Text>
 
               <View style={styles.buttonContainer}>
                 <CustomButton title={t('care.support.send')} onPress={handleSubmit} />
@@ -186,27 +201,49 @@ export default function CareSupportRequest({ navigation, route }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = () => StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1 },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingTop: 40,
+    paddingTop: 2,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 28,
+    paddingTop: 0,
+    paddingHorizontal: 24,
+    marginBottom: -2,
+  },
+  backButton: {
+    position: 'absolute',
+    left: 8,
+    top: 0,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.04)',
+    borderWidth: 1,
+    borderColor: 'rgba(229, 185, 95, 0.2)',
+  },
+  headerLabel: {
+    fontFamily: 'Cinzel_700Bold',
+    fontSize: 10,
+    color: Colors.accentGold,
+    letterSpacing: 4,
+    marginBottom: 3,
   },
   divider: {
     width: 48,
     height: 1,
     backgroundColor: 'rgba(229, 185, 95, 0.4)',
-    marginBottom: 24,
+    marginBottom: 4,
   },
   title: {
     fontFamily: 'PlayfairDisplay_400Regular_Italic',
-    fontSize: 22,
-    lineHeight: 32,
+    fontSize: 20,
+    lineHeight: 28,
     textAlign: 'center',
     color: Colors.text,
   },
@@ -290,6 +327,13 @@ const styles = StyleSheet.create({
   },
   contactChipTextSelected: {
     color: Colors.accentGold,
+  },
+  contactHelpText: {
+    marginTop: 10,
+    fontFamily: 'Inter_400Regular',
+    fontSize: 11,
+    lineHeight: 16,
+    color: 'rgba(255, 255, 255, 0.55)',
   },
   buttonContainer: {
     marginTop: 22,

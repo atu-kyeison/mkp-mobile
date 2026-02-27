@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View, Text, ScrollView } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
@@ -7,11 +7,16 @@ import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
 import { getTodayFormationDateLabel } from './dateUtils';
 import { getFormationDayContent } from './formationContent';
+import { useI18n } from '../../src/i18n/I18nProvider';
+import { useTheme } from '../../src/theme/ThemeProvider';
 
 export default function Saturday({ navigation }: any) {
   const insets = useSafeAreaInsets();
-  const dateLabel = getTodayFormationDateLabel();
-  const content = getFormationDayContent('saturday');
+  const { locale } = useI18n();
+  const { themeId } = useTheme();
+  const styles = useMemo(() => createStyles(), [themeId]);
+  const dateLabel = getTodayFormationDateLabel(locale === 'es' ? 'es-ES' : 'en-US');
+  const content = getFormationDayContent('saturday', locale);
 
   return (
     <GradientBackground style={styles.container}>
@@ -69,7 +74,7 @@ export default function Saturday({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = () => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -141,8 +146,8 @@ const styles = StyleSheet.create({
     height: 1,
     width: '100%',
     backgroundColor: 'rgba(229, 185, 95, 0.15)',
-    marginVertical: 16,
-    paddingHorizontal: 40,
+    marginVertical: 8,
+    alignSelf: 'center',
   },
   prayerCard: {
     padding: 20,

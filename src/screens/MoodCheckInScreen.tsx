@@ -68,12 +68,14 @@ export const MoodCheckInScreen = ({ navigation, route }: any) => {
               <GlassCard
                 style={selectedMood === mood.id ? [styles.moodCard, styles.selectedCard] : styles.moodCard}
               >
-                <MaterialIcons
-                  name={mood.icon}
-                  size={32}
-                  color={Colors.accentGold}
-                  style={styles.moodIcon}
-                />
+                <View style={styles.moodIconWrap}>
+                  <MaterialIcons
+                    name={mood.icon}
+                    size={30}
+                    color={Colors.accentGold}
+                    style={styles.moodIcon}
+                  />
+                </View>
                 <Text style={styles.moodLabel}>{t(`mood.label.${mood.id}`)}</Text>
               </GlassCard>
             </TouchableOpacity>
@@ -180,7 +182,15 @@ const styles = StyleSheet.create({
   },
   moodIcon: {
     opacity: 0.9,
-    alignSelf: 'center',
+    textAlign: 'center',
+    textAlignVertical: 'center',
+  },
+  moodIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   moodLabel: {
     fontFamily: 'Inter_700Bold',

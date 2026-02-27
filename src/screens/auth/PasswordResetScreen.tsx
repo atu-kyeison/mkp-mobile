@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { MidnightBackground } from '../../components/MidnightBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { GoldButton } from '../../components/GoldButton';
@@ -10,30 +10,37 @@ import { useI18n } from '../../i18n/I18nProvider';
 
 const PasswordResetScreen = ({ navigation }: any) => {
   const { t } = useI18n();
+  const insets = useSafeAreaInsets();
   const [email, setEmail] = useState('');
   return (
     <MidnightBackground>
       <SafeAreaView style={styles.safeArea}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardView}>
-          <View style={styles.container}>
-            <View style={styles.headerContainer}>
-              <View style={styles.logoCircle}><MaterialIcons name="church" size={32} color={Colors.antiqueGold} /></View>
-              <Text style={styles.brandText}>{t('auth.brand')}</Text>
+          <ScrollView
+            contentContainerStyle={[styles.scrollContent, { paddingBottom: 32 + insets.bottom }]}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.container}>
+              <View style={styles.headerContainer}>
+                <View style={styles.logoCircle}><MaterialIcons name="church" size={32} color={Colors.antiqueGold} /></View>
+                <Text style={styles.brandText}>{t('auth.brand')}</Text>
+              </View>
+              <GlassCard style={styles.card}>
+                <View style={styles.header}><Text style={styles.title}>{t('auth.passwordReset.title')}</Text><Text style={styles.subtitle}>{t('auth.passwordReset.subtitle')}</Text></View>
+                <View style={styles.form}>
+                  <View style={styles.inputGroup}><Text style={styles.label}>{t('auth.signin.emailLabel')}</Text><TextInput style={styles.input} placeholder={t('auth.input.emailPlaceholder')} placeholderTextColor="rgba(255, 255, 255, 0.25)" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} /></View>
+                  <View style={styles.buttonWrapper}><GoldButton title={t('auth.passwordReset.submit')} onPress={() => navigation.navigate('PasswordEmailSent', { email })} /></View>
+                  <TouchableOpacity style={styles.signinLink} onPress={() => navigation.navigate('Signin', {})}><Text style={styles.signinText}>{t('auth.passwordReset.remembered')} <Text style={styles.signinHighlight}>{t('auth.signup.signin')}</Text></Text></TouchableOpacity>
+                </View>
+                <View style={styles.cardFooter}>
+                  <Text style={styles.footerText}>
+                    {t('auth.footer.prefix')} <Text style={styles.footerLink} onPress={() => navigation.navigate('Terms')}>{t('auth.footer.terms')}</Text> {t('auth.footer.and')} <Text style={styles.footerLink} onPress={() => navigation.navigate('Privacy')}>{t('auth.footer.privacy')}</Text>.
+                  </Text>
+                </View>
+              </GlassCard>
             </View>
-            <GlassCard style={styles.card}>
-              <View style={styles.header}><Text style={styles.title}>{t('auth.passwordReset.title')}</Text><Text style={styles.subtitle}>{t('auth.passwordReset.subtitle')}</Text></View>
-              <View style={styles.form}>
-                <View style={styles.inputGroup}><Text style={styles.label}>{t('auth.signin.emailLabel')}</Text><TextInput style={styles.input} placeholder={t('auth.input.emailPlaceholder')} placeholderTextColor="rgba(255, 255, 255, 0.25)" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} /></View>
-                <View style={styles.buttonWrapper}><GoldButton title={t('auth.passwordReset.submit')} onPress={() => navigation.navigate('PasswordEmailSent', { email })} /></View>
-                <TouchableOpacity style={styles.signinLink} onPress={() => navigation.navigate('Signin', {})}><Text style={styles.signinText}>{t('auth.passwordReset.remembered')} <Text style={styles.signinHighlight}>{t('auth.signup.signin')}</Text></Text></TouchableOpacity>
-              </View>
-              <View style={styles.cardFooter}>
-                <Text style={styles.footerText}>
-                  {t('auth.footer.prefix')} <Text style={styles.footerLink} onPress={() => navigation.navigate('Terms')}>{t('auth.footer.terms')}</Text> {t('auth.footer.and')} <Text style={styles.footerLink} onPress={() => navigation.navigate('Privacy')}>{t('auth.footer.privacy')}</Text>.
-                </Text>
-              </View>
-            </GlassCard>
-          </View>
+          </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
     </MidnightBackground>
@@ -41,7 +48,7 @@ const PasswordResetScreen = ({ navigation }: any) => {
 };
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1 }, keyboardView: { flex: 1 }, container: { flex: 1, paddingTop: 60 },
+  safeArea: { flex: 1 }, keyboardView: { flex: 1 }, scrollContent: { flexGrow: 1 }, container: { flex: 1, paddingTop: 60 },
   headerContainer: { alignItems: 'center', marginBottom: 40 },
   logoCircle: { width: 64, height: 64, borderRadius: 32, borderWidth: 1, borderColor: 'rgba(229, 185, 95, 0.2)', backgroundColor: 'rgba(255, 255, 255, 0.05)', justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
   brandText: { fontFamily: 'Cinzel_400Regular', fontSize: 11, letterSpacing: 5, color: Colors.antiqueGold },

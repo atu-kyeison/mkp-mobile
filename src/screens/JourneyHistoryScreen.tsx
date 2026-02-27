@@ -7,6 +7,7 @@ import { Colors } from '../../constants/Colors';
 import { BackgroundGradient } from '../components/BackgroundGradient';
 import { GlassCard } from '../components/GlassCard';
 import { useI18n } from '../i18n/I18nProvider';
+import { useTheme } from '../theme/ThemeProvider';
 import { getJournalEntries, JournalEntry } from '../storage/journalStore';
 
 type CalendarDay = {
@@ -52,6 +53,8 @@ const buildCalendarDays = (monthCursor: Date, entriesByDate: Map<string, Journal
 
 export const JourneyHistoryScreen = ({ navigation }: any) => {
   const { t } = useI18n();
+  const { themeId } = useTheme();
+  const styles = useMemo(() => createStyles(), [themeId]);
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState<'LIBRARY' | 'FAVORITES' | 'CALENDAR'>('LIBRARY');
   const [entries, setEntries] = useState<JournalEntry[]>([]);
@@ -463,7 +466,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = () => StyleSheet.create({
   container: { flex: 1 },
   safeArea: { flex: 1 },
   headerRow: { paddingTop: 34, paddingHorizontal: 24, paddingBottom: 18, alignItems: 'center', justifyContent: 'center' },
@@ -502,10 +505,10 @@ const styles = StyleSheet.create({
   favoritesEmptyText: {
     fontFamily: 'PlayfairDisplay_400Regular_Italic',
     fontSize: 18,
-    lineHeight: 32,
+    lineHeight: 34,
     color: 'rgba(255,255,255,0.82)',
     textAlign: 'center',
-    marginBottom: 26,
+    marginBottom: 40,
   },
   favoritesCta: {
     width: '100%',
