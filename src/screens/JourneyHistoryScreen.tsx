@@ -90,6 +90,9 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
         date: new Date(entry.createdAt).toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).replace(',', ' -'),
         type: 'REFLECTION',
         content: entry.body,
+        invitation: entry.invitationText || '',
+        mood: entry.mood,
+        fromSunday: Boolean(entry.linkedSermonTitle),
         isItalic: false,
       })),
     [entries]
@@ -206,8 +209,11 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                   <TouchableOpacity
                     onPress={() =>
                       navigation.navigate('ReflectionDetail', {
+                        entryId: item.id,
                         date: item.date.toUpperCase(),
-                        invitation: '',
+                        invitation: item.invitation,
+                        mood: item.mood,
+                        fromSunday: item.fromSunday,
                         content: item.content,
                       })
                     }

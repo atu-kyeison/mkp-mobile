@@ -5,13 +5,18 @@ import { Colors } from '../../constants/Colors';
 import { BackgroundGradient } from '../components/BackgroundGradient';
 import { GlassCard } from '../components/GlassCard';
 import { useI18n } from '../i18n/I18nProvider';
-import { addJournalEntry } from '../storage/journalStore';
+import { addJournalEntry, getJournalEntryById, updateJournalEntry } from '../storage/journalStore';
 
 export const ReflectionEntryScreen = ({ navigation, route }: any) => {
   const { t } = useI18n();
-  const [reflection, setReflection] = useState('');
+  const editEntryId = route.params?.editEntryId as string | undefined;
+  const existingEntry = useMemo(
+    () => (editEntryId ? getJournalEntryById(editEntryId) : null),
+    [editEntryId]
+  );
+  const [reflection, setReflection] = useState(route.params?.initialContent || existingEntry?.body || '');
   const journalVariant = route.params?.journalVariant === 'mid_week' ? 'mid_week' : 'early_week';
-  const mood = route.params?.mood;
+  const mood = route.params?.mood || existingEntry?.mood;
   const openMoodCheckIn = (nextScreen = 'JourneyHistory', nextParams: Record<string, unknown> = {}) => {
     navigation.navigate('MoodCheckIn', {
       journalVariant,
@@ -39,6 +44,16 @@ export const ReflectionEntryScreen = ({ navigation, route }: any) => {
   const handleSave = () => {
     const trimmed = reflection.trim();
     if (trimmed) {
+      if (editEntryId) {
+        updateJournalEntry(editEntryId, {
+          body: trimmed,
+          invitationText: content.invitationText,
+          journalVariant,
+          mood: typeof mood === 'string' ? mood : undefined,
+        });
+        navigation.navigate('JourneyHistory');
+        return;
+      }
       addJournalEntry({
         id: `${Date.now()}`,
         createdAt: new Date().toISOString(),
@@ -83,7 +98,7 @@ export const ReflectionEntryScreen = ({ navigation, route }: any) => {
 
           <View style={styles.footer}>
             <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-              <Text style={styles.saveButtonText}>{t('reflection.save')}</Text>
+              <Text style={styles.saveButtonText}>{editEntryId ? t('reflection.update') : t('reflection.save')}</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.supportLink}
