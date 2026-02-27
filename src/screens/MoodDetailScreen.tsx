@@ -7,6 +7,7 @@ import { BackgroundGradient } from '../components/BackgroundGradient';
 import { GlassCard } from '../components/GlassCard';
 import { useI18n } from '../i18n/I18nProvider';
 import { useTheme } from '../theme/ThemeProvider';
+import { getJournalEntryById } from '../storage/journalStore';
 
 const MOOD_DETAILS: Record<string, { icon: keyof typeof MaterialIcons.glyphMap; titleKey: string; descriptionKey: string }> = {
   tired: {
@@ -42,13 +43,22 @@ const MOOD_DETAILS: Record<string, { icon: keyof typeof MaterialIcons.glyphMap; 
 };
 
 export const MoodDetailScreen = ({ navigation, route }: any) => {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const { themeId } = useTheme();
   const styles = useMemo(() => createStyles(), [themeId]);
   const insets = useSafeAreaInsets();
   const moodId = route.params?.moodId || 'tired';
   const detail = MOOD_DETAILS[moodId] || MOOD_DETAILS.tired;
-  const dateStr = route.params?.date || 'Friday • Sept 22';
+  const localeTag = locale === 'es' ? 'es-ES' : 'en-US';
+  const fallbackDate = useMemo(
+    () =>
+      new Date()
+        .toLocaleDateString(localeTag, { weekday: 'long', month: 'short', day: 'numeric' })
+        .replace(',', ' -'),
+    [localeTag]
+  );
+  const dateStr = route.params?.date || fallbackDate || t('moodDetail.defaultDate');
+  const linkedEntry = route.params?.entryId ? getJournalEntryById(route.params.entryId) : null;
 
   return (
     <BackgroundGradient style={styles.container}>
@@ -79,12 +89,24 @@ export const MoodDetailScreen = ({ navigation, route }: any) => {
 
             <TouchableOpacity
               style={styles.journalButton}
-              onPress={() =>
+              onPress={() => {
+                if (linkedEntry) {
+                  navigation.navigate('ReflectionDetail', {
+                    entryId: linkedEntry.id,
+                    date: dateStr.toUpperCase(),
+                    invitation: linkedEntry.invitationText || '',
+                    mood: linkedEntry.mood,
+                    fromSunday: Boolean(linkedEntry.linkedSermonTitle),
+                    content: linkedEntry.body,
+                  });
+                  return;
+                }
+
                 navigation.navigate('ReflectionEntry', {
                   journalVariant: 'mid_week',
                   fromMoodDetail: true,
-                })
-              }
+                });
+              }}
               >
               <MaterialIcons name="history-edu" size={24} color={Colors.accentGold} />
               <Text style={styles.journalButtonText}>{t('moodDetail.journalEntry')}</Text>
@@ -110,7 +132,8 @@ const createStyles = () => StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingTop: 24,
+    paddingTop: 20,
+    flexGrow: 1,
   },
   header: {
     paddingTop: 12,
@@ -144,20 +167,23 @@ const createStyles = () => StyleSheet.create({
   },
   content: {
     alignItems: 'center',
+    flexGrow: 1,
+    justifyContent: 'center',
   },
   detailCard: {
     width: '100%',
     alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 40,
+    paddingHorizontal: 30,
+    paddingVertical: 28,
   },
   cardSubtitle: {
     fontFamily: 'Cinzel_700Bold',
     fontSize: 11,
     color: Colors.accentGold,
     letterSpacing: 3,
-    marginBottom: 40,
+    marginBottom: 28,
     textAlign: 'center',
   },
   iconContainer: {
@@ -166,7 +192,10 @@ const createStyles = () => StyleSheet.create({
     borderRadius: 52,
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
+    backgroundColor: 'rgba(229, 185, 95, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(229, 185, 95, 0.24)',
   },
   icon: {
     opacity: 0.9,
@@ -177,7 +206,7 @@ const createStyles = () => StyleSheet.create({
     fontFamily: 'PlayfairDisplay_400Regular',
     fontSize: 36,
     color: '#FFFFFF',
-    marginBottom: 24,
+    marginBottom: 18,
     textAlign: 'center',
   },
   description: {
@@ -186,7 +215,7 @@ const createStyles = () => StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.7)',
     textAlign: 'center',
     lineHeight: 28,
-    marginBottom: 40,
+    marginBottom: 28,
   },
   journalButton: {
     flexDirection: 'row',

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View, ViewStyle, Platform } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Colors } from '../constants/Colors';
+import { useTheme } from '../src/theme/ThemeProvider';
 
 interface GlassCardProps {
   children: React.ReactNode;
@@ -16,6 +17,8 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   intensity = 20,
   withGlow = false
 }) => {
+  const { themeId } = useTheme();
+  const styles = useMemo(() => createStyles(), [themeId]);
   return (
     <View style={[
       styles.container,
@@ -37,7 +40,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = () => StyleSheet.create({
   container: {
     borderRadius: 16,
     overflow: 'hidden',

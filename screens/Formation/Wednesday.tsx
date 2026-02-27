@@ -6,7 +6,7 @@ import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
 import { openChurchMessage, openScriptureReference, speakWithTTS } from '../../constants/Actions';
-import { getTodayFormationDateLabel } from './dateUtils';
+import { getTimeAwareFormationGreeting, getTodayFormationDateLabel } from './dateUtils';
 import { getFormationDayContent, getPrimaryScripture } from './formationContent';
 import { useI18n } from '../../src/i18n/I18nProvider';
 import { useTheme } from '../../src/theme/ThemeProvider';
@@ -16,7 +16,9 @@ export default function Wednesday({ navigation }: any) {
   const { locale } = useI18n();
   const { themeId } = useTheme();
   const styles = useMemo(() => createStyles(), [themeId]);
-  const dateLabel = getTodayFormationDateLabel(locale === 'es' ? 'es-ES' : 'en-US');
+  const localeTag = locale === 'es' ? 'es-ES' : 'en-US';
+  const dateLabel = getTodayFormationDateLabel(localeTag);
+  const greeting = getTimeAwareFormationGreeting(localeTag);
   const content = getFormationDayContent('wednesday', locale);
   const scripture = getPrimaryScripture(content);
 
@@ -28,7 +30,7 @@ export default function Wednesday({ navigation }: any) {
             <Text style={styles.topLabel}>{content.topLabel}</Text>
             <View style={styles.divider} />
             <Text style={styles.italicLabel}>{content.focusTagline}</Text>
-            <Text style={styles.greeting}>{content.greeting}</Text>
+            <Text style={styles.greeting}>{greeting}</Text>
             <Text style={styles.date}>{dateLabel}</Text>
           </View>
 

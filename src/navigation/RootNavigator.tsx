@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { Settings } from 'react-native';
 import { AuthNavigator } from './AuthNavigator';
 import { MainTabNavigator } from './MainTabNavigator';
 import { RootStackParamList } from './types';
@@ -12,7 +13,14 @@ import PrivacyPolicyScreen from '../screens/legal/PrivacyPolicyScreen';
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 export const RootNavigator = () => {
-  const [isAuthenticated] = useState(false); // Replace with real auth state when backend is connected.
+  const [isAuthenticated] = useState(() => {
+    const saved = Settings.get('mkp.dev.authenticated');
+    if (typeof saved === 'boolean') {
+      return saved;
+    }
+    // Keep testing unblocked in dev builds until backend auth is wired.
+    return __DEV__;
+  });
   const initialRoute = useMemo(() => (isAuthenticated ? 'Main' : 'Auth'), [isAuthenticated]);
 
   return (

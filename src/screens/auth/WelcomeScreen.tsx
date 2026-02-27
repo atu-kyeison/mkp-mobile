@@ -4,12 +4,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { MidnightBackground } from '../../components/MidnightBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { GoldButton } from '../../components/GoldButton';
-import { MaterialIcons } from '@expo/vector-icons';
 import Colors from '../../constants/Colors';
 import { useI18n } from '../../i18n/I18nProvider';
+import { LogoBadge } from '../../components/LogoBadge';
+import { getPrimaryBrandLogoUri } from '../../constants/brandAssets';
 
 const WelcomeScreen = ({ navigation }: any) => {
   const { t } = useI18n();
+  const brandLogoUri = getPrimaryBrandLogoUri();
   return (
     <MidnightBackground>
     <SafeAreaView style={styles.safeArea}>
@@ -21,9 +23,7 @@ const WelcomeScreen = ({ navigation }: any) => {
         <View style={styles.container}>
           <GlassCard style={styles.card}>
             <View style={styles.logoContainer}>
-              <View style={styles.logoCircle}>
-                <MaterialIcons name="church" size={32} color={Colors.antiqueGold} />
-              </View>
+              <LogoBadge logoUri={brandLogoUri} fallbackIcon="church" size={56} />
               <Text style={styles.brandText}>{t('auth.brand')}</Text>
             </View>
             <View style={styles.header}>
@@ -58,7 +58,6 @@ const styles = StyleSheet.create({
   container: { width: '100%', alignItems: 'center' },
   card: { width: '100%', maxWidth: 420, paddingHorizontal: 28, paddingTop: 32, paddingBottom: 28, alignSelf: 'center' },
   logoContainer: { alignItems: 'center', marginBottom: 28 },
-  logoCircle: { width: 56, height: 56, borderRadius: 28, borderWidth: 1, borderColor: 'rgba(229, 185, 95, 0.2)', backgroundColor: 'rgba(255, 255, 255, 0.05)', justifyContent: 'center', alignItems: 'center', marginBottom: 12 },
   brandText: { fontFamily: 'Cinzel_400Regular', fontSize: 10, letterSpacing: 4, color: Colors.antiqueGold },
   header: { alignItems: 'center', marginBottom: 28 },
   title: { fontFamily: 'PlayfairDisplay_500Medium', fontSize: 28, color: 'white', textAlign: 'center', lineHeight: 36, marginBottom: 12 },

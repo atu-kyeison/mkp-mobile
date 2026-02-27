@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Alert, StyleSheet, View, Text, ScrollView, TextInput, Switch, TouchableOpacity } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
@@ -6,10 +6,13 @@ import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
 import { useI18n } from '../../src/i18n/I18nProvider';
+import { useTheme } from '../../src/theme/ThemeProvider';
 
 export default function TestimonySubmission({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { t } = useI18n();
+  const { themeId } = useTheme();
+  const styles = useMemo(() => createStyles(), [themeId]);
   const [anonymous, setAnonymous] = useState(false);
   const [allowShare, setAllowShare] = useState(true);
   const [testimony, setTestimony] = useState('');
@@ -18,7 +21,7 @@ export default function TestimonySubmission({ navigation }: any) {
     Alert.alert(
       t('care.testimony.alert.title'),
       t('care.testimony.alert.body'),
-      [{ text: 'OK', onPress: () => navigation.goBack() }]
+      [{ text: t('common.ok'), onPress: () => navigation.goBack() }]
     );
   };
 
@@ -98,7 +101,7 @@ export default function TestimonySubmission({ navigation }: any) {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = () => StyleSheet.create({
   container: {
     flex: 1,
   },
@@ -107,17 +110,17 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingTop: 40,
+    paddingTop: 14,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 32,
+    marginBottom: 20,
   },
   divider: {
     width: 48,
     height: 1,
     backgroundColor: 'rgba(229, 185, 95, 0.4)',
-    marginBottom: 32,
+    marginBottom: 18,
   },
   title: {
     fontFamily: 'PlayfairDisplay_400Regular_Italic',
@@ -160,7 +163,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   togglesContainer: {
-    marginTop: 24,
+    marginTop: 18,
   },
   innerCard: {
     padding: 20,
@@ -193,10 +196,10 @@ const styles = StyleSheet.create({
     marginVertical: 20,
   },
   buttonContainer: {
-    marginTop: 24,
+    marginTop: 18,
   },
   footer: {
-    marginTop: 16,
+    marginTop: 12,
     alignItems: 'center',
   },
   footerText: {

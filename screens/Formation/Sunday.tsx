@@ -10,12 +10,16 @@ import { useI18n } from '../../src/i18n/I18nProvider';
 export default function Sunday({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { locale } = useI18n();
+  const localeTag = locale === 'es' ? 'es-ES' : 'en-US';
+  const topLabel = new Date()
+    .toLocaleDateString(localeTag, { weekday: 'long', month: 'short', day: 'numeric' })
+    .replace(',', ' •');
   const isEs = locale === 'es';
   const copy = isEs
     ? {
-        topLabel: 'Domingo • Sept 15',
         sermonTitle: 'La Vid y los Pámpanos',
         sermonPart: 'Parte 1',
+        scriptureRef: 'Juan 15:1-8',
         preacherName: 'Pastor Elias Vance',
         churchName: 'Grace Fellowship',
         listen: '🔊 Escuchar el mensaje de esta semana',
@@ -45,9 +49,9 @@ export default function Sunday({ navigation }: any) {
         footer: 'La formación comienza mañana.',
       }
     : {
-        topLabel: 'Sunday • Sept 15',
         sermonTitle: 'The Vine and the Branches',
         sermonPart: 'Part 1',
+        scriptureRef: 'John 15:1-8',
         preacherName: 'Pastor Elias Vance',
         churchName: 'Grace Fellowship',
         listen: '🔊 Listen to This Week’s Message',
@@ -81,11 +85,11 @@ export default function Sunday({ navigation }: any) {
       <SafeAreaView style={styles.safeArea}>
         <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 140 + insets.bottom }]} showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
-            <Text style={styles.topLabel}>{copy.topLabel}</Text>
+            <Text style={styles.topLabel}>{topLabel}</Text>
             <Text style={styles.title}>{copy.sermonTitle}</Text>
             <Text style={styles.subtitle}>{copy.sermonPart}</Text>
-            <TouchableOpacity onPress={() => openScriptureReference('John 15:1-8')}>
-              <Text style={styles.scriptureRef}>John 15:1-8</Text>
+            <TouchableOpacity onPress={() => openScriptureReference(copy.scriptureRef)}>
+              <Text style={styles.scriptureRef}>{copy.scriptureRef}</Text>
             </TouchableOpacity>
             <Text style={styles.pastorInfo}>{copy.preacherName}</Text>
             <Text style={styles.churchInfo}>{copy.churchName}</Text>

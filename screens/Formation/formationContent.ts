@@ -1,3 +1,5 @@
+import { Settings } from 'react-native';
+
 export type FormationDayKey =
   | 'monday'
   | 'tuesday'
@@ -38,6 +40,12 @@ export interface FormationDayContent {
 }
 
 type SupportedFormationLocale = 'en' | 'es';
+
+export interface WeeklyFormationPayload {
+  weekStartIso: string;
+  generatedAt: string;
+  locales: Record<SupportedFormationLocale, Record<FormationDayKey, FormationDayContent>>;
+}
 
 const FORMATION_CONTENT: Record<FormationDayKey, FormationDayContent> = {
   monday: {
@@ -245,14 +253,84 @@ const FORMATION_CONTENT_ES: Partial<Record<FormationDayKey, Partial<FormationDay
   },
 };
 
-// Backend handoff: replace this resolver with STT -> Gemini content payload.
+const WEEKLY_PACKAGE_KEY = 'mkp.formation.weeklyPackage';
+const DAY_KEYS: FormationDayKey[] = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+
+const getWeekStartIso = (date = new Date()): string => {
+  const sunday = new Date(date);
+  sunday.setDate(sunday.getDate() - sunday.getDay());
+  sunday.setHours(0, 0, 0, 0);
+  return sunday.toISOString().split('T')[0];
+};
+
+const buildLocalePack = (locale: SupportedFormationLocale): Record<FormationDayKey, FormationDayContent> => {
+  const entries = DAY_KEYS.map((day) => {
+    const base = FORMATION_CONTENT[day];
+    const overrides = locale === 'es' ? FORMATION_CONTENT_ES[day] : undefined;
+    return [day, overrides ? { ...base, ...overrides } : base] as const;
+  });
+  return Object.fromEntries(entries) as Record<FormationDayKey, FormationDayContent>;
+};
+
+const buildDefaultWeeklyPackage = (): WeeklyFormationPayload => ({
+  weekStartIso: getWeekStartIso(),
+  generatedAt: new Date().toISOString(),
+  locales: {
+    en: buildLocalePack('en'),
+    es: buildLocalePack('es'),
+  },
+});
+
+const parseWeeklyPackage = (raw: unknown): WeeklyFormationPayload | null => {
+  if (typeof raw !== 'string' || !raw) return null;
+  try {
+    const parsed = JSON.parse(raw) as WeeklyFormationPayload;
+    if (!parsed || typeof parsed !== 'object') return null;
+    if (typeof parsed.weekStartIso !== 'string') return null;
+    if (!parsed.locales?.en || !parsed.locales?.es) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
+export const getWeeklyFormationPackage = (): WeeklyFormationPayload => {
+  const currentWeek = getWeekStartIso();
+  const saved = parseWeeklyPackage(Settings.get(WEEKLY_PACKAGE_KEY));
+  if (saved && saved.weekStartIso === currentWeek) {
+    return saved;
+  }
+
+  const seeded = buildDefaultWeeklyPackage();
+  Settings.set({ [WEEKLY_PACKAGE_KEY]: JSON.stringify(seeded) });
+  return seeded;
+};
+
+// Backend handoff: Sunday service pushes one weekly package, and weekdays read from this cache.
+export const saveWeeklyFormationPackage = (partial: {
+  weekStartIso?: string;
+  generatedAt?: string;
+  locales: Partial<Record<SupportedFormationLocale, Partial<Record<FormationDayKey, FormationDayContent>>>>;
+}): WeeklyFormationPayload => {
+  const current = getWeeklyFormationPackage();
+  const next: WeeklyFormationPayload = {
+    weekStartIso: partial.weekStartIso || current.weekStartIso,
+    generatedAt: partial.generatedAt || new Date().toISOString(),
+    locales: {
+      en: { ...current.locales.en, ...(partial.locales.en || {}) },
+      es: { ...current.locales.es, ...(partial.locales.es || {}) },
+    },
+  };
+  Settings.set({ [WEEKLY_PACKAGE_KEY]: JSON.stringify(next) });
+  return next;
+};
+
 export const getFormationDayContent = (
   day: FormationDayKey,
   locale: SupportedFormationLocale = 'en'
 ): FormationDayContent => {
-  const base = FORMATION_CONTENT[day];
-  const overrides = locale === 'es' ? FORMATION_CONTENT_ES[day] : undefined;
-  return overrides ? { ...base, ...overrides } : base;
+  const weekly = getWeeklyFormationPackage();
+  return weekly.locales[locale][day];
 };
 
 export const getPrimaryScripture = (content: FormationDayContent): FormationScriptureEntry | null => {

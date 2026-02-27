@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View, ViewProps } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../constants/Colors';
+import { useTheme } from '../src/theme/ThemeProvider';
 
 interface GradientBackgroundProps extends ViewProps {
   children: React.ReactNode;
@@ -14,9 +15,14 @@ export const GradientBackground: React.FC<GradientBackgroundProps> = ({
   style,
   ...props
 }) => {
-  const colors: [string, string, ...string[]] = variant === 'midnight'
-    ? [Colors.primaryBackground, Colors.midnightMid, Colors.midnightBottom]
-    : [Colors.sacredDeepBlue, Colors.sacredMidBlue, Colors.sacredGold];
+  const { themeId } = useTheme();
+  const colors: [string, string, ...string[]] = useMemo(
+    () =>
+      variant === 'midnight'
+        ? [Colors.primaryBackground, Colors.midnightMid, Colors.midnightBottom]
+        : [Colors.sacredDeepBlue, Colors.sacredMidBlue, Colors.sacredGold],
+    [themeId, variant]
+  );
 
   return (
     <LinearGradient

@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View, ViewStyle } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Colors } from '../../constants/Colors';
+import { useTheme } from '../theme/ThemeProvider';
 
 interface BackgroundGradientProps {
   children: React.ReactNode;
@@ -10,9 +11,14 @@ interface BackgroundGradientProps {
 }
 
 export const BackgroundGradient: React.FC<BackgroundGradientProps> = ({ children, style, variant = 'full' }) => {
-  const colors: [string, string, ...string[]] = variant === 'full'
-    ? [Colors.backgroundDark, Colors.midnightMid, Colors.midnightBottom]
-    : [Colors.backgroundDark, Colors.midnightBottom];
+  const { themeId } = useTheme();
+  const colors: [string, string, ...string[]] = useMemo(
+    () =>
+      variant === 'full'
+        ? [Colors.backgroundDark, Colors.midnightMid, Colors.midnightBottom]
+        : [Colors.backgroundDark, Colors.midnightBottom],
+    [themeId, variant]
+  );
 
   return (
     <LinearGradient

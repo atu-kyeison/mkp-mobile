@@ -6,7 +6,7 @@ import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
 import { openChurchMessage, openScriptureReference, speakWithTTS } from '../../constants/Actions';
-import { getTodayFormationDateLabel } from './dateUtils';
+import { getTimeAwareFormationGreeting, getTodayFormationDateLabel } from './dateUtils';
 import { getFormationDayContent, getPrimaryScripture } from './formationContent';
 import { useI18n } from '../../src/i18n/I18nProvider';
 import { useTheme } from '../../src/theme/ThemeProvider';
@@ -16,7 +16,9 @@ export default function Friday({ navigation }: any) {
   const { locale } = useI18n();
   const { themeId } = useTheme();
   const styles = useMemo(() => createStyles(), [themeId]);
-  const dateLabel = getTodayFormationDateLabel(locale === 'es' ? 'es-ES' : 'en-US');
+  const localeTag = locale === 'es' ? 'es-ES' : 'en-US';
+  const dateLabel = getTodayFormationDateLabel(localeTag);
+  const greeting = getTimeAwareFormationGreeting(localeTag);
   const content = getFormationDayContent('friday', locale);
   const scripture = getPrimaryScripture(content);
 
@@ -28,7 +30,7 @@ export default function Friday({ navigation }: any) {
             <Text style={styles.topLabel}>{content.topLabel}</Text>
             <View style={styles.divider} />
             <Text style={styles.italicLabel}>{content.focusTagline}</Text>
-            <Text style={styles.greeting}>{content.greeting}</Text>
+            <Text style={styles.greeting}>{greeting}</Text>
             <Text style={styles.date}>{dateLabel}</Text>
           </View>
 
@@ -179,9 +181,12 @@ const createStyles = () => StyleSheet.create({
     lineHeight: 28,
   },
   reference: {
-    fontFamily: 'PlayfairDisplay_400Regular_Italic',
+    fontFamily: 'Inter_600SemiBold',
     fontSize: 11,
-    color: 'rgba(229, 185, 95, 0.3)',
+    color: Colors.accentGold,
+    letterSpacing: 0.8,
+    textDecorationLine: 'underline',
+    textDecorationColor: Colors.accentGold,
   },
   playButton: {
     width: 36,
@@ -230,11 +235,10 @@ const createStyles = () => StyleSheet.create({
     marginBottom: 16,
   },
   practiceText: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 18,
-    fontWeight: '500',
+    fontFamily: 'PlayfairDisplay_400Regular',
+    fontSize: 19,
     color: Colors.text,
-    lineHeight: 26,
+    lineHeight: 30,
     marginBottom: 32,
   },
   separator: {

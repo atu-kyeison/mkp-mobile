@@ -8,8 +8,9 @@ import { useI18n } from '../i18n/I18nProvider';
 import { addJournalEntry, getJournalEntryById, updateJournalEntry } from '../storage/journalStore';
 
 export const ReflectionEntryScreen = ({ navigation, route }: any) => {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const insets = useSafeAreaInsets();
+  const localeTag = locale === 'es' ? 'es-ES' : 'en-US';
   const editEntryId = route.params?.editEntryId as string | undefined;
   const existingEntry = useMemo(
     () => (editEntryId ? getJournalEntryById(editEntryId) : null),
@@ -82,8 +83,10 @@ export const ReflectionEntryScreen = ({ navigation, route }: any) => {
             <View style={styles.header}>
               <Text style={styles.subtitle}>{content.subtitle}</Text>
               <View style={styles.divider} />
-              <Text style={styles.greeting}>Good morning.</Text>
-              <Text style={styles.date}>{new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).replace(',', ' •').toUpperCase()}</Text>
+              <Text style={styles.greeting}>{t('reflection.greetingMorning')}</Text>
+              <Text style={styles.date}>
+                {new Date().toLocaleDateString(localeTag, { weekday: 'long', month: 'short', day: 'numeric' }).replace(',', ' •').toUpperCase()}
+              </Text>
             </View>
 
             <View style={styles.content}>
@@ -105,6 +108,9 @@ export const ReflectionEntryScreen = ({ navigation, route }: any) => {
             <View style={styles.footer}>
               <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
                 <Text style={styles.saveButtonText}>{editEntryId ? t('reflection.update') : t('reflection.save')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.skipLink} onPress={() => navigation.goBack()}>
+                <Text style={styles.skipLinkText}>{t('reflection.skip')}</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.supportLink}
@@ -238,6 +244,16 @@ const styles = StyleSheet.create({
   },
   supportLink: {
     marginBottom: 12,
+  },
+  skipLink: {
+    marginBottom: 14,
+  },
+  skipLinkText: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.72)',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
   },
   supportLinkText: {
     fontFamily: 'Inter_400Regular',

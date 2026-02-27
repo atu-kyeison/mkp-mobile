@@ -7,9 +7,12 @@ import { GoldButton } from '../../components/GoldButton';
 import { MaterialIcons } from '@expo/vector-icons';
 import Colors from '../../constants/Colors';
 import { useI18n } from '../../i18n/I18nProvider';
+import { LogoBadge } from '../../components/LogoBadge';
+import { getPrimaryBrandLogoUri } from '../../constants/brandAssets';
 
 const PasswordEmailSentScreen = ({ navigation }: any) => {
   const { t } = useI18n();
+  const brandLogoUri = getPrimaryBrandLogoUri();
   const insets = useSafeAreaInsets();
   return (
     <MidnightBackground>
@@ -20,7 +23,7 @@ const PasswordEmailSentScreen = ({ navigation }: any) => {
       >
         <View style={styles.container}>
           <View style={styles.headerContainer}>
-            <View style={styles.logoCircle}><MaterialIcons name="church" size={32} color={Colors.antiqueGold} /></View>
+            <LogoBadge logoUri={brandLogoUri} fallbackIcon="church" size={64} />
             <Text style={styles.brandText}>{t('auth.brand')}</Text>
           </View>
           <GlassCard style={styles.card}>
@@ -50,7 +53,6 @@ const PasswordEmailSentScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   safeArea: { flex: 1 }, scrollContent: { flexGrow: 1 }, container: { flex: 1, paddingTop: 60 },
   headerContainer: { alignItems: 'center', marginBottom: 32 },
-  logoCircle: { width: 64, height: 64, borderRadius: 32, borderWidth: 1, borderColor: 'rgba(229, 185, 95, 0.2)', backgroundColor: 'rgba(255, 255, 255, 0.05)', justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
   brandText: { fontFamily: 'Cinzel_400Regular', fontSize: 11, letterSpacing: 5, color: Colors.antiqueGold },
   card: { flex: 1, borderTopLeftRadius: 56, borderTopRightRadius: 56, paddingHorizontal: 40, paddingTop: 64, paddingBottom: 32 },
   content: { alignItems: 'center' },

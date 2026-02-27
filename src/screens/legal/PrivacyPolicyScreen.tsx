@@ -14,10 +14,10 @@ const PrivacyPolicyScreen = ({ navigation }: any) => (
         <View style={styles.contentContainer}>
           <GlassCard style={styles.card}>
             <ScrollView style={styles.scrollView} contentContainerStyle={styles.scrollContent}>
-              <Section number="1" title="Information We Collect" content="To provide a sacred experience, we collect information that helps us personalize your spiritual journey. This includes your name, spiritual goals, and interaction with the 'My Kingdom Pal' system." />
-              <Section number="2" title="How We Use It" content="Your data is used solely to refine your path. We analyze patterns to suggest scripture, prayers, and lessons that resonate with your current season of faith." />
-              <Section number="3" title="Sacred Trust" content="We do not sell, trade, or transfer your personal information to outside parties. Your privacy is a covenant we uphold with the utmost integrity." />
-              <Section number="4" title="Your Rights" content="You maintain full control over your data. You may request deletion or export of your spiritual history at any time through the Profile settings." />
+              <Section number="1" title="What Stays on Your Device" content="Journal entries and mood notes are intended to stay on your device. MKP is designed so your private reflections are local-first and not stored on MKP infrastructure." />
+              <Section number="2" title="Church Support Requests" content="If you choose to send a prayer, support, or gratitude request through Care, that information may be shared with your connected church team for ministry follow-up. Those requests are not posted publicly." />
+              <Section number="3" title="Backups and Email" content="Your device platform may include your local app data in an encrypted device backup, such as iCloud Backup or Android device backup. If your church uses account email for follow-up, that communication may occur outside the app." />
+              <Section number="4" title="Your Choices" content="You control what you write, what you submit to Care, and what remains private. If you stop using the app, locally stored content remains subject to your device settings and any backups you manage." />
               <View style={{ height: 20 }} />
             </ScrollView>
             <View style={styles.cardFooter}><GoldButton title="I UNDERSTAND" onPress={() => navigation.goBack()} /></View>

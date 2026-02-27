@@ -70,7 +70,7 @@ const NewBelieverStartScreen = ({ navigation }: any) => {
                   screen: 'Church',
                   params: {
                     screen: 'CareSupportRequest',
-                    params: { initialHelpType: 'Prayer in person or by call' },
+                    params: { initialHelpType: 'I recently gave my life to Christ' },
                   },
                 })
               }
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
   prayerLinkButton: { marginTop: 16, alignItems: 'center' },
   prayerLinkText: { fontFamily: 'Inter_500Medium', fontSize: 13, color: Colors.antiqueGold, textDecorationLine: 'underline' },
   legalRow: { marginTop: 18, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10 },
-  legalLink: { fontFamily: 'Inter_400Regular', fontSize: 10, letterSpacing: 1.8, color: 'rgba(255,255,255,0.35)', textDecorationLine: 'underline' },
+  legalLink: { fontFamily: 'Inter_400Regular', fontSize: 10, letterSpacing: 1.8, color: Colors.antiqueGold, textDecorationLine: 'underline' },
   legalDot: { color: 'rgba(255,255,255,0.35)', fontSize: 11 },
 });
 

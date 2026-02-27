@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   footerLink: {
     fontFamily: 'Inter_400Regular',
     fontSize: 10,
-    color: 'rgba(255, 255, 255, 0.35)',
+    color: Colors.accentGold,
     textDecorationLine: 'underline',
   },
 });

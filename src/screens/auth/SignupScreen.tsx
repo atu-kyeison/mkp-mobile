@@ -7,9 +7,12 @@ import { GoldButton } from '../../components/GoldButton';
 import { MaterialIcons } from '@expo/vector-icons';
 import Colors from '../../constants/Colors';
 import { useI18n } from '../../i18n/I18nProvider';
+import { LogoBadge } from '../../components/LogoBadge';
+import { getPrimaryBrandLogoUri } from '../../constants/brandAssets';
 
 const SignupScreen = ({ navigation }: any) => {
   const { t } = useI18n();
+  const brandLogoUri = getPrimaryBrandLogoUri();
   const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -20,7 +23,7 @@ const SignupScreen = ({ navigation }: any) => {
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.keyboardView}>
           <ScrollView contentContainerStyle={styles.scrollContent} bounces={false}>
             <View style={styles.headerContainer}>
-              <View style={styles.logoCircle}><MaterialIcons name="church" size={32} color={Colors.antiqueGold} /></View>
+              <LogoBadge logoUri={brandLogoUri} fallbackIcon="church" size={64} />
               <Text style={styles.brandText}>{t('auth.brand')}</Text>
             </View>
             <GlassCard style={styles.card}>
@@ -54,7 +57,6 @@ const SignupScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   safeArea: { flex: 1 }, keyboardView: { flex: 1 }, scrollContent: { flexGrow: 1, paddingTop: 20, paddingBottom: 24 },
   headerContainer: { alignItems: 'center', marginBottom: 24, paddingHorizontal: 20 },
-  logoCircle: { width: 64, height: 64, borderRadius: 32, borderWidth: 1, borderColor: 'rgba(229, 185, 95, 0.2)', backgroundColor: 'rgba(255, 255, 255, 0.05)', justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
   brandText: { fontFamily: 'Cinzel_400Regular', fontSize: 11, letterSpacing: 5, color: Colors.antiqueGold },
   card: { width: '100%', maxWidth: 420, alignSelf: 'center', marginHorizontal: 20, borderRadius: 28, paddingHorizontal: 28, paddingTop: 28, paddingBottom: 24 },
   header: { alignItems: 'center', marginBottom: 24 }, title: { fontFamily: 'PlayfairDisplay_500Medium', fontSize: 30, color: 'white', textAlign: 'center', marginBottom: 8 }, subtitle: { fontFamily: 'Inter_300Light', fontSize: 14, color: 'rgba(255, 255, 255, 0.4)', textAlign: 'center' },

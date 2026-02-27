@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { StyleSheet, View, Text, TouchableOpacity } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Colors } from '../../constants/Colors';
 import { useI18n } from '../i18n/I18nProvider';
+import { useTheme } from '../theme/ThemeProvider';
 
 interface NavigationBarProps {
   activeTab: 'HOME' | 'JOURNEY' | 'CHURCH' | 'PROFILE';
@@ -13,6 +14,8 @@ interface NavigationBarProps {
 export const NavigationBar: React.FC<NavigationBarProps> = ({ activeTab, onTabPress }) => {
   const insets = useSafeAreaInsets();
   const { t } = useI18n();
+  const { themeId } = useTheme();
+  const styles = useMemo(() => createStyles(), [themeId]);
   const tabs: Array<{ id: typeof activeTab; icon: keyof typeof MaterialIcons.glyphMap }> = [
     { id: 'HOME', icon: 'home' },
     { id: 'JOURNEY', icon: 'route' },
@@ -52,7 +55,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ activeTab, onTabPr
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = () => StyleSheet.create({
   container: {
     position: 'absolute',
     left: 0,

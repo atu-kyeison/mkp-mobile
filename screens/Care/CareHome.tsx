@@ -76,13 +76,13 @@ const createStyles = () => StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingTop: 2,
+    paddingTop: 22,
   },
   header: {
     alignItems: 'center',
-    paddingTop: 0,
+    paddingTop: 12,
     paddingHorizontal: 24,
-    marginBottom: 0,
+    marginBottom: 12,
   },
   headerLabel: {
     fontFamily: 'Cinzel_700Bold',
@@ -106,16 +106,18 @@ const createStyles = () => StyleSheet.create({
   },
   section: {
     alignItems: 'center',
-    marginBottom: 22,
+    marginBottom: 16,
   },
   mainCard: {
     width: '100%',
-    padding: 26,
+    paddingHorizontal: 24,
+    paddingVertical: 22,
     alignItems: 'center',
   },
   gratitudeCard: {
     width: '100%',
-    padding: 24,
+    paddingHorizontal: 24,
+    paddingVertical: 22,
     alignItems: 'center',
   },
   cardLabel: {
@@ -123,22 +125,22 @@ const createStyles = () => StyleSheet.create({
     fontSize: 9,
     color: 'rgba(229, 185, 95, 0.6)',
     letterSpacing: 2,
-    marginBottom: 32,
+    marginBottom: 24,
   },
   cardText: {
     fontFamily: 'PlayfairDisplay_400Regular_Italic',
     fontSize: 20,
     color: 'rgba(255, 255, 255, 0.9)',
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: 28,
     lineHeight: 30,
   },
   smallText: {
     fontSize: 17,
-    marginBottom: 32,
+    marginBottom: 24,
   },
   linkButton: {
-    marginTop: 32,
+    marginTop: 20,
   },
   linkText: {
     fontFamily: 'Inter_400Regular',
@@ -147,7 +149,7 @@ const createStyles = () => StyleSheet.create({
     textDecorationLine: 'underline',
   },
   footer: {
-    marginTop: 16,
+    marginTop: 12,
     alignItems: 'center',
   },
   footerText: {

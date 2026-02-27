@@ -22,13 +22,14 @@ const HELP_TYPES = [
   'A conversation with a pastor',
   'Discipleship / next steps',
   'Accountability support',
-  'Prayer in person or by call',
+  'Baptism request',
+  'Baby dedication request',
   "I'm going through something difficult",
   'I recently gave my life to Christ',
   'Other',
 ] as const;
 
-const CONTACT_METHODS = ['Call', 'Text', 'Email'] as const;
+const CONTACT_METHODS = ['InApp', 'Email'] as const;
 
 export default function CareSupportRequest({ navigation, route }: any) {
   const insets = useSafeAreaInsets();
@@ -39,7 +40,7 @@ export default function CareSupportRequest({ navigation, route }: any) {
   const [helpType, setHelpType] =
     useState<(typeof HELP_TYPES)[number]>(preselectedType && HELP_TYPES.includes(preselectedType) ? preselectedType : HELP_TYPES[0]);
   const [contactMethod, setContactMethod] =
-    useState<(typeof CONTACT_METHODS)[number]>('Text');
+    useState<(typeof CONTACT_METHODS)[number]>('InApp');
   const [message, setMessage] = useState('');
   const [submitState, setSubmitState] = useState<'idle' | 'sending' | 'error'>('idle');
 
@@ -104,7 +105,8 @@ export default function CareSupportRequest({ navigation, route }: any) {
                           option === 'A conversation with a pastor' ? t('care.support.type.pastor') :
                           option === 'Discipleship / next steps' ? t('care.support.type.discipleship') :
                           option === 'Accountability support' ? t('care.support.type.accountability') :
-                          option === 'Prayer in person or by call' ? t('care.support.type.prayer') :
+                          option === 'Baptism request' ? t('care.support.type.baptism') :
+                          option === 'Baby dedication request' ? t('care.support.type.dedication') :
                           option === "I'm going through something difficult" ? t('care.support.type.difficult') :
                           option === 'I recently gave my life to Christ' ? t('care.support.type.newBeliever') :
                           t('care.support.type.other')
@@ -153,8 +155,7 @@ export default function CareSupportRequest({ navigation, route }: any) {
                         ]}
                       >
                         {
-                          method === 'Call' ? t('care.support.contact.call') :
-                          method === 'Text' ? t('care.support.contact.text') :
+                          method === 'InApp' ? t('care.support.contact.inapp') :
                           t('care.support.contact.email')
                         }
                       </Text>
@@ -206,18 +207,18 @@ const createStyles = () => StyleSheet.create({
   safeArea: { flex: 1 },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingTop: 2,
+    paddingTop: 18,
   },
   header: {
     alignItems: 'center',
-    paddingTop: 0,
+    paddingTop: 10,
     paddingHorizontal: 24,
-    marginBottom: -2,
+    marginBottom: 14,
   },
   backButton: {
     position: 'absolute',
     left: 8,
-    top: 0,
+    top: 2,
     width: 36,
     height: 36,
     borderRadius: 18,
@@ -242,13 +243,14 @@ const createStyles = () => StyleSheet.create({
   },
   title: {
     fontFamily: 'PlayfairDisplay_400Regular_Italic',
-    fontSize: 20,
+    fontSize: 21,
     lineHeight: 28,
     textAlign: 'center',
     color: Colors.text,
   },
   card: {
-    padding: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 18,
   },
   sectionLabel: {
     fontFamily: 'Inter_700Bold',
@@ -258,7 +260,7 @@ const createStyles = () => StyleSheet.create({
     marginBottom: 12,
   },
   sectionSpacing: {
-    marginTop: 20,
+    marginTop: 16,
   },
   chipsRow: {
     gap: 10,

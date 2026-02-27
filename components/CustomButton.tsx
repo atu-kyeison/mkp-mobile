@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import {
   TouchableOpacity,
   Text,
@@ -8,6 +8,7 @@ import {
   ActivityIndicator
 } from 'react-native';
 import { Colors } from '../constants/Colors';
+import { useTheme } from '../src/theme/ThemeProvider';
 
 interface CustomButtonProps {
   onPress: () => void;
@@ -28,6 +29,8 @@ export const CustomButton: React.FC<CustomButtonProps> = ({
   loading = false,
   disabled = false,
 }) => {
+  const { themeId } = useTheme();
+  const styles = useMemo(() => createStyles(), [themeId]);
   const isPrimary = variant === 'primary';
   const isOutline = variant === 'outline';
 
@@ -60,7 +63,7 @@ export const CustomButton: React.FC<CustomButtonProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = () => StyleSheet.create({
   button: {
     paddingVertical: 16,
     paddingHorizontal: 24,

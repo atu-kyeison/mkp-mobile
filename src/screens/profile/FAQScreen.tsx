@@ -26,6 +26,7 @@ const FAQScreen = ({ navigation }: any) => {
             <FAQItem question={t('faq.q1')} answer={t('faq.a1')} />
             <FAQItem question={t('faq.q2')} answer={t('faq.a2')} />
             <FAQItem question={t('faq.q3')} answer={t('faq.a3')} />
+            <FAQItem question={t('faq.q4')} answer={t('faq.a4')} />
             <View style={styles.footer}>
               <Text style={styles.footerHint}>{t('faq.footerHint')}</Text>
               <TouchableOpacity style={styles.supportButton} onPress={() => navigation.navigate('Main', { screen: 'Profile', params: { screen: 'TechnicalSupport' } })}>

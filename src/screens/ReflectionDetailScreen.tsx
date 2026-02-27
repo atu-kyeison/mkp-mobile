@@ -9,11 +9,12 @@ import { useI18n } from '../i18n/I18nProvider';
 import { deleteJournalEntry } from '../storage/journalStore';
 
 export const ReflectionDetailScreen = ({ navigation, route }: any) => {
-  const { t } = useI18n();
+  const { t, locale } = useI18n();
   const insets = useSafeAreaInsets();
+  const localeTag = locale === 'es' ? 'es-ES' : 'en-US';
   const date =
     route.params?.date ||
-    new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' }).replace(',', ' -').toUpperCase();
+    new Date().toLocaleDateString(localeTag, { weekday: 'long', month: 'short', day: 'numeric' }).replace(',', ' -').toUpperCase();
   const invitation = route.params?.invitation || '';
   const content = route.params?.content || '';
   const mood = route.params?.mood;

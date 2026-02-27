@@ -5,7 +5,7 @@ import { Colors } from '../../constants/Colors';
 import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
-import { getTodayFormationDateLabel } from './dateUtils';
+import { getTimeAwareFormationGreeting, getTodayFormationDateLabel } from './dateUtils';
 import { getFormationDayContent } from './formationContent';
 import { useI18n } from '../../src/i18n/I18nProvider';
 import { useTheme } from '../../src/theme/ThemeProvider';
@@ -15,7 +15,9 @@ export default function Saturday({ navigation }: any) {
   const { locale } = useI18n();
   const { themeId } = useTheme();
   const styles = useMemo(() => createStyles(), [themeId]);
-  const dateLabel = getTodayFormationDateLabel(locale === 'es' ? 'es-ES' : 'en-US');
+  const localeTag = locale === 'es' ? 'es-ES' : 'en-US';
+  const dateLabel = getTodayFormationDateLabel(localeTag);
+  const greeting = getTimeAwareFormationGreeting(localeTag);
   const content = getFormationDayContent('saturday', locale);
 
   return (
@@ -26,7 +28,7 @@ export default function Saturday({ navigation }: any) {
             <Text style={styles.topLabel}>{content.topLabel}</Text>
             <View style={styles.divider} />
             <Text style={styles.italicLabel}>{content.focusTagline}</Text>
-            <Text style={styles.greeting}>{content.greeting}</Text>
+            <Text style={styles.greeting}>{greeting}</Text>
             <Text style={styles.date}>{dateLabel}</Text>
           </View>
 

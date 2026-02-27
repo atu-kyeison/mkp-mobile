@@ -15,7 +15,7 @@ export const TechnicalSupportScreen = ({ navigation }: any) => {
     Alert.alert(
       t('support.alert.title'),
       t('support.alert.body'),
-      [{ text: 'OK' }]
+      [{ text: t('common.ok') }]
     );
     setMessage('');
   };

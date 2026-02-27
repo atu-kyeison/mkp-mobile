@@ -1,14 +1,20 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import Colors from '../constants/Colors';
+import { useTheme } from '../theme/ThemeProvider';
 
-export const GoldButton = ({ title, onPress, style, variant = 'solid' }: any) => (
-  <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={[styles.button, variant === 'solid' ? styles.solid : styles.outline, style]}>
-    <Text style={[styles.text, variant === 'solid' ? styles.solidText : styles.outlineText]}>{title}</Text>
-  </TouchableOpacity>
-);
+export const GoldButton = ({ title, onPress, style, variant = 'solid' }: any) => {
+  const { themeId } = useTheme();
+  const styles = useMemo(() => createStyles(), [themeId]);
 
-const styles = StyleSheet.create({
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.8} style={[styles.button, variant === 'solid' ? styles.solid : styles.outline, style]}>
+      <Text style={[styles.text, variant === 'solid' ? styles.solidText : styles.outlineText]}>{title}</Text>
+    </TouchableOpacity>
+  );
+};
+
+const createStyles = () => StyleSheet.create({
   button: { width: '100%', paddingVertical: 18, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   solid: { backgroundColor: Colors.antiqueGold, shadowColor: Colors.antiqueGold, shadowOffset: { width: 0, height: 10 }, shadowOpacity: 0.4, shadowRadius: 20, elevation: 5 },
   outline: { backgroundColor: 'transparent', borderWidth: 1, borderColor: 'rgba(229, 185, 95, 0.4)' },

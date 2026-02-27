@@ -1,7 +1,8 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import Colors from '../constants/Colors';
+import { useTheme } from '../theme/ThemeProvider';
 
 interface MidnightBackgroundProps {
   children: React.ReactNode;
@@ -9,10 +10,16 @@ interface MidnightBackgroundProps {
 }
 
 export const MidnightBackground: React.FC<MidnightBackgroundProps> = ({ children, showHaze = true }) => {
+  const { themeId } = useTheme();
+  const gradientColors: [string, string, string] = useMemo(
+    () => [Colors.backgroundDark, Colors.midnightMid, Colors.midnightBottom],
+    [themeId]
+  );
+
   return (
     <View style={styles.container}>
       <LinearGradient
-        colors={[Colors.backgroundDark, Colors.midnightMid, Colors.midnightBottom]}
+        colors={gradientColors}
         style={StyleSheet.absoluteFill}
       />
       {showHaze && (

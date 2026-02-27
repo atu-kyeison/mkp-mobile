@@ -5,10 +5,27 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { BackgroundGradient } from '../components/BackgroundGradient';
 import { GlassCard } from '../components/GlassCard';
 import { Colors } from '../../constants/Colors';
+import { useI18n } from '../i18n/I18nProvider';
 
 type ViewState = 'filled' | 'empty' | 'loading' | 'error';
 
+const getMostRecentSunday = (fromDate = new Date()) => {
+  const date = new Date(fromDate);
+  const day = date.getDay();
+  date.setDate(date.getDate() - day);
+  date.setHours(0, 0, 0, 0);
+  return date;
+};
+
+const addDays = (date: Date, days: number) => {
+  const next = new Date(date);
+  next.setDate(next.getDate() + days);
+  return next;
+};
+
 export const SundaySummaryDetailScreen = ({ navigation, route }: any) => {
+  const { locale, t } = useI18n();
+  const localeTag = locale === 'es' ? 'es-ES' : 'en-US';
   const routeState = route?.params?.viewState;
   const initialState: ViewState =
     routeState === 'empty' || routeState === 'loading' || routeState === 'error' || routeState === 'filled'
@@ -26,6 +43,22 @@ export const SundaySummaryDetailScreen = ({ navigation, route }: any) => {
     setTimeout(() => setViewState('filled'), 800);
   };
 
+  const anchorSunday = getMostRecentSunday();
+  const mondayDate = addDays(anchorSunday, 1);
+  const wednesdayDate = addDays(anchorSunday, 3);
+  const summaryDate = addDays(anchorSunday, 2);
+
+  const formatDay = (date: Date) =>
+    date
+      .toLocaleDateString(localeTag, { weekday: 'long', month: 'short', day: 'numeric' })
+      .replace(',', ' -')
+      .toUpperCase();
+
+  const formatShortMeta = (date: Date) =>
+    date
+      .toLocaleDateString(localeTag, { month: 'short', day: 'numeric' })
+      .toUpperCase();
+
   return (
     <BackgroundGradient style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -40,14 +73,14 @@ export const SundaySummaryDetailScreen = ({ navigation, route }: any) => {
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <View style={styles.summaryHeader}>
             <Text style={styles.summaryTitle}>Weekly Summary</Text>
-            <Text style={styles.summaryMeta}>SEPT 17 • 15TH SUNDAY AFTER PENTECOST</Text>
+            <Text style={styles.summaryMeta}>{formatShortMeta(summaryDate)} • {t('sundaySummary.weeklyRecap')}</Text>
           </View>
 
           {showFilled ? (
             <>
               <GlassCard style={styles.heroCard}>
                 <Text style={styles.heroTitle}>Abiding in Christ</Text>
-                <Text style={styles.heroMeta}>SUNDAY - SEPT 15</Text>
+                <Text style={styles.heroMeta}>{formatDay(anchorSunday)}</Text>
                 <Text style={styles.heroSubMeta}>PASTOR ELIAS VANCE - GRACE FELLOWSHIP</Text>
               </GlassCard>
 
@@ -57,7 +90,7 @@ export const SundaySummaryDetailScreen = ({ navigation, route }: any) => {
                   <TouchableOpacity
                     onPress={() =>
                       navigation.navigate('ReflectionDetail', {
-                        date: 'MONDAY - SEPT 16',
+                        date: formatDay(mondayDate),
                         invitation: '"What stayed with you today?"',
                         mood: 'Peaceful',
                         fromSunday: true,
@@ -67,7 +100,7 @@ export const SundaySummaryDetailScreen = ({ navigation, route }: any) => {
                     }
                   >
                     <GlassCard style={styles.reflectionCard}>
-                      <Text style={styles.reflectionDate}>MONDAY - SEPT 16</Text>
+                      <Text style={styles.reflectionDate}>{formatDay(mondayDate)}</Text>
                       <Text style={styles.reflectionPreview}>
                         The message about the vine and the branches really resonated this morning during my quiet time. I am...
                       </Text>
@@ -76,7 +109,7 @@ export const SundaySummaryDetailScreen = ({ navigation, route }: any) => {
                   <TouchableOpacity
                     onPress={() =>
                       navigation.navigate('ReflectionDetail', {
-                        date: 'WEDNESDAY - SEPT 18',
+                        date: formatDay(wednesdayDate),
                         invitation: '"What stayed with you today?"',
                         mood: 'Peaceful',
                         fromSunday: true,
@@ -86,7 +119,7 @@ export const SundaySummaryDetailScreen = ({ navigation, route }: any) => {
                     }
                   >
                     <GlassCard style={styles.reflectionCard}>
-                      <Text style={styles.reflectionDate}>WEDNESDAY - SEPT 18</Text>
+                      <Text style={styles.reflectionDate}>{formatDay(wednesdayDate)}</Text>
                       <Text style={styles.reflectionPreview}>
                         Found myself coming back to the idea of remaining. It's not about striving, but about positioning myself...
                       </Text>
@@ -97,7 +130,7 @@ export const SundaySummaryDetailScreen = ({ navigation, route }: any) => {
 
               <View style={styles.section}>
                 <Text style={styles.sectionTitle}>MOOD CHECK-INS</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('MoodDetail', { moodId: 'peaceful', date: 'Sunday - Sept 15' })}>
+                <TouchableOpacity onPress={() => navigation.navigate('MoodDetail', { moodId: 'peaceful', date: formatDay(anchorSunday) })}>
                   <GlassCard style={styles.moodCard}>
                     <View style={styles.moodIconWrap}>
                       <MaterialIcons name="filter-vintage" size={28} color={Colors.accentGold} />

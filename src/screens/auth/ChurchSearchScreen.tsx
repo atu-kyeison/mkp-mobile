@@ -1,21 +1,48 @@
 import React, { useState } from 'react';
+import { Settings } from 'react-native';
 import { Alert, View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MidnightBackground } from '../../components/MidnightBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { GoldButton } from '../../components/GoldButton';
-import { MaterialIcons } from '@expo/vector-icons';
 import Colors from '../../constants/Colors';
 import { useI18n } from '../../i18n/I18nProvider';
+import { LogoBadge } from '../../components/LogoBadge';
+import { getPrimaryBrandLogoUri, resolveChurchBrandingByCode } from '../../constants/brandAssets';
+import { ErrorStateCard } from '../../components/ErrorStateCard';
 
 const ChurchSearchScreen = ({ navigation }: any) => {
   const { t } = useI18n();
   const [code, setCode] = useState('');
+  const [errorKind, setErrorKind] = useState<'required' | 'not_found' | null>(null);
+  const brandLogoUri = getPrimaryBrandLogoUri();
 
   const handleConnect = () => {
-    const churchName = 'Grace Community Church';
-    navigation.navigate('ChurchSuccess', { churchName });
+    const normalized = code.trim();
+    if (!normalized) {
+      setErrorKind('required');
+      return;
+    }
+
+    const resolved = resolveChurchBrandingByCode(normalized);
+    if (!resolved.found) {
+      setErrorKind('not_found');
+      return;
+    }
+
+    setErrorKind(null);
+    Settings.set({
+      'mkp.connectedChurchName': resolved.name,
+      'mkp.connectedChurchLogoUri': resolved.logoUri || '',
+    });
+    navigation.navigate('ChurchSuccess', { churchName: resolved.name, churchLogoUri: resolved.logoUri });
   };
+
+  const openCodeHelp = () =>
+    Alert.alert(
+      t('auth.churchSearch.helpTitle'),
+      t('auth.churchSearch.helpBody')
+    );
 
   return (
     <MidnightBackground>
@@ -28,7 +55,7 @@ const ChurchSearchScreen = ({ navigation }: any) => {
         >
           <View style={styles.container}>
             <View style={styles.headerContainer}>
-              <View style={styles.logoCircle}><MaterialIcons name="church" size={32} color={Colors.antiqueGold} /></View>
+              <LogoBadge logoUri={brandLogoUri} fallbackIcon="church" size={64} />
               <Text style={styles.brandText}>{t('auth.brand')}</Text>
             </View>
             <GlassCard style={styles.card}>
@@ -44,20 +71,28 @@ const ChurchSearchScreen = ({ navigation }: any) => {
                   placeholderTextColor="rgba(255, 255, 255, 0.25)"
                   autoCapitalize="characters"
                   value={code}
-                  onChangeText={setCode}
+                  onChangeText={(value) => {
+                    setCode(value);
+                    if (errorKind) setErrorKind(null);
+                  }}
                 />
                 <View style={styles.buttonWrapper}><GoldButton title={t('auth.churchSearch.submit')} onPress={handleConnect} /></View>
                 <TouchableOpacity
                   style={styles.helpLink}
-                  onPress={() =>
-                    Alert.alert(
-                      t('auth.churchSearch.helpTitle'),
-                      t('auth.churchSearch.helpBody')
-                    )
-                  }
+                  onPress={openCodeHelp}
                 >
                   <Text style={styles.helpText}>{t('auth.churchSearch.codeHelp')}</Text>
                 </TouchableOpacity>
+                {errorKind ? (
+                  <ErrorStateCard
+                    title={t('auth.churchSearch.errorTitle')}
+                    body={t(errorKind === 'required' ? 'auth.churchSearch.errorRequired' : 'auth.churchSearch.errorNotFound')}
+                    primaryLabel={t('auth.churchSearch.retry')}
+                    onPrimaryPress={() => setErrorKind(null)}
+                    secondaryLabel={t('auth.churchSearch.getHelp')}
+                    onSecondaryPress={openCodeHelp}
+                  />
+                ) : null}
               </View>
               <View style={styles.cardFooter}>
                 <Text style={styles.footerText}>{t('auth.footer.prefix')}</Text>
@@ -78,7 +113,6 @@ const ChurchSearchScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   safeArea: { flex: 1 }, scrollContent: { flexGrow: 1, paddingTop: 20, paddingBottom: 24 },
   container: { flex: 1, paddingHorizontal: 20, justifyContent: 'center' }, headerContainer: { alignItems: 'center', marginBottom: 24 },
-  logoCircle: { width: 64, height: 64, borderRadius: 32, borderWidth: 1, borderColor: 'rgba(229, 185, 95, 0.2)', backgroundColor: 'rgba(255, 255, 255, 0.05)', justifyContent: 'center', alignItems: 'center', marginBottom: 16 },
   brandText: { fontFamily: 'Cinzel_400Regular', fontSize: 11, letterSpacing: 5, color: Colors.antiqueGold },
   card: { width: '100%', maxWidth: 420, alignSelf: 'center', borderRadius: 28, paddingHorizontal: 28, paddingTop: 28, paddingBottom: 24 },
   header: { alignItems: 'center', marginBottom: 24 },
@@ -91,9 +125,9 @@ const styles = StyleSheet.create({
   footerText: { fontFamily: 'Inter_300Light', fontSize: 10, color: 'rgba(255, 255, 255, 0.2)', textAlign: 'center', lineHeight: 16, maxWidth: 280 },
   footerLinks: { flexDirection: 'row', alignItems: 'center' },
   footerLink: {
-    fontFamily: 'Inter_300Light',
+    fontFamily: 'Inter_400Regular',
     fontSize: 10,
-    color: 'rgba(255, 255, 255, 0.35)',
+    color: Colors.antiqueGold,
     textDecorationLine: 'underline',
   },
 });
