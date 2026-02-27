@@ -1,0 +1,179 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ============================================
+    // DENY BY DEFAULT - No rules = no access
+    // ============================================
+
+    // Helper: Check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper: Get user's membership doc in a church
+    function getMembership(churchId) {
+      return get(/databases/$(database)/documents/churches/$(churchId)/members/$(request.auth.uid));
+    }
+
+    // Helper: Check if user is a member of the church
+    function isMemberOf(churchId) {
+      return isAuthenticated() &&
+             exists(/databases/$(database)/documents/churches/$(churchId)/members/$(request.auth.uid));
+    }
+
+    // Helper: Check if user has specific role in church
+    function hasRole(churchId, allowedRoles) {
+      return isMemberOf(churchId) &&
+             getMembership(churchId).data.role in allowedRoles &&
+             getMembership(churchId).data.status == 'active';
+    }
+
+    // Helper: Check if user is pastor or admin
+    function isPastorOrAdmin(churchId) {
+      return hasRole(churchId, ['pastor', 'admin']);
+    }
+
+    // Helper: Check if user is leader, pastor, or admin
+    function isLeaderOrAbove(churchId) {
+      return hasRole(churchId, ['leader', 'pastor', 'admin']);
+    }
+
+    // ============================================
+    // /users/{uid} - Global user profiles
+    // ============================================
+    match /users/{uid} {
+      // Users can only read/write their own profile
+      allow read, update: if isAuthenticated() && request.auth.uid == uid;
+      // Create allowed for new users setting up profile
+      allow create: if isAuthenticated() && request.auth.uid == uid;
+      // Delete not allowed from client
+      allow delete: if false;
+    }
+
+    // ============================================
+    // /churches/{churchId} - Church tenant roots
+    // ============================================
+    match /churches/{churchId} {
+      // Members can read their church's basic info
+      allow read: if isMemberOf(churchId);
+
+      // Only pastor/admin can update church settings
+      allow update: if isPastorOrAdmin(churchId);
+
+      // Create/delete managed by backend only
+      allow create, delete: if false;
+
+      // ============================================
+      // /churches/{churchId}/private/{docId} - Server-only data
+      // ============================================
+      // Contains joinCodeHash and other sensitive config
+      // NO client read access - Cloud Functions only
+      match /private/{docId} {
+        allow read, write: if false;
+      }
+
+      // ============================================
+      // /churches/{churchId}/members/{uid}
+      // ============================================
+      match /members/{uid} {
+        // Members can read other members in their church (for display)
+        allow read: if isMemberOf(churchId);
+
+        // Members can update their own profile (limited fields)
+        allow update: if isAuthenticated() &&
+                        request.auth.uid == uid &&
+                        isMemberOf(churchId) &&
+                        // Only allow updating these fields
+                        request.resource.data.diff(resource.data).affectedKeys()
+                          .hasOnly(['displayName', 'lastActiveAt']);
+
+        // Pastor/admin can update any member (role changes, status)
+        allow update: if isPastorOrAdmin(churchId);
+
+        // Create handled by Cloud Function (joinChurch)
+        allow create: if false;
+
+        // Delete (leave church) - user can remove self, admin can remove others
+        allow delete: if isAuthenticated() &&
+                        (request.auth.uid == uid || isPastorOrAdmin(churchId));
+      }
+
+      // ============================================
+      // /churches/{churchId}/sermons/{sermonId}
+      // ============================================
+      match /sermons/{sermonId} {
+        // All church members can read sermons
+        allow read: if isMemberOf(churchId);
+
+        // Only pastor/admin can create/update/delete sermons
+        allow create, update, delete: if isPastorOrAdmin(churchId);
+
+        // ============================================
+        // /churches/{churchId}/sermons/{sermonId}/transcripts/{versionId}
+        // ============================================
+        match /transcripts/{versionId} {
+          // Members can read transcripts
+          allow read: if isMemberOf(churchId);
+
+          // Only pastor/admin can manage transcripts
+          allow create, update, delete: if isPastorOrAdmin(churchId);
+        }
+      }
+
+      // ============================================
+      // /churches/{churchId}/formationWeeks/{weekId}
+      // ============================================
+      match /formationWeeks/{weekId} {
+        // All church members can read formation content
+        allow read: if isMemberOf(churchId);
+
+        // Only pastor/admin can create/update/delete formation content
+        allow create, update, delete: if isPastorOrAdmin(churchId);
+      }
+
+      // ============================================
+      // /churches/{churchId}/careRequests/{requestId}
+      // ============================================
+      match /careRequests/{requestId} {
+        // ONLY pastor/admin can read care requests (privacy)
+        allow read: if isPastorOrAdmin(churchId);
+
+        // Members can create care requests for their church
+        // Must set their own UID as submitter
+        allow create: if isMemberOf(churchId) &&
+                        request.resource.data.submitterId == request.auth.uid &&
+                        request.resource.data.status == 'pending' &&
+                        request.resource.data.type in ['prayer', 'testimony', 'care_support'];
+
+        // Only pastor/admin can update care requests (status changes)
+        allow update: if isPastorOrAdmin(churchId);
+
+        // Only pastor/admin can delete
+        allow delete: if isPastorOrAdmin(churchId);
+      }
+
+      // ============================================
+      // /churches/{churchId}/analyticsWeekly/{weekStartDate}
+      // ============================================
+      match /analyticsWeekly/{weekStartDate} {
+        // Only pastor/admin can read analytics
+        allow read: if isPastorOrAdmin(churchId);
+
+        // Write handled by Cloud Function only
+        allow create, update, delete: if false;
+      }
+    }
+
+    // ============================================
+    // EXPLICIT DENIALS - No other paths allowed
+    // ============================================
+
+    // No top-level collections allowed (flat collections denied)
+    // e.g., /sermons, /careRequests, /journals are all denied
+
+    // No journal paths exist - journals are local-only
+    // Any attempt to read/write /journals/* is denied by default
+  }
+}
