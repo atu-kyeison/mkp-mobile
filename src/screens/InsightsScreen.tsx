@@ -11,7 +11,7 @@ import { getJournalEntries, JournalEntry } from '../storage/journalStore';
 
 const SAMPLE_MOODS = ['peaceful', 'rushed', 'anxious', 'grateful', 'tired', 'focused'] as const;
 
-const buildPreviewEntries = (): JournalEntry[] => {
+const buildPreviewEntries = (locale: 'en' | 'es'): JournalEntry[] => {
   const today = new Date();
 
   return SAMPLE_MOODS.map((mood, index) => {
@@ -22,11 +22,17 @@ const buildPreviewEntries = (): JournalEntry[] => {
     return {
       id: `insight-preview-${mood}-${index}`,
       createdAt: entryDate.toISOString(),
-      body: `Preview reflection for ${mood}.`,
-      invitationText: 'Preview rhythm entry.',
+      body:
+        locale === 'es'
+          ? `Reflexión de prueba para ${mood}.`
+          : `Preview reflection for ${mood}.`,
+      invitationText:
+        locale === 'es'
+          ? 'Entrada de ritmo de prueba.'
+          : 'Preview rhythm entry.',
       journalVariant: 'mid_week',
       mood,
-      linkedSermonTitle: index % 2 === 0 ? 'Abide and Remain' : undefined,
+      linkedSermonTitle: index % 2 === 0 ? (locale === 'es' ? 'Permanece y descansa' : 'Abide and Remain') : undefined,
       linkedSermonUrl: index % 2 === 0 ? 'https://www.youtube.com/' : undefined,
     };
   });
@@ -66,7 +72,7 @@ export const InsightsScreen = () => {
       weekAgo.setHours(0, 0, 0, 0);
 
       const savedEntries = getJournalEntries();
-      const sourceEntries = savedEntries.length > 0 ? savedEntries : buildPreviewEntries();
+      const sourceEntries = savedEntries.length > 0 ? savedEntries : buildPreviewEntries(locale);
       const weeklyEntries = sourceEntries.filter((entry) => {
         const created = new Date(entry.createdAt);
         return !Number.isNaN(created.getTime()) && created >= weekAgo && created <= now;
@@ -83,7 +89,7 @@ export const InsightsScreen = () => {
           .map((entry) => entry.mood as string)
           .slice(-6)
       );
-    }, [])
+    }, [locale])
   );
 
   const reflectionStatText = useMemo(() => {

@@ -12,6 +12,12 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     'nav.church': 'CHURCH',
     'nav.profile': 'PROFILE',
     'common.ok': 'OK',
+    'actions.linkUnavailableTitle': 'Link unavailable',
+    'actions.churchMessageUnavailableBody': 'Unable to open this week’s message right now.',
+    'actions.bibleLinkUnavailableTitle': 'Bible link unavailable',
+    'actions.scriptureUnavailableBody': 'Unable to open this scripture right now.',
+    'actions.audioUnavailableTitle': 'Audio not configured',
+    'actions.audioUnavailableBody': 'Deepgram voice playback will work once the TTS proxy endpoint is connected.',
 
     'auth.brand': 'MY KINGDOM PAL',
     'auth.welcome.title': 'Walk with the Word all week.',
@@ -353,6 +359,12 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     'nav.church': 'IGLESIA',
     'nav.profile': 'PERFIL',
     'common.ok': 'OK',
+    'actions.linkUnavailableTitle': 'Enlace no disponible',
+    'actions.churchMessageUnavailableBody': 'No pudimos abrir el mensaje de esta semana en este momento.',
+    'actions.bibleLinkUnavailableTitle': 'Enlace bíblico no disponible',
+    'actions.scriptureUnavailableBody': 'No pudimos abrir esta escritura en este momento.',
+    'actions.audioUnavailableTitle': 'Audio no configurado',
+    'actions.audioUnavailableBody': 'La reproducción de voz con Deepgram funcionará una vez que el endpoint del proxy TTS esté conectado.',
 
     'auth.brand': 'MI REINO PAL',
     'auth.welcome.title': 'Camina con la Palabra toda la semana.',
@@ -702,6 +714,11 @@ const getDefaultLocale = (): SupportedLocale => {
   }
   return 'en';
 };
+
+export const getStoredLocale = (): SupportedLocale => getDefaultLocale();
+
+export const translateForLocale = (locale: SupportedLocale, key: string): string =>
+  dictionaries[locale][key] ?? dictionaries.en[key] ?? key;
 
 type I18nContextValue = {
   locale: SupportedLocale;

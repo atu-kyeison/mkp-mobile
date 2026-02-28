@@ -32,6 +32,7 @@ export const ReflectionDetailScreen = ({ navigation, route }: any) => {
   const sermonUrl = route.params?.sermonUrl as string | undefined;
   const entryId = route.params?.entryId as string | undefined;
   const moodEmoji = mood ? MOOD_EMOJI[String(mood).toLowerCase()] || '🌿' : null;
+  const moodLabel = mood ? t(`mood.label.${String(mood).toLowerCase()}`) : null;
 
   const handleEdit = () => {
     if (!entryId) return;
@@ -96,7 +97,7 @@ export const ReflectionDetailScreen = ({ navigation, route }: any) => {
             {mood ? (
               <View style={styles.moodPill}>
                 <Text style={styles.moodEmoji}>{moodEmoji}</Text>
-                <Text style={styles.moodText}>{mood}</Text>
+                <Text style={styles.moodText}>{moodLabel || mood}</Text>
               </View>
             ) : null}
           </GlassCard>

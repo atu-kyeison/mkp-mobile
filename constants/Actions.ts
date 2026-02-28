@@ -1,4 +1,5 @@
 import { Alert, Linking } from 'react-native';
+import { getStoredLocale, translateForLocale } from '../src/i18n/I18nProvider';
 
 export const CHURCH_MESSAGE_URL =
   process.env.EXPO_PUBLIC_CHURCH_MESSAGE_URL || 'https://www.youtube.com/';
@@ -7,7 +8,11 @@ export async function openChurchMessage(messageUrl?: string) {
   try {
     await Linking.openURL(messageUrl || CHURCH_MESSAGE_URL);
   } catch {
-    Alert.alert('Link unavailable', 'Unable to open this week’s message right now.');
+    const locale = getStoredLocale();
+    Alert.alert(
+      translateForLocale(locale, 'actions.linkUnavailableTitle'),
+      translateForLocale(locale, 'actions.churchMessageUnavailableBody')
+    );
   }
 }
 
@@ -24,7 +29,11 @@ export async function openScriptureReference(reference: string) {
     }
     await Linking.openURL(webUrl);
   } catch {
-    Alert.alert('Bible link unavailable', 'Unable to open this scripture right now.');
+    const locale = getStoredLocale();
+    Alert.alert(
+      translateForLocale(locale, 'actions.bibleLinkUnavailableTitle'),
+      translateForLocale(locale, 'actions.scriptureUnavailableBody')
+    );
   }
 }
 
@@ -56,7 +65,7 @@ export async function speakWithTTS(text: string) {
   }
 
   Alert.alert(
-    'Audio not configured',
-    'Deepgram voice playback will work once the TTS proxy endpoint is connected.'
+    translateForLocale(getStoredLocale(), 'actions.audioUnavailableTitle'),
+    translateForLocale(getStoredLocale(), 'actions.audioUnavailableBody')
   );
 }
