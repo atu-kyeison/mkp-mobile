@@ -60,6 +60,69 @@ export const SundaySummaryDetailScreen = ({ navigation, route }: any) => {
       .toLocaleDateString(localeTag, { month: 'short', day: 'numeric' })
       .toUpperCase();
 
+  const sundayCopy =
+    locale === 'es'
+      ? {
+          header: 'DOMINGO',
+          title: 'Resumen semanal',
+          heroTitle: 'Permanecer en Cristo',
+          heroMeta: 'PASTOR ELIAS VANCE - GRACE FELLOWSHIP',
+          openMessage: 'ABRIR MENSAJE',
+          linkedReflections: 'TUS REFLEXIONES VINCULADAS A ESTE DOMINGO',
+          invitation: '"¿Qué se quedó contigo hoy?"',
+          mondayPreview:
+            'El mensaje sobre la vid y los pámpanos realmente resonó esta mañana durante mi tiempo a solas. Estoy aprendiendo a confiar en la poda...',
+          mondayContent:
+            'El mensaje sobre la vid y los pámpanos realmente resonó esta mañana durante mi tiempo a solas. Estoy aprendiendo a confiar en la poda...',
+          wednesdayPreview:
+            'Volví varias veces a la idea de permanecer. No se trata de esforzarme, sino de permanecer cerca de Él...',
+          wednesdayContent:
+            'Volví varias veces a la idea de permanecer. No se trata de esforzarme, sino de permanecer cerca de Él...',
+          moodTitle: t('mood.label.peaceful'),
+          moodSubtitle: 'Registrado después del servicio de la mañana',
+          moodCheckIns: 'REGISTROS DE ESTADO',
+          savedScriptures: 'Escrituras guardadas',
+          prayerTestimony: 'Oración / Testimonio',
+          comingSoon: 'PRÓXIMAMENTE',
+          reflections: 'REFLEXIONES',
+          empty: 'Todavía no hay reflexiones vinculadas a este domingo.',
+          write: 'ESCRIBIR UNA REFLEXIÓN',
+          currentState: 'ESTADO ACTUAL',
+          loading: 'Recuperando tu ancla del domingo...',
+          error: 'Algo no cargó. Inténtalo de nuevo.',
+          retry: 'REINTENTAR',
+        }
+      : {
+          header: 'SUNDAY',
+          title: 'Weekly Summary',
+          heroTitle: 'Abiding in Christ',
+          heroMeta: 'PASTOR ELIAS VANCE - GRACE FELLOWSHIP',
+          openMessage: 'OPEN MESSAGE',
+          linkedReflections: 'YOUR REFLECTIONS LINKED TO THIS SUNDAY',
+          invitation: '"What stayed with you today?"',
+          mondayPreview:
+            'The message about the vine and the branches really resonated this morning during my quiet time. I am learning to trust the pruning...',
+          mondayContent:
+            'The message about the vine and the branches really resonated this morning during my quiet time. I am learning to trust the pruning...',
+          wednesdayPreview:
+            "Found myself coming back to the idea of remaining. It's not about striving, but about positioning myself near Him...",
+          wednesdayContent:
+            "Found myself coming back to the idea of remaining. It's not about striving, but about positioning myself near Him...",
+          moodTitle: t('mood.label.peaceful'),
+          moodSubtitle: 'Logged after the morning service',
+          moodCheckIns: 'MOOD CHECK-INS',
+          savedScriptures: 'Saved Scriptures',
+          prayerTestimony: 'Prayer / Testimony',
+          comingSoon: 'COMING SOON',
+          reflections: 'REFLECTIONS',
+          empty: 'No reflections linked to this Sunday yet.',
+          write: 'WRITE A REFLECTION',
+          currentState: 'CURRENT STATE',
+          loading: 'Retrieving your Sunday anchor...',
+          error: "Something didn't load. Try again.",
+          retry: 'RETRY',
+        };
+
   return (
     <BackgroundGradient style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -67,83 +130,77 @@ export const SundaySummaryDetailScreen = ({ navigation, route }: any) => {
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <MaterialIcons name="chevron-left" size={22} color={Colors.accentGold} />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>SUNDAY</Text>
+          <Text style={styles.headerTitle}>{sundayCopy.header}</Text>
           <View style={styles.backSpacer} />
         </View>
 
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           <View style={styles.summaryHeader}>
-            <Text style={styles.summaryTitle}>Weekly Summary</Text>
+            <Text style={styles.summaryTitle}>{sundayCopy.title}</Text>
             <Text style={styles.summaryMeta}>{formatShortMeta(summaryDate)} • {t('sundaySummary.weeklyRecap')}</Text>
           </View>
 
           {showFilled ? (
             <>
               <GlassCard style={styles.heroCard}>
-                <Text style={styles.heroTitle}>Abiding in Christ</Text>
+                <Text style={styles.heroTitle}>{sundayCopy.heroTitle}</Text>
                 <Text style={styles.heroMeta}>{formatDay(anchorSunday)}</Text>
-                <Text style={styles.heroSubMeta}>PASTOR ELIAS VANCE - GRACE FELLOWSHIP</Text>
+                <Text style={styles.heroSubMeta}>{sundayCopy.heroMeta}</Text>
                 <TouchableOpacity style={styles.heroLink} onPress={() => openChurchMessage('https://www.youtube.com/')}>
-                  <Text style={styles.heroLinkText}>OPEN MESSAGE</Text>
+                  <Text style={styles.heroLinkText}>{sundayCopy.openMessage}</Text>
                 </TouchableOpacity>
               </GlassCard>
 
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>YOUR REFLECTIONS LINKED TO THIS SUNDAY</Text>
+                <Text style={styles.sectionTitle}>{sundayCopy.linkedReflections}</Text>
                 <View style={styles.cardStack}>
                   <TouchableOpacity
                     onPress={() =>
                       navigation.navigate('ReflectionDetail', {
                         date: formatDay(mondayDate),
-                        invitation: '"What stayed with you today?"',
-                        mood: 'Peaceful',
+                        invitation: sundayCopy.invitation,
+                        mood: t('mood.label.peaceful'),
                         fromSunday: true,
                         sermonUrl: 'https://www.youtube.com/',
-                        content:
-                          "The message about the vine and the branches really resonated this morning during my quiet time. I am learning to trust the pruning...",
+                        content: sundayCopy.mondayContent,
                       })
                     }
                   >
                     <GlassCard style={styles.reflectionCard}>
                       <Text style={styles.reflectionDate}>{formatDay(mondayDate)}</Text>
-                      <Text style={styles.reflectionPreview}>
-                        The message about the vine and the branches really resonated this morning during my quiet time. I am...
-                      </Text>
+                      <Text style={styles.reflectionPreview}>{sundayCopy.mondayPreview}</Text>
                     </GlassCard>
                   </TouchableOpacity>
                   <TouchableOpacity
                     onPress={() =>
                       navigation.navigate('ReflectionDetail', {
                         date: formatDay(wednesdayDate),
-                        invitation: '"What stayed with you today?"',
-                        mood: 'Peaceful',
+                        invitation: sundayCopy.invitation,
+                        mood: t('mood.label.peaceful'),
                         fromSunday: true,
                         sermonUrl: 'https://www.youtube.com/',
-                        content:
-                          "Found myself coming back to the idea of remaining. It's not about striving, but about positioning myself near Him...",
+                        content: sundayCopy.wednesdayContent,
                       })
                     }
                   >
                     <GlassCard style={styles.reflectionCard}>
                       <Text style={styles.reflectionDate}>{formatDay(wednesdayDate)}</Text>
-                      <Text style={styles.reflectionPreview}>
-                        Found myself coming back to the idea of remaining. It's not about striving, but about positioning myself...
-                      </Text>
+                      <Text style={styles.reflectionPreview}>{sundayCopy.wednesdayPreview}</Text>
                     </GlassCard>
                   </TouchableOpacity>
                 </View>
               </View>
 
               <View style={styles.section}>
-                <Text style={styles.sectionTitle}>MOOD CHECK-INS</Text>
+                <Text style={styles.sectionTitle}>{sundayCopy.moodCheckIns}</Text>
                 <TouchableOpacity onPress={() => navigation.navigate('MoodDetail', { moodId: 'peaceful', date: formatDay(anchorSunday) })}>
                   <GlassCard style={styles.moodCard}>
                     <View style={styles.moodIconWrap}>
                       <MaterialIcons name="filter-vintage" size={28} color={Colors.accentGold} />
                     </View>
                     <View>
-                      <Text style={styles.moodTitle}>Peaceful</Text>
-                      <Text style={styles.moodSubtitle}>Logged after the morning service</Text>
+                      <Text style={styles.moodTitle}>{sundayCopy.moodTitle}</Text>
+                      <Text style={styles.moodSubtitle}>{sundayCopy.moodSubtitle}</Text>
                     </View>
                   </GlassCard>
                 </TouchableOpacity>
@@ -151,12 +208,12 @@ export const SundaySummaryDetailScreen = ({ navigation, route }: any) => {
 
               <View style={styles.section}>
                 <GlassCard style={[styles.comingSoonCard, styles.comingSoonMuted]}>
-                  <Text style={styles.comingSoonText}>Saved Scriptures</Text>
-                  <View style={styles.comingSoonBadge}><Text style={styles.comingSoonBadgeText}>COMING SOON</Text></View>
+                  <Text style={styles.comingSoonText}>{sundayCopy.savedScriptures}</Text>
+                  <View style={styles.comingSoonBadge}><Text style={styles.comingSoonBadgeText}>{sundayCopy.comingSoon}</Text></View>
                 </GlassCard>
                 <GlassCard style={[styles.comingSoonCard, styles.comingSoonMuted]}>
-                  <Text style={styles.comingSoonText}>Prayer / Testimony</Text>
-                  <View style={styles.comingSoonBadge}><Text style={styles.comingSoonBadgeText}>COMING SOON</Text></View>
+                  <Text style={styles.comingSoonText}>{sundayCopy.prayerTestimony}</Text>
+                  <View style={styles.comingSoonBadge}><Text style={styles.comingSoonBadgeText}>{sundayCopy.comingSoon}</Text></View>
                 </GlassCard>
               </View>
             </>
@@ -165,33 +222,33 @@ export const SundaySummaryDetailScreen = ({ navigation, route }: any) => {
           {showEmpty ? (
             <>
               <View style={styles.section}>
-                <Text style={styles.sectionTitleFaint}>REFLECTIONS</Text>
+                <Text style={styles.sectionTitleFaint}>{sundayCopy.reflections}</Text>
                 <GlassCard style={styles.emptyCard}>
-                  <Text style={styles.emptyText}>No reflections linked to this Sunday yet.</Text>
+                  <Text style={styles.emptyText}>{sundayCopy.empty}</Text>
                   <TouchableOpacity
                     style={styles.writeButton}
                     onPress={() => navigation.navigate('ReflectionEntry', { journalVariant: 'mid_week', openMoodOnEntry: false })}
                   >
-                    <Text style={styles.writeButtonText}>WRITE A REFLECTION</Text>
+                    <Text style={styles.writeButtonText}>{sundayCopy.write}</Text>
                   </TouchableOpacity>
                 </GlassCard>
               </View>
 
               {showLoading ? (
                 <View style={styles.section}>
-                  <Text style={styles.sectionTitleFaint}>CURRENT STATE</Text>
+                  <Text style={styles.sectionTitleFaint}>{sundayCopy.currentState}</Text>
                   <GlassCard style={styles.loadingCard}>
                     <ActivityIndicator size="small" color={Colors.accentGold} />
-                    <Text style={styles.loadingText}>Retrieving your Sunday anchor...</Text>
+                    <Text style={styles.loadingText}>{sundayCopy.loading}</Text>
                   </GlassCard>
                 </View>
               ) : null}
 
               {showError ? (
                 <View style={styles.errorWrap}>
-                  <Text style={styles.errorText}>Something didn't load. Try again.</Text>
+                  <Text style={styles.errorText}>{sundayCopy.error}</Text>
                   <TouchableOpacity style={styles.retryButton} onPress={retryLoading}>
-                    <Text style={styles.retryText}>RETRY</Text>
+                    <Text style={styles.retryText}>{sundayCopy.retry}</Text>
                   </TouchableOpacity>
                 </View>
               ) : null}

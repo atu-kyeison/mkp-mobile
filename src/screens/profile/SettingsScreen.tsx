@@ -89,7 +89,20 @@ const SettingsScreen = ({ navigation, route }: any) => {
                         {t('settings.language.es')}
                       </Text>
                     </TouchableOpacity>
+                    <View style={[styles.languageChip, styles.languageChipDisabled]}>
+                      <Text style={[styles.languageChipText, styles.languageChipTextDisabled]}>
+                        {t('settings.language.fr')}
+                      </Text>
+                      <Text style={styles.languageChipSoon}>{t('settings.language.comingSoon')}</Text>
+                    </View>
+                    <View style={[styles.languageChip, styles.languageChipDisabled]}>
+                      <Text style={[styles.languageChipText, styles.languageChipTextDisabled]}>
+                        {t('settings.language.pt')}
+                      </Text>
+                      <Text style={styles.languageChipSoon}>{t('settings.language.comingSoon')}</Text>
+                    </View>
                   </View>
+                  <Text style={styles.languageSupportNote}>{t('settings.language.supportedNote')}</Text>
                 </View>
               </GlassCard>
             </Section>
@@ -278,11 +291,15 @@ const styles = StyleSheet.create({
     textDecorationLine: 'underline',
     textAlign: 'center',
   },
-  languageRow: { flexDirection: 'row', gap: 10, marginTop: 8 },
+  languageRow: { flexDirection: 'row', gap: 10, marginTop: 8, flexWrap: 'wrap' },
   languageChip: { borderWidth: 1, borderColor: 'rgba(229, 185, 95, 0.25)', borderRadius: 999, paddingVertical: 8, paddingHorizontal: 12 },
   languageChipActive: { backgroundColor: 'rgba(229, 185, 95, 0.2)', borderColor: 'rgba(229, 185, 95, 0.6)' },
   languageChipText: { fontFamily: 'Inter_500Medium', fontSize: 12, color: 'rgba(255,255,255,0.8)' },
   languageChipTextActive: { color: Colors.antiqueGold },
+  languageChipDisabled: { opacity: 0.6 },
+  languageChipTextDisabled: { color: 'rgba(255,255,255,0.6)' },
+  languageChipSoon: { fontFamily: 'Inter_400Regular', fontSize: 9, color: 'rgba(229, 185, 95, 0.72)', marginTop: 2, textAlign: 'center' },
+  languageSupportNote: { fontFamily: 'Inter_300Light', fontSize: 10, lineHeight: 16, color: 'rgba(255,255,255,0.42)', marginTop: 10 },
   themeDropdown: { borderRadius: 16, paddingVertical: 8, paddingHorizontal: 12 },
   themeOptionRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 12, paddingHorizontal: 8, borderRadius: 10 },
   themeOptionRowActive: { backgroundColor: 'rgba(229, 185, 95, 0.12)' },
