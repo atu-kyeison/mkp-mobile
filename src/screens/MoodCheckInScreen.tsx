@@ -42,7 +42,7 @@ export const MoodCheckInScreen = ({ navigation, route }: any) => {
   };
 
   return (
-    <BackgroundGradient style={styles.container} variant="simple">
+    <BackgroundGradient style={styles.container} variant="full">
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.header}>
           <TouchableOpacity
@@ -69,12 +69,14 @@ export const MoodCheckInScreen = ({ navigation, route }: any) => {
                 style={selectedMood === mood.id ? [styles.moodCard, styles.selectedCard] : styles.moodCard}
               >
                 <View style={styles.moodIconWrap}>
-                  <MaterialIcons
-                    name={mood.icon}
-                    size={30}
-                    color={Colors.accentGold}
-                    style={styles.moodIcon}
-                  />
+                  <View style={styles.moodIconFrame}>
+                    <MaterialIcons
+                      name={mood.icon}
+                      size={30}
+                      color={Colors.accentGold}
+                      style={styles.moodIcon}
+                    />
+                  </View>
                 </View>
                 <Text style={styles.moodLabel}>{t(`mood.label.${mood.id}`)}</Text>
               </GlassCard>
@@ -134,10 +136,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   subtitle: {
-    fontFamily: 'Inter_700Bold',
+    fontFamily: 'Cinzel_700Bold',
     fontSize: 10,
     color: Colors.accentGold,
-    letterSpacing: 3,
+    letterSpacing: 4,
     marginBottom: 8,
   },
   divider: {
@@ -147,12 +149,11 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   title: {
-    fontFamily: 'PlayfairDisplay_400Regular',
-    fontSize: 24,
-    color: 'rgba(255, 255, 255, 0.9)',
+    fontFamily: 'PlayfairDisplay_400Regular_Italic',
+    fontSize: 26,
+    color: Colors.text,
     textAlign: 'center',
-    fontStyle: 'italic',
-    lineHeight: 32,
+    lineHeight: 34,
   },
   moodGrid: {
     flexGrow: 1,
@@ -172,16 +173,16 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 10,
-    paddingVertical: 10,
-    gap: 12,
-    borderRadius: 28,
-    backgroundColor: 'rgba(13, 27, 42, 0.58)',
-    borderColor: 'rgba(229, 185, 95, 0.12)',
+    paddingHorizontal: 14,
+    paddingVertical: 16,
+    gap: 14,
+    borderRadius: 30,
+    backgroundColor: 'rgba(13, 27, 42, 0.68)',
+    borderColor: 'rgba(229, 185, 95, 0.18)',
   },
   selectedCard: {
-    backgroundColor: 'rgba(229, 185, 95, 0.15)',
-    borderColor: 'rgba(229, 185, 95, 0.6)',
+    backgroundColor: 'rgba(229, 185, 95, 0.16)',
+    borderColor: 'rgba(229, 185, 95, 0.58)',
   },
   moodIcon: {
     opacity: 0.9,
@@ -189,24 +190,33 @@ const styles = StyleSheet.create({
     textAlignVertical: 'center',
   },
   moodIconWrap: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(229, 185, 95, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(229, 185, 95, 0.18)',
+  },
+  moodIconFrame: {
+    width: 36,
+    height: 36,
     alignItems: 'center',
     justifyContent: 'center',
   },
   moodLabel: {
-    fontFamily: 'Inter_700Bold',
-    fontSize: 11,
-    color: 'rgba(255, 255, 255, 0.7)',
-    letterSpacing: 2,
+    fontFamily: 'Cinzel_700Bold',
+    fontSize: 10,
+    color: 'rgba(255, 255, 255, 0.82)',
+    letterSpacing: 1.8,
     textTransform: 'uppercase',
     textAlign: 'center',
     width: '100%',
     includeFontPadding: false,
   },
   footer: {
-    paddingTop: 12,
+    paddingTop: 14,
     paddingHorizontal: 32,
     paddingBottom: 32,
     alignItems: 'center',
@@ -214,6 +224,7 @@ const styles = StyleSheet.create({
   },
   continueButton: {
     width: '100%',
+    maxWidth: 340,
     height: 56,
     backgroundColor: Colors.accentGold,
     borderRadius: 16,
@@ -237,18 +248,21 @@ const styles = StyleSheet.create({
   footerNote: {
     fontFamily: 'Inter_400Regular',
     fontSize: 10,
-    color: 'rgba(255, 255, 255, 0.3)',
+    color: 'rgba(255, 255, 255, 0.36)',
     letterSpacing: 1.5,
     marginTop: 32,
     textTransform: 'uppercase',
+    textAlign: 'center',
   },
   supportLink: {
     marginTop: 12,
+    alignSelf: 'center',
   },
   supportLinkText: {
     fontFamily: 'Inter_400Regular',
     fontSize: 12,
     color: Colors.accentGold,
     textDecorationLine: 'underline',
+    textDecorationColor: Colors.accentGold,
   },
 });
