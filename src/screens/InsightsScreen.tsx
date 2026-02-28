@@ -8,6 +8,7 @@ import { BackgroundGradient } from '../components/BackgroundGradient';
 import { GlassCard } from '../components/GlassCard';
 import { useI18n } from '../i18n/I18nProvider';
 import { getJournalEntries, JournalEntry } from '../storage/journalStore';
+import { generateFormationInsight } from '../utils/insightsEngine';
 
 const SAMPLE_MOODS = ['peaceful', 'rushed', 'anxious', 'grateful', 'tired', 'focused'] as const;
 
@@ -47,22 +48,13 @@ const MOOD_COLORS: Record<string, string> = {
   focused: 'rgba(168, 218, 220, 0.82)',
 };
 
-const MOOD_SCORES: Record<string, number> = {
-  anxious: -2,
-  rushed: -1,
-  tired: -1,
-  focused: 1,
-  grateful: 1,
-  peaceful: 2,
-};
-
-const average = (values: number[]) => (values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0);
-
 export const InsightsScreen = () => {
   const { t, locale } = useI18n();
   const navigation = useNavigation<any>();
   const [entriesThisWeek, setEntriesThisWeek] = useState(0);
   const [moodHistory, setMoodHistory] = useState<string[]>([]);
+  const [currentWeekEntries, setCurrentWeekEntries] = useState<JournalEntry[]>([]);
+  const [previousWeekEntries, setPreviousWeekEntries] = useState<JournalEntry[]>([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -70,6 +62,12 @@ export const InsightsScreen = () => {
       const weekAgo = new Date(now);
       weekAgo.setDate(now.getDate() - 6);
       weekAgo.setHours(0, 0, 0, 0);
+      const previousWeekStart = new Date(weekAgo);
+      previousWeekStart.setDate(weekAgo.getDate() - 7);
+      previousWeekStart.setHours(0, 0, 0, 0);
+      const previousWeekEnd = new Date(weekAgo);
+      previousWeekEnd.setDate(weekAgo.getDate() - 1);
+      previousWeekEnd.setHours(23, 59, 59, 999);
 
       const savedEntries = getJournalEntries();
       const sourceEntries = savedEntries.length > 0 ? savedEntries : buildPreviewEntries(locale);
@@ -77,11 +75,17 @@ export const InsightsScreen = () => {
         const created = new Date(entry.createdAt);
         return !Number.isNaN(created.getTime()) && created >= weekAgo && created <= now;
       });
+      const priorEntries = sourceEntries.filter((entry) => {
+        const created = new Date(entry.createdAt);
+        return !Number.isNaN(created.getTime()) && created >= previousWeekStart && created <= previousWeekEnd;
+      });
 
       const uniqueDays = new Set(
         weeklyEntries.map((entry) => entry.createdAt.slice(0, 10))
       );
       setEntriesThisWeek(uniqueDays.size);
+      setCurrentWeekEntries(weeklyEntries);
+      setPreviousWeekEntries(priorEntries);
       setMoodHistory(
         weeklyEntries
           .filter((entry) => Boolean(entry.mood))
@@ -109,14 +113,6 @@ export const InsightsScreen = () => {
     () => moodHistory[moodHistory.length - 1],
     [moodHistory]
   );
-  const dominantMood = useMemo(
-    () =>
-      uniqueMoods
-        .map((mood) => ({ mood, count: moodHistory.filter((entry) => entry === mood).length }))
-        .sort((a, b) => b.count - a.count)[0],
-    [moodHistory, uniqueMoods]
-  );
-
   const rhythmExplanation = useMemo(() => {
     if (locale === 'es') {
       return 'Cada color representa el estado que registraste ese día, de antes hacia ahora.';
@@ -137,57 +133,19 @@ export const InsightsScreen = () => {
     return 'There are not enough pauses yet this week to detect a pattern.';
   }, [entriesThisWeek, locale]);
 
-  const noticedText = useMemo(() => {
-    const moodScores = moodHistory.map((mood) => MOOD_SCORES[mood] ?? 0);
-    const splitIndex = Math.max(1, Math.floor(moodScores.length / 2));
-    const earlierAvg = average(moodScores.slice(0, splitIndex));
-    const laterAvg = average(moodScores.slice(splitIndex));
-    const trendDelta = laterAvg - earlierAvg;
-    if (locale === 'es') {
-      if (moodHistory.length >= 4 && trendDelta >= 1) {
-        return '"Tus registros avanzaron hacia un estado más estable al final de la semana. Vale la pena notar qué te ayudó a bajar el ritmo."';
-      }
-      if (moodHistory.length >= 4 && trendDelta <= -1) {
-        return '"La segunda mitad de la semana cargó más tensión que la primera. Un descanso intencional hoy puede ayudarte a resetear."';
-      }
-      if (dominantMood && dominantMood.count >= 3) {
-        return `"El estado que más se repitió fue ${t(`mood.label.${dominantMood.mood}`)}. Eso parece estar marcando el tono de tu semana."`;
-      }
-      if (uniqueMoods.length >= 4) {
-        return '"Tus registros muestran bastante variación esta semana. No estás en un solo estado; tu ritmo ha cambiado día a día."';
-      }
-      if (entriesThisWeek === 1) return '"Un momento de reflexión abre espacio para escuchar mejor."';
-      return '"Aún no registras pausas esta semana. Empieza con una sola reflexión breve."';
-    }
-
-    if (moodHistory.length >= 4 && trendDelta >= 1) {
-      return '"Your check-ins moved toward a steadier place later in the week. Notice what helped you slow down or settle."';
-    }
-    if (moodHistory.length >= 4 && trendDelta <= -1) {
-      return '"The second half of the week carried more strain than the first. A deliberate pause today may help you reset."';
-    }
-    if (dominantMood && dominantMood.count >= 3) {
-      return `"${t(`mood.label.${dominantMood.mood}`)} showed up most often this week. That seems to be shaping the tone of your days."`;
-    }
-    if (uniqueMoods.length >= 4) {
-      return '"Your check-ins varied quite a bit this week. You were not in one fixed state; your rhythm shifted day by day."';
-    }
-    if (entriesThisWeek === 1) return '"One reflective pause can open room to listen more clearly."';
-    return '"No reflection pauses logged yet this week. Start with one short entry."';
-  }, [dominantMood, entriesThisWeek, locale, moodHistory, t, uniqueMoods]);
+  const formationInsight = useMemo(
+    () => generateFormationInsight({ locale, t, currentWeekEntries, previousWeekEntries }),
+    [currentWeekEntries, locale, previousWeekEntries, t]
+  );
 
   const insightSummary = useMemo(() => {
-    if (locale === 'es') {
-      if (lastMood) {
-        return `Estado más reciente: ${t(`mood.label.${lastMood}`)}. ${moodHistory.length} registros recientes alimentan esta lectura.`;
-      }
-      return 'Agrega algunos registros de estado para que esta lectura sea más útil.';
-    }
     if (lastMood) {
-      return `Most recent posture: ${t(`mood.label.${lastMood}`)}. This reading is built from ${moodHistory.length} recent check-ins.`;
+      return locale === 'es'
+        ? `Estado más reciente: ${t(`mood.label.${lastMood}`)}.`
+        : `Most recent posture: ${t(`mood.label.${lastMood}`)}.`;
     }
-    return 'Add a few mood check-ins to make this view more meaningful.';
-  }, [lastMood, locale, moodHistory.length, t]);
+    return '';
+  }, [lastMood, locale, t]);
 
   return (
     <BackgroundGradient style={styles.container}>
@@ -245,8 +203,19 @@ export const InsightsScreen = () => {
 
           <GlassCard style={styles.sectionCard}>
             <Text style={styles.sectionLabel}>{t('insights.notice')}</Text>
-            <Text style={styles.noticeText}>{noticedText}</Text>
-            <Text style={styles.insightSummary}>{insightSummary}</Text>
+            <Text style={styles.noticeText}>{formationInsight.noticeText}</Text>
+            <Text style={styles.insightSummary}>{formationInsight.summaryText}</Text>
+            {formationInsight.signalLabels.length > 0 ? (
+              <View style={styles.signalWrap}>
+                {formationInsight.signalLabels.map((signal) => (
+                  <View key={signal} style={styles.signalChip}>
+                    <Text style={styles.signalChipText}>{signal}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
+            <Text style={styles.metricsText}>{formationInsight.metricsText}</Text>
+            {insightSummary ? <Text style={styles.recentPostureText}>{insightSummary}</Text> : null}
           </GlassCard>
 
           <Text style={styles.footerText}>
@@ -425,6 +394,39 @@ const styles = StyleSheet.create({
     fontSize: 11,
     lineHeight: 18,
     color: 'rgba(255, 255, 255, 0.52)',
+  },
+  signalWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 16,
+  },
+  signalChip: {
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 185, 95, 0.18)',
+    backgroundColor: 'rgba(229, 185, 95, 0.08)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  signalChipText: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 11,
+    color: Colors.accentGold,
+  },
+  metricsText: {
+    marginTop: 16,
+    fontFamily: 'Inter_400Regular',
+    fontSize: 11,
+    lineHeight: 18,
+    color: 'rgba(255, 255, 255, 0.5)',
+  },
+  recentPostureText: {
+    marginTop: 10,
+    fontFamily: 'Inter_400Regular',
+    fontSize: 11,
+    lineHeight: 18,
+    color: 'rgba(255, 255, 255, 0.42)',
   },
   footerText: {
     fontFamily: 'Inter_400Regular',
