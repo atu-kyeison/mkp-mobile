@@ -126,8 +126,8 @@ export const generateFormationInsight = ({
   if (signals.includes('recovery_present')) {
     noticeText =
       locale === 'es'
-        ? '"Después de días más pesados, tus registros también muestran señales de recuperación. Eso sugiere que no solo estás sintiendo la semana; también estás aprendiendo a volver al centro."'
-        : '"After lower days, your check-ins also show signs of recovery. That suggests you are not only feeling the week; you are learning how to return to center."';
+        ? '"Después de días más pesados, tus registros también muestran señales de recuperación. Eso sugiere que no solo estás sintiendo la semana; también estás aprendiendo a volver al reposo y a la atención delante de Dios."'
+        : '"After lower days, your check-ins also show signs of recovery. That suggests you are not only feeling the week; you are learning how to return to rest and attentiveness before God."';
   } else if (signals.includes('steady_cadence') && signals.includes('growing_steadiness')) {
     noticeText =
       locale === 'es'
