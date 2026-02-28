@@ -73,7 +73,7 @@ export const MoodCheckInScreen = ({ navigation, route }: any) => {
                     <View style={styles.moodIconFrame}>
                       <MaterialIcons
                         name={mood.icon}
-                        size={30}
+                        size={34}
                         color={Colors.accentGold}
                         style={[
                           styles.moodIcon,
@@ -205,9 +205,9 @@ const styles = StyleSheet.create({
     textAlignVertical: 'center',
   },
   moodIconWrap: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
+    width: 62,
+    height: 62,
+    borderRadius: 31,
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: 'rgba(229, 185, 95, 0.08)',
@@ -215,8 +215,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(229, 185, 95, 0.18)',
   },
   moodIconFrame: {
-    width: 36,
-    height: 36,
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
