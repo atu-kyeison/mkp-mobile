@@ -68,25 +68,27 @@ export const MoodCheckInScreen = ({ navigation, route }: any) => {
               <GlassCard
                 style={selectedMood === mood.id ? [styles.moodCard, styles.selectedCard] : styles.moodCard}
               >
-                <View style={styles.moodIconWrap}>
-                  <View style={styles.moodIconFrame}>
-                    <MaterialIcons
-                      name={mood.icon}
-                      size={30}
-                      color={Colors.accentGold}
-                      style={[
-                        styles.moodIcon,
-                        {
-                          transform: [
-                            { translateX: mood.iconOffset?.x || 0 },
-                            { translateY: mood.iconOffset?.y || 0 },
-                          ],
-                        },
-                      ]}
-                    />
+                <View style={styles.moodCardBody}>
+                  <View style={styles.moodIconWrap}>
+                    <View style={styles.moodIconFrame}>
+                      <MaterialIcons
+                        name={mood.icon}
+                        size={30}
+                        color={Colors.accentGold}
+                        style={[
+                          styles.moodIcon,
+                          {
+                            transform: [
+                              { translateX: mood.iconOffset?.x || 0 },
+                              { translateY: mood.iconOffset?.y || 0 },
+                            ],
+                          },
+                        ]}
+                      />
+                    </View>
                   </View>
+                  <Text style={styles.moodLabel}>{t(`mood.label.${mood.id}`)}</Text>
                 </View>
-                <Text style={styles.moodLabel}>{t(`mood.label.${mood.id}`)}</Text>
               </GlassCard>
             </TouchableOpacity>
           ))}
@@ -179,11 +181,8 @@ const styles = StyleSheet.create({
   },
   moodCard: {
     flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
     paddingHorizontal: 14,
     paddingVertical: 16,
-    gap: 14,
     borderRadius: 30,
     backgroundColor: 'rgba(13, 27, 42, 0.68)',
     borderColor: 'rgba(229, 185, 95, 0.18)',
@@ -191,6 +190,14 @@ const styles = StyleSheet.create({
   selectedCard: {
     backgroundColor: 'rgba(229, 185, 95, 0.16)',
     borderColor: 'rgba(229, 185, 95, 0.58)',
+  },
+  moodCardBody: {
+    flex: 1,
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 14,
+    paddingVertical: 6,
   },
   moodIcon: {
     opacity: 0.9,
