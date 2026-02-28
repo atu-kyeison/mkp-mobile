@@ -736,7 +736,7 @@ const createStyles = () => StyleSheet.create({
   readySectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
   readyLabel: { fontFamily: 'Cinzel_700Bold', fontSize: 10, letterSpacing: 3, color: Colors.accentGold },
   moodPill: {
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
