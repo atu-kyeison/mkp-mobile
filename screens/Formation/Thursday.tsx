@@ -177,9 +177,12 @@ const createStyles = () => StyleSheet.create({
     lineHeight: 28,
   },
   reference: {
-    fontFamily: 'PlayfairDisplay_400Regular_Italic',
+    fontFamily: 'Inter_600SemiBold',
     fontSize: 11,
-    color: 'rgba(229, 185, 95, 0.3)',
+    color: Colors.accentGold,
+    letterSpacing: 0.8,
+    textDecorationLine: 'underline',
+    textDecorationColor: Colors.accentGold,
   },
   playButton: {
     width: 36,
