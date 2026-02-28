@@ -186,7 +186,7 @@ const SettingsScreen = ({ navigation, route }: any) => {
             </Section>
 
             <Section title={t('settings.section.help')}>
-              <TouchableOpacity onPress={() => navigation.getParent()?.getParent()?.navigate('FAQ')}>
+              <TouchableOpacity onPress={() => navigation.navigate('FAQ')}>
                 <GlassCard style={styles.settingCard}>
                   <Text style={styles.settingValue}>{t('settings.help.faq')}</Text>
                   <MaterialIcons name="chevron-right" size={24} color={Colors.antiqueGold} />

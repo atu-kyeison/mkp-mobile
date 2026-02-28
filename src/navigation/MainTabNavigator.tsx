@@ -26,6 +26,10 @@ import { SundaySummaryDetailScreen } from '../screens/SundaySummaryDetailScreen'
 
 // Auth Imports
 import SettingsScreen from '../screens/profile/SettingsScreen';
+import FAQScreen from '../screens/profile/FAQScreen';
+import UseGuidelinesScreen from '../screens/legal/UseGuidelinesScreen';
+import TermsScreen from '../screens/legal/TermsScreen';
+import PrivacyPolicyScreen from '../screens/legal/PrivacyPolicyScreen';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 const JourneyStack = createStackNavigator();
@@ -50,6 +54,10 @@ const ProfileStackNavigator = () => {
     <ProfileStack.Navigator screenOptions={{ headerShown: false }}>
       <ProfileStack.Screen name="ProfileMain" component={SettingsScreen} />
       <ProfileStack.Screen name="TechnicalSupport" component={TechnicalSupportScreen} />
+      <ProfileStack.Screen name="FAQ" component={FAQScreen} />
+      <ProfileStack.Screen name="Guidelines" component={UseGuidelinesScreen} />
+      <ProfileStack.Screen name="Terms" component={TermsScreen} />
+      <ProfileStack.Screen name="Privacy" component={PrivacyPolicyScreen} />
     </ProfileStack.Navigator>
   );
 };

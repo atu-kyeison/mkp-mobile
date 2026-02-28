@@ -52,7 +52,7 @@ export const TechnicalSupportScreen = ({ navigation }: any) => {
           <GlassCard style={styles.faqCard}>
             <TouchableOpacity
               style={styles.faqItem}
-              onPress={() => navigation.getParent()?.getParent()?.navigate('FAQ')}
+              onPress={() => navigation.navigate('FAQ')}
             >
               <Text style={styles.faqText}>{t('support.faq')}</Text>
               <MaterialIcons name="chevron-right" size={20} color={Colors.accentGold} style={styles.faqIcon} />
@@ -60,7 +60,7 @@ export const TechnicalSupportScreen = ({ navigation }: any) => {
             <View style={styles.itemDivider} />
             <TouchableOpacity
               style={styles.faqItem}
-              onPress={() => navigation.getParent()?.getParent()?.navigate('Guidelines')}
+              onPress={() => navigation.navigate('Guidelines')}
             >
               <Text style={styles.faqText}>{t('support.guidelines')}</Text>
               <MaterialIcons name="chevron-right" size={20} color={Colors.accentGold} style={styles.faqIcon} />

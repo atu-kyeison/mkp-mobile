@@ -29,7 +29,7 @@ const FAQScreen = ({ navigation }: any) => {
             <FAQItem question={t('faq.q4')} answer={t('faq.a4')} />
             <View style={styles.footer}>
               <Text style={styles.footerHint}>{t('faq.footerHint')}</Text>
-              <TouchableOpacity style={styles.supportButton} onPress={() => navigation.navigate('Main', { screen: 'Profile', params: { screen: 'TechnicalSupport' } })}>
+              <TouchableOpacity style={styles.supportButton} onPress={() => navigation.navigate('TechnicalSupport')}>
                 <Text style={styles.supportButtonText}>{t('faq.supportCta')}</Text>
               </TouchableOpacity>
             </View>
