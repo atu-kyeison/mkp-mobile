@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Modal, StyleSheet, View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { Modal, StyleSheet, View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Animated, PanResponder } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { Colors } from '../../constants/Colors';
@@ -48,6 +48,7 @@ const buildSampleEntries = (): JournalEntry[] => {
       journalVariant: 'mid_week',
       mood,
       linkedSermonTitle: index % 2 === 0 ? 'Abide and Remain' : undefined,
+      linkedSermonUrl: index % 2 === 0 ? 'https://www.youtube.com/' : undefined,
     };
   });
 };
@@ -99,6 +100,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
   const [detailState, setDetailState] = useState<'loading' | 'ready' | 'empty' | 'error'>('loading');
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [selectedDayEntries, setSelectedDayEntries] = useState<JournalEntry[]>([]);
+  const sheetTranslateY = useMemo(() => new Animated.Value(0), []);
 
   const displayEntries = useMemo(
     () => (entries.length > 0 ? entries : buildSampleEntries()),
@@ -143,6 +145,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
         invitation: entry.invitationText || '',
         mood: entry.mood,
         fromSunday: Boolean(entry.linkedSermonTitle),
+        sermonUrl: entry.linkedSermonUrl,
         isItalic: false,
       })),
     [displayEntries, localeTag]
@@ -197,6 +200,42 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
       prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId]
     );
   };
+
+  const closeSheet = () => {
+    Animated.timing(sheetTranslateY, {
+      toValue: 420,
+      duration: 180,
+      useNativeDriver: true,
+    }).start(() => {
+      sheetTranslateY.setValue(0);
+      setSelectedDay(null);
+    });
+  };
+
+  const sheetPanResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dy > 8 && Math.abs(gestureState.dx) < 20,
+        onPanResponderMove: (_, gestureState) => {
+          if (gestureState.dy > 0) {
+            sheetTranslateY.setValue(gestureState.dy);
+          }
+        },
+        onPanResponderRelease: (_, gestureState) => {
+          if (gestureState.dy > 110 || gestureState.vy > 1.2) {
+            closeSheet();
+            return;
+          }
+
+          Animated.spring(sheetTranslateY, {
+            toValue: 0,
+            useNativeDriver: true,
+            bounciness: 4,
+          }).start();
+        },
+      }),
+    [sheetTranslateY]
+  );
 
   return (
     <BackgroundGradient style={styles.container}>
@@ -281,6 +320,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                         invitation: item.invitation,
                         mood: item.mood,
                         fromSunday: item.fromSunday,
+                        sermonUrl: item.sermonUrl,
                         content: item.content,
                       })
                     }
@@ -404,16 +444,28 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
 
         <Modal transparent visible={selectedDay !== null} animationType="fade" onRequestClose={() => setSelectedDay(null)}>
           <View style={styles.modalBackdrop}>
-            <TouchableOpacity style={StyleSheet.absoluteFill} onPress={() => setSelectedDay(null)} />
-            <View style={[styles.bottomSheet, { paddingBottom: 38 + insets.bottom, minHeight: '66%', maxHeight: '84%' }]}>
-              <View style={styles.sheetHandle} />
+            <TouchableOpacity style={StyleSheet.absoluteFill} onPress={closeSheet} />
+            <Animated.View
+              style={[
+                styles.bottomSheet,
+                {
+                  paddingBottom: 38 + insets.bottom,
+                  minHeight: '66%',
+                  maxHeight: '84%',
+                  transform: [{ translateY: sheetTranslateY }],
+                },
+              ]}
+            >
+              <View {...sheetPanResponder.panHandlers}>
+                <View style={styles.sheetHandle} />
+              </View>
               <View style={styles.sheetHeader}>
                 <View style={styles.headerSpacer} />
                 <View style={styles.sheetTitleWrap}>
                   <Text style={styles.sheetDate}>{detailTitle}</Text>
                   <Text style={styles.sheetTitle}>{t('journey.dayDetail.title')}</Text>
                 </View>
-                <TouchableOpacity style={styles.closeButton} onPress={() => setSelectedDay(null)}>
+                <TouchableOpacity style={styles.closeButton} onPress={closeSheet}>
                   <MaterialIcons name="close" size={18} color="rgba(255,255,255,0.7)" />
                 </TouchableOpacity>
               </View>
@@ -460,6 +512,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                         invitation: activeDayEntry?.invitationText || '',
                         mood: activeDayEntry?.mood,
                         fromSunday: Boolean(activeDayEntry?.linkedSermonTitle),
+                        sermonUrl: activeDayEntry?.linkedSermonUrl,
                         content: activeDayEntry?.body || '',
                       })
                     }
@@ -535,7 +588,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                   </TouchableOpacity>
                 </View>
               ) : null}
-            </View>
+            </Animated.View>
           </View>
         </Modal>
       </SafeAreaView>

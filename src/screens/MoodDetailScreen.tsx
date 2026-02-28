@@ -218,6 +218,7 @@ const createStyles = () => StyleSheet.create({
     marginBottom: 28,
   },
   journalButton: {
+    alignSelf: 'center',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',

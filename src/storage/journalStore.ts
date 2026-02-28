@@ -10,6 +10,7 @@ export type JournalEntry = {
   journalVariant?: 'early_week' | 'mid_week';
   mood?: string;
   linkedSermonTitle?: string;
+  linkedSermonUrl?: string;
 };
 
 const parseEntries = (raw: unknown): JournalEntry[] => {
@@ -49,7 +50,7 @@ export const getJournalEntryById = (id: string): JournalEntry | null => {
 
 export const updateJournalEntry = (
   id: string,
-  updates: Partial<Pick<JournalEntry, 'body' | 'invitationText' | 'journalVariant' | 'mood' | 'linkedSermonTitle'>>
+  updates: Partial<Pick<JournalEntry, 'body' | 'invitationText' | 'journalVariant' | 'mood' | 'linkedSermonTitle' | 'linkedSermonUrl'>>
 ): JournalEntry[] => {
   const existing = getJournalEntries();
   const next = existing.map((entry) => (entry.id === id ? { ...entry, ...updates } : entry));

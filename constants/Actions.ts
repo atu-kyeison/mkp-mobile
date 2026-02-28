@@ -3,9 +3,9 @@ import { Alert, Linking } from 'react-native';
 export const CHURCH_MESSAGE_URL =
   process.env.EXPO_PUBLIC_CHURCH_MESSAGE_URL || 'https://www.youtube.com/';
 
-export async function openChurchMessage() {
+export async function openChurchMessage(messageUrl?: string) {
   try {
-    await Linking.openURL(CHURCH_MESSAGE_URL);
+    await Linking.openURL(messageUrl || CHURCH_MESSAGE_URL);
   } catch {
     Alert.alert('Link unavailable', 'Unable to open this week’s message right now.');
   }

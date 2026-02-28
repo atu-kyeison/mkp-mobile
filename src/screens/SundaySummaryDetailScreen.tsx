@@ -6,6 +6,7 @@ import { BackgroundGradient } from '../components/BackgroundGradient';
 import { GlassCard } from '../components/GlassCard';
 import { Colors } from '../../constants/Colors';
 import { useI18n } from '../i18n/I18nProvider';
+import { openChurchMessage } from '../../constants/Actions';
 
 type ViewState = 'filled' | 'empty' | 'loading' | 'error';
 
@@ -82,6 +83,9 @@ export const SundaySummaryDetailScreen = ({ navigation, route }: any) => {
                 <Text style={styles.heroTitle}>Abiding in Christ</Text>
                 <Text style={styles.heroMeta}>{formatDay(anchorSunday)}</Text>
                 <Text style={styles.heroSubMeta}>PASTOR ELIAS VANCE - GRACE FELLOWSHIP</Text>
+                <TouchableOpacity style={styles.heroLink} onPress={() => openChurchMessage('https://www.youtube.com/')}>
+                  <Text style={styles.heroLinkText}>OPEN MESSAGE</Text>
+                </TouchableOpacity>
               </GlassCard>
 
               <View style={styles.section}>
@@ -94,6 +98,7 @@ export const SundaySummaryDetailScreen = ({ navigation, route }: any) => {
                         invitation: '"What stayed with you today?"',
                         mood: 'Peaceful',
                         fromSunday: true,
+                        sermonUrl: 'https://www.youtube.com/',
                         content:
                           "The message about the vine and the branches really resonated this morning during my quiet time. I am learning to trust the pruning...",
                       })
@@ -113,6 +118,7 @@ export const SundaySummaryDetailScreen = ({ navigation, route }: any) => {
                         invitation: '"What stayed with you today?"',
                         mood: 'Peaceful',
                         fromSunday: true,
+                        sermonUrl: 'https://www.youtube.com/',
                         content:
                           "Found myself coming back to the idea of remaining. It's not about striving, but about positioning myself near Him...",
                       })
@@ -221,6 +227,8 @@ const styles = StyleSheet.create({
   heroTitle: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 24, lineHeight: 34, color: '#fff', marginBottom: 10 },
   heroMeta: { fontFamily: 'Cinzel_700Bold', fontSize: 10, letterSpacing: 3, color: Colors.accentGold, marginBottom: 6 },
   heroSubMeta: { fontFamily: 'Inter_500Medium', fontSize: 10, color: 'rgba(148,163,184,0.95)', letterSpacing: 1.4 },
+  heroLink: { marginTop: 14, alignSelf: 'flex-start' },
+  heroLinkText: { fontFamily: 'Cinzel_700Bold', fontSize: 10, letterSpacing: 2, color: Colors.accentGold, textDecorationLine: 'underline' },
 
   section: { marginBottom: 28 },
   sectionTitle: { fontFamily: 'Cinzel_700Bold', fontSize: 10, color: Colors.accentGold, letterSpacing: 3, marginBottom: 12 },

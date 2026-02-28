@@ -7,6 +7,16 @@ import { GlassCard } from '../components/GlassCard';
 import { Colors } from '../../constants/Colors';
 import { useI18n } from '../i18n/I18nProvider';
 import { deleteJournalEntry } from '../storage/journalStore';
+import { openChurchMessage } from '../../constants/Actions';
+
+const MOOD_EMOJI: Record<string, string> = {
+  anxious: '⛈️',
+  rushed: '🌬️',
+  tired: '🌙',
+  grateful: '☀️',
+  peaceful: '🌤️',
+  focused: '🌅',
+};
 
 export const ReflectionDetailScreen = ({ navigation, route }: any) => {
   const { t, locale } = useI18n();
@@ -19,7 +29,9 @@ export const ReflectionDetailScreen = ({ navigation, route }: any) => {
   const content = route.params?.content || '';
   const mood = route.params?.mood;
   const fromSunday = route.params?.fromSunday ?? false;
+  const sermonUrl = route.params?.sermonUrl as string | undefined;
   const entryId = route.params?.entryId as string | undefined;
+  const moodEmoji = mood ? MOOD_EMOJI[String(mood).toLowerCase()] || '🌿' : null;
 
   const handleEdit = () => {
     if (!entryId) return;
@@ -66,10 +78,10 @@ export const ReflectionDetailScreen = ({ navigation, route }: any) => {
           <View style={styles.metaRow}>
             <Text style={styles.dateText}>{date}</Text>
             {fromSunday ? (
-              <View style={styles.sundayPill}>
+              <TouchableOpacity style={styles.sundayPill} onPress={() => openChurchMessage(sermonUrl)}>
                 <View style={styles.sundayDot} />
                 <Text style={styles.sundayPillText}>{t('reflection.detail.sundayMessage')}</Text>
-              </View>
+              </TouchableOpacity>
             ) : null}
           </View>
 
@@ -83,7 +95,7 @@ export const ReflectionDetailScreen = ({ navigation, route }: any) => {
             <Text style={styles.wordsText}>{content || t('reflection.detail.empty')}</Text>
             {mood ? (
               <View style={styles.moodPill}>
-                <Text style={styles.moodEmoji}>🌿</Text>
+                <Text style={styles.moodEmoji}>{moodEmoji}</Text>
                 <Text style={styles.moodText}>{mood}</Text>
               </View>
             ) : null}
