@@ -21,6 +21,15 @@ type CalendarDay = {
 
 const SAMPLE_MOODS = ['peaceful', 'rushed', 'anxious', 'grateful', 'tired', 'focused'] as const;
 
+const MOOD_EMOJI: Record<string, string> = {
+  anxious: '⛈️',
+  rushed: '🌬️',
+  tired: '🌙',
+  grateful: '☀️',
+  peaceful: '🌤️',
+  focused: '🌅',
+};
+
 const buildSampleEntries = (locale: 'en' | 'es'): JournalEntry[] => {
   const today = new Date();
 
@@ -461,6 +470,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
           <View style={styles.modalBackdrop}>
             <TouchableOpacity style={StyleSheet.absoluteFill} onPress={closeSheet} />
             <Animated.View
+              {...sheetPanResponder.panHandlers}
               style={[
                 styles.bottomSheet,
                 {
@@ -471,7 +481,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                 },
               ]}
             >
-              <View {...sheetPanResponder.panHandlers}>
+              <View style={styles.sheetHandleWrap}>
                 <View style={styles.sheetHandle} />
               </View>
               <View style={styles.sheetHeader}>
@@ -513,8 +523,12 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                       <MaterialIcons name="chevron-right" size={16} color="rgba(229,185,95,0.35)" />
                     </View>
                     <View style={styles.moodPill}>
-                      <Text style={styles.moodEmoji}>🌿</Text>
-                      <Text style={styles.moodPillText}>{activeDayEntry?.mood || t('journey.dayDetail.fallbackMoodLogged')}</Text>
+                      <Text style={styles.moodEmoji}>
+                        {activeDayEntry?.mood ? MOOD_EMOJI[String(activeDayEntry.mood).toLowerCase()] || '🌿' : '🌿'}
+                      </Text>
+                      <Text style={styles.moodPillText}>
+                        {activeDayEntry?.mood ? t(`mood.label.${String(activeDayEntry.mood).toLowerCase()}`) : t('journey.dayDetail.fallbackMoodLogged')}
+                      </Text>
                     </View>
                     <Text style={styles.readySubText}>{activeDayEntry?.invitationText || t('journey.dayDetail.fallbackSavedReflection')}</Text>
                   </TouchableOpacity>
@@ -706,6 +720,7 @@ const createStyles = () => StyleSheet.create({
   emptyPromptText: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 15, color: 'rgba(255,255,255,0.45)', textAlign: 'center' },
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
   bottomSheet: { backgroundColor: Colors.backgroundDark, borderTopLeftRadius: 34, borderTopRightRadius: 34, paddingHorizontal: 24, paddingTop: 10, paddingBottom: 38, borderTopWidth: 1, borderTopColor: 'rgba(229,185,95,0.3)' },
+  sheetHandleWrap: { alignItems: 'center', paddingBottom: 6 },
   sheetHandle: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.18)', marginBottom: 18 },
   sheetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
   headerSpacer: { width: 32 },
