@@ -9,26 +9,38 @@ import { useI18n } from '../i18n/I18nProvider';
 import { useTheme } from '../theme/ThemeProvider';
 import { getJournalEntryById } from '../storage/journalStore';
 
-const MOOD_DETAILS: Record<string, { icon: keyof typeof MaterialIcons.glyphMap; titleKey: string; descriptionKey: string }> = {
+const MOOD_DETAILS: Record<
+  string,
+  {
+    icon: keyof typeof MaterialIcons.glyphMap;
+    titleKey: string;
+    descriptionKey: string;
+    iconOffset?: { x?: number; y?: number };
+  }
+> = {
   tired: {
     icon: 'dark-mode',
     titleKey: 'moodDetail.title.tired',
     descriptionKey: 'moodDetail.desc.tired',
+    iconOffset: { y: 1 },
   },
   rushed: {
     icon: 'bolt',
     titleKey: 'moodDetail.title.rushed',
     descriptionKey: 'moodDetail.desc.rushed',
+    iconOffset: { x: 1 },
   },
   grateful: {
     icon: 'favorite',
     titleKey: 'moodDetail.title.grateful',
     descriptionKey: 'moodDetail.desc.grateful',
+    iconOffset: { y: 1 },
   },
   peaceful: {
     icon: 'yard',
     titleKey: 'moodDetail.title.peaceful',
     descriptionKey: 'moodDetail.desc.peaceful',
+    iconOffset: { x: -1, y: 2 },
   },
   focused: {
     icon: 'center-focus-strong',
@@ -82,7 +94,22 @@ export const MoodDetailScreen = ({ navigation, route }: any) => {
 
             <View style={styles.iconContainer}>
               <View style={styles.iconFrame}>
-                <MaterialIcons name={detail.icon} size={68} color={Colors.accentGold} style={styles.icon} />
+                <MaterialIcons
+                  name={detail.icon}
+                  size={68}
+                  color={Colors.accentGold}
+                  style={[
+                    styles.icon,
+                    detail.iconOffset
+                      ? {
+                          transform: [
+                            { translateX: detail.iconOffset.x || 0 },
+                            { translateY: detail.iconOffset.y || 0 },
+                          ],
+                        }
+                      : null,
+                  ]}
+                />
               </View>
             </View>
 
