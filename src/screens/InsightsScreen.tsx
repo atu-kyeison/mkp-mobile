@@ -41,6 +41,17 @@ const MOOD_COLORS: Record<string, string> = {
   focused: 'rgba(168, 218, 220, 0.82)',
 };
 
+const MOOD_SCORES: Record<string, number> = {
+  anxious: -2,
+  rushed: -1,
+  tired: -1,
+  focused: 1,
+  grateful: 1,
+  peaceful: 2,
+};
+
+const average = (values: number[]) => (values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0);
+
 export const InsightsScreen = () => {
   const { t, locale } = useI18n();
   const navigation = useNavigation<any>();
@@ -84,18 +95,93 @@ export const InsightsScreen = () => {
     return `You paused to reflect ${entriesThisWeek} days this week`;
   }, [entriesThisWeek, locale]);
 
-  const noticedText = useMemo(() => {
+  const uniqueMoods = useMemo(
+    () => Array.from(new Set(moodHistory)),
+    [moodHistory]
+  );
+  const lastMood = useMemo(
+    () => moodHistory[moodHistory.length - 1],
+    [moodHistory]
+  );
+  const dominantMood = useMemo(
+    () =>
+      uniqueMoods
+        .map((mood) => ({ mood, count: moodHistory.filter((entry) => entry === mood).length }))
+        .sort((a, b) => b.count - a.count)[0],
+    [moodHistory, uniqueMoods]
+  );
+
+  const rhythmExplanation = useMemo(() => {
     if (locale === 'es') {
-      if (entriesThisWeek >= 4) return '"Mostraste un ritmo constante esta semana. Sigue con pasos pequeños y fieles."';
-      if (entriesThisWeek >= 2) return '"Ya hay señales de ritmo esta semana. Una pausa más puede afirmarlo."';
+      return 'Cada color representa el estado que registraste ese día, de antes hacia ahora.';
+    }
+    return 'Each color marks the mood you logged that day, moving from earlier to now.';
+  }, [locale]);
+
+  const reflectionSubtext = useMemo(() => {
+    if (locale === 'es') {
+      if (entriesThisWeek >= 4) return 'Volviste de forma consistente esta semana.';
+      if (entriesThisWeek >= 2) return 'Ya hay un ritmo formándose esta semana.';
+      if (entriesThisWeek === 1) return 'Un solo momento de atención ya empieza a formar un ritmo.';
+      return 'Aún no hay suficientes pausas esta semana para detectar un patrón.';
+    }
+    if (entriesThisWeek >= 4) return 'You returned consistently this week.';
+    if (entriesThisWeek >= 2) return 'A rhythm is beginning to take shape this week.';
+    if (entriesThisWeek === 1) return 'Even one honest pause begins to form a rhythm.';
+    return 'There are not enough pauses yet this week to detect a pattern.';
+  }, [entriesThisWeek, locale]);
+
+  const noticedText = useMemo(() => {
+    const moodScores = moodHistory.map((mood) => MOOD_SCORES[mood] ?? 0);
+    const splitIndex = Math.max(1, Math.floor(moodScores.length / 2));
+    const earlierAvg = average(moodScores.slice(0, splitIndex));
+    const laterAvg = average(moodScores.slice(splitIndex));
+    const trendDelta = laterAvg - earlierAvg;
+    if (locale === 'es') {
+      if (moodHistory.length >= 4 && trendDelta >= 1) {
+        return '"Tus registros avanzaron hacia un estado más estable al final de la semana. Vale la pena notar qué te ayudó a bajar el ritmo."';
+      }
+      if (moodHistory.length >= 4 && trendDelta <= -1) {
+        return '"La segunda mitad de la semana cargó más tensión que la primera. Un descanso intencional hoy puede ayudarte a resetear."';
+      }
+      if (dominantMood && dominantMood.count >= 3) {
+        return `"El estado que más se repitió fue ${t(`mood.label.${dominantMood.mood}`)}. Eso parece estar marcando el tono de tu semana."`;
+      }
+      if (uniqueMoods.length >= 4) {
+        return '"Tus registros muestran bastante variación esta semana. No estás en un solo estado; tu ritmo ha cambiado día a día."';
+      }
       if (entriesThisWeek === 1) return '"Un momento de reflexión abre espacio para escuchar mejor."';
       return '"Aún no registras pausas esta semana. Empieza con una sola reflexión breve."';
     }
-    if (entriesThisWeek >= 4) return '"You showed a steady rhythm this week. Keep taking small, faithful steps."';
-    if (entriesThisWeek >= 2) return '"You started building rhythm this week. One more pause can strengthen it."';
+
+    if (moodHistory.length >= 4 && trendDelta >= 1) {
+      return '"Your check-ins moved toward a steadier place later in the week. Notice what helped you slow down or settle."';
+    }
+    if (moodHistory.length >= 4 && trendDelta <= -1) {
+      return '"The second half of the week carried more strain than the first. A deliberate pause today may help you reset."';
+    }
+    if (dominantMood && dominantMood.count >= 3) {
+      return `"${t(`mood.label.${dominantMood.mood}`)} showed up most often this week. That seems to be shaping the tone of your days."`;
+    }
+    if (uniqueMoods.length >= 4) {
+      return '"Your check-ins varied quite a bit this week. You were not in one fixed state; your rhythm shifted day by day."';
+    }
     if (entriesThisWeek === 1) return '"One reflective pause can open room to listen more clearly."';
     return '"No reflection pauses logged yet this week. Start with one short entry."';
-  }, [entriesThisWeek, locale]);
+  }, [dominantMood, entriesThisWeek, locale, moodHistory, t, uniqueMoods]);
+
+  const insightSummary = useMemo(() => {
+    if (locale === 'es') {
+      if (lastMood) {
+        return `Estado más reciente: ${t(`mood.label.${lastMood}`)}. ${moodHistory.length} registros recientes alimentan esta lectura.`;
+      }
+      return 'Agrega algunos registros de estado para que esta lectura sea más útil.';
+    }
+    if (lastMood) {
+      return `Most recent posture: ${t(`mood.label.${lastMood}`)}. This reading is built from ${moodHistory.length} recent check-ins.`;
+    }
+    return 'Add a few mood check-ins to make this view more meaningful.';
+  }, [lastMood, locale, moodHistory.length, t]);
 
   return (
     <BackgroundGradient style={styles.container}>
@@ -129,7 +215,17 @@ export const InsightsScreen = () => {
               <Text style={styles.arcLabel}>{t('insights.earlier')}</Text>
               <Text style={styles.arcLabel}>{t('insights.now')}</Text>
             </View>
-            <Text style={styles.sectionNote}>{t('insights.optional')}</Text>
+            <Text style={styles.sectionNote}>{rhythmExplanation}</Text>
+            {uniqueMoods.length > 0 ? (
+              <View style={styles.legendWrap}>
+                {uniqueMoods.map((mood) => (
+                  <View key={mood} style={styles.legendChip}>
+                    <View style={[styles.legendSwatch, { backgroundColor: MOOD_COLORS[mood] || Colors.accentGold }]} />
+                    <Text style={styles.legendChipText}>{t(`mood.label.${mood}`)}</Text>
+                  </View>
+                ))}
+              </View>
+            ) : null}
           </GlassCard>
 
           <GlassCard style={[styles.sectionCard, styles.centeredCard]}>
@@ -137,13 +233,14 @@ export const InsightsScreen = () => {
             <Text style={styles.statText}>{reflectionStatText}</Text>
             <View style={styles.smallDivider} />
             <Text style={styles.statSubtext}>
-              {t('insights.reflectionSub')}
+              {reflectionSubtext}
             </Text>
           </GlassCard>
 
           <GlassCard style={styles.sectionCard}>
             <Text style={styles.sectionLabel}>{t('insights.notice')}</Text>
             <Text style={styles.noticeText}>{noticedText}</Text>
+            <Text style={styles.insightSummary}>{insightSummary}</Text>
           </GlassCard>
 
           <Text style={styles.footerText}>
@@ -255,11 +352,39 @@ const styles = StyleSheet.create({
   },
   sectionNote: {
     fontFamily: 'Inter_400Regular',
-    fontSize: 10,
-    color: 'rgba(255, 255, 255, 0.4)',
-    fontStyle: 'italic',
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.5)',
     textAlign: 'center',
-    marginTop: 24,
+    marginTop: 18,
+    lineHeight: 18,
+  },
+  legendWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 18,
+    justifyContent: 'center',
+  },
+  legendChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 185, 95, 0.14)',
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+  },
+  legendSwatch: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 8,
+  },
+  legendChipText: {
+    fontFamily: 'Inter_500Medium',
+    fontSize: 11,
+    color: 'rgba(255, 255, 255, 0.72)',
   },
   statText: {
     fontFamily: 'PlayfairDisplay_400Regular',
@@ -287,6 +412,13 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.8)',
     fontStyle: 'italic',
     lineHeight: 28,
+  },
+  insightSummary: {
+    marginTop: 16,
+    fontFamily: 'Inter_400Regular',
+    fontSize: 11,
+    lineHeight: 18,
+    color: 'rgba(255, 255, 255, 0.52)',
   },
   footerText: {
     fontFamily: 'Inter_400Regular',

@@ -137,11 +137,10 @@ const createStyles = () => StyleSheet.create({
     marginBottom: 8,
   },
   mainText: {
-    fontFamily: 'Inter_400Regular',
+    fontFamily: 'PlayfairDisplay_400Regular',
     fontSize: 19,
     color: Colors.text,
-    lineHeight: 28,
-    fontWeight: '500',
+    lineHeight: 30,
     marginBottom: 32,
   },
   separator: {
