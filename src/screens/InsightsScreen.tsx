@@ -8,14 +8,16 @@ import { BackgroundGradient } from '../components/BackgroundGradient';
 import { GlassCard } from '../components/GlassCard';
 import { useI18n } from '../i18n/I18nProvider';
 import { getJournalEntries, JournalEntry } from '../storage/journalStore';
-import { generateFormationInsight } from '../utils/insightsEngine';
+import { generateFormationInsight, generateMonthComparison } from '../utils/insightsEngine';
 
 const SAMPLE_MOODS = ['peaceful', 'rushed', 'anxious', 'grateful', 'tired', 'focused'] as const;
 
 const buildPreviewEntries = (locale: 'en' | 'es'): JournalEntry[] => {
   const today = new Date();
+  const totalDays = 42;
 
-  return SAMPLE_MOODS.map((mood, index) => {
+  return Array.from({ length: totalDays }, (_, index) => {
+    const mood = SAMPLE_MOODS[index % SAMPLE_MOODS.length];
     const entryDate = new Date(today);
     entryDate.setDate(today.getDate() - index);
     entryDate.setHours(9, 0, 0, 0);
@@ -33,8 +35,8 @@ const buildPreviewEntries = (locale: 'en' | 'es'): JournalEntry[] => {
           : 'Preview rhythm entry.',
       journalVariant: 'mid_week',
       mood,
-      linkedSermonTitle: index % 2 === 0 ? (locale === 'es' ? 'Permanece y descansa' : 'Abide and Remain') : undefined,
-      linkedSermonUrl: index % 2 === 0 ? 'https://www.youtube.com/' : undefined,
+      linkedSermonTitle: index % 3 === 0 ? (locale === 'es' ? 'Permanece y descansa' : 'Abide and Remain') : undefined,
+      linkedSermonUrl: index % 3 === 0 ? 'https://www.youtube.com/' : undefined,
     };
   });
 };
@@ -55,6 +57,8 @@ export const InsightsScreen = () => {
   const [moodHistory, setMoodHistory] = useState<string[]>([]);
   const [currentWeekEntries, setCurrentWeekEntries] = useState<JournalEntry[]>([]);
   const [previousWeekEntries, setPreviousWeekEntries] = useState<JournalEntry[]>([]);
+  const [currentMonthEntries, setCurrentMonthEntries] = useState<JournalEntry[]>([]);
+  const [previousMonthEntries, setPreviousMonthEntries] = useState<JournalEntry[]>([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -68,6 +72,17 @@ export const InsightsScreen = () => {
       const previousWeekEnd = new Date(weekAgo);
       previousWeekEnd.setDate(weekAgo.getDate() - 1);
       previousWeekEnd.setHours(23, 59, 59, 999);
+      const currentMonthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+      const previousMonthStart = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const previousMonthComparableEnd = new Date(
+        now.getFullYear(),
+        now.getMonth() - 1,
+        Math.min(now.getDate(), new Date(now.getFullYear(), now.getMonth(), 0).getDate()),
+        23,
+        59,
+        59,
+        999
+      );
 
       const savedEntries = getJournalEntries();
       const sourceEntries = savedEntries.length > 0 ? savedEntries : buildPreviewEntries(locale);
@@ -79,6 +94,14 @@ export const InsightsScreen = () => {
         const created = new Date(entry.createdAt);
         return !Number.isNaN(created.getTime()) && created >= previousWeekStart && created <= previousWeekEnd;
       });
+      const monthEntries = sourceEntries.filter((entry) => {
+        const created = new Date(entry.createdAt);
+        return !Number.isNaN(created.getTime()) && created >= currentMonthStart && created <= now;
+      });
+      const priorMonthEntries = sourceEntries.filter((entry) => {
+        const created = new Date(entry.createdAt);
+        return !Number.isNaN(created.getTime()) && created >= previousMonthStart && created <= previousMonthComparableEnd;
+      });
 
       const uniqueDays = new Set(
         weeklyEntries.map((entry) => entry.createdAt.slice(0, 10))
@@ -86,6 +109,8 @@ export const InsightsScreen = () => {
       setEntriesThisWeek(uniqueDays.size);
       setCurrentWeekEntries(weeklyEntries);
       setPreviousWeekEntries(priorEntries);
+      setCurrentMonthEntries(monthEntries);
+      setPreviousMonthEntries(priorMonthEntries);
       setMoodHistory(
         weeklyEntries
           .filter((entry) => Boolean(entry.mood))
@@ -136,6 +161,10 @@ export const InsightsScreen = () => {
   const formationInsight = useMemo(
     () => generateFormationInsight({ locale, t, currentWeekEntries, previousWeekEntries }),
     [currentWeekEntries, locale, previousWeekEntries, t]
+  );
+  const monthComparison = useMemo(
+    () => generateMonthComparison({ locale, t, currentMonthEntries, previousMonthEntries }),
+    [currentMonthEntries, locale, previousMonthEntries, t]
   );
 
   const insightSummary = useMemo(() => {
@@ -216,6 +245,12 @@ export const InsightsScreen = () => {
             ) : null}
             <Text style={styles.metricsText}>{formationInsight.metricsText}</Text>
             {insightSummary ? <Text style={styles.recentPostureText}>{insightSummary}</Text> : null}
+          </GlassCard>
+
+          <GlassCard style={styles.sectionCard}>
+            <Text style={styles.sectionLabel}>{monthComparison.titleText}</Text>
+            <Text style={styles.noticeText}>{monthComparison.bodyText}</Text>
+            <Text style={styles.insightSummary}>{monthComparison.supportingText}</Text>
           </GlassCard>
 
           <Text style={styles.footerText}>

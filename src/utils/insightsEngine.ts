@@ -10,6 +10,12 @@ export type InsightResult = {
   metricsText: string;
 };
 
+export type MonthComparisonResult = {
+  titleText: string;
+  bodyText: string;
+  supportingText: string;
+};
+
 const MOOD_SCORES: Record<string, number> = {
   anxious: -2,
   rushed: -1,
@@ -229,5 +235,77 @@ export const generateFormationInsight = ({
         ? `Esta lectura se apoya en ${metricParts.join(', ')}.`
         : `This reading is based on ${metricParts.join(', ')}.`,
     signalLabels: Array.from(new Set(signals)).map((signal) => signalLabel(signal, locale)),
+  };
+};
+
+export const generateMonthComparison = ({
+  locale,
+  t,
+  currentMonthEntries,
+  previousMonthEntries,
+}: {
+  locale: SupportedLocale;
+  t: Translate;
+  currentMonthEntries: JournalEntry[];
+  previousMonthEntries: JournalEntry[];
+}): MonthComparisonResult => {
+  const currentDays = uniqueDayKeys(currentMonthEntries);
+  const previousDays = uniqueDayKeys(previousMonthEntries);
+  const currentMoodEntries = currentMonthEntries.filter((entry) => Boolean(entry.mood));
+  const previousMoodEntries = previousMonthEntries.filter((entry) => Boolean(entry.mood));
+  const currentAverage = average(
+    currentMoodEntries.map((entry) => MOOD_SCORES[String(entry.mood).toLowerCase()] ?? 0)
+  );
+  const previousAverage = average(
+    previousMoodEntries.map((entry) => MOOD_SCORES[String(entry.mood).toLowerCase()] ?? 0)
+  );
+  const currentSundayLinked = currentMonthEntries.filter((entry) => Boolean(entry.linkedSermonTitle)).length;
+  const previousSundayLinked = previousMonthEntries.filter((entry) => Boolean(entry.linkedSermonTitle)).length;
+
+  let bodyText: string;
+  if (currentDays.length >= previousDays.length + 3) {
+    bodyText =
+      locale === 'es'
+        ? 'Te has presentado con más constancia este mes que en el mismo tramo del mes anterior.'
+        : 'You have shown up more consistently this month than in the same stretch of last month.';
+  } else if (currentAverage >= previousAverage + 0.75) {
+    bodyText =
+      locale === 'es'
+        ? 'El tono general de este mes se siente más estable que el del mes anterior.'
+        : 'The overall tone of this month feels steadier than the month before.';
+  } else if (currentAverage <= previousAverage - 0.75) {
+    bodyText =
+      locale === 'es'
+        ? 'Este mes ha cargado más peso que el anterior. Vale la pena notar qué está presionando tu ritmo.'
+        : 'This month has carried more weight than the one before. It is worth noticing what is pressing on your rhythm.';
+  } else {
+    bodyText =
+      locale === 'es'
+        ? 'Tu ritmo mensual se está formando poco a poco. No parece una racha; parece una práctica en crecimiento.'
+        : 'Your monthly rhythm is taking shape little by little. It does not look like a streak; it looks like a practice growing over time.';
+  }
+
+  const sundayLine =
+    currentSundayLinked > previousSundayLinked
+      ? locale === 'es'
+        ? 'El mensaje del domingo siguió acompañando más tus reflexiones este mes.'
+        : 'Sunday’s message carried into more of your reflections this month.'
+      : currentSundayLinked < previousSundayLinked
+        ? locale === 'es'
+          ? 'Hubo menos reflexiones ancladas al domingo que el mes pasado.'
+          : 'Fewer reflections stayed anchored to Sunday than last month.'
+        : locale === 'es'
+          ? 'La continuidad con el domingo se mantuvo similar al mes pasado.'
+          : 'Your carry-through from Sunday stayed similar to last month.';
+
+  const supportingText =
+    locale === 'es'
+      ? `${currentDays.length} días con actividad este mes frente a ${previousDays.length} en el mismo tramo del mes anterior. ${sundayLine}`
+      : `${currentDays.length} active days this month compared with ${previousDays.length} over the same span last month. ${sundayLine}`;
+
+  return {
+    titleText: locale === 'es' ? 'FORMACIÓN MES A MES' : 'FORMATION MONTH OVER MONTH',
+    bodyText,
+    supportingText,
   };
 };
