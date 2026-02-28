@@ -232,10 +232,10 @@ const createStyles = () => StyleSheet.create({
   },
   practiceText: {
     fontFamily: 'Inter_400Regular',
-    fontSize: 18,
+    fontSize: 19,
     fontWeight: '500',
     color: Colors.text,
-    lineHeight: 26,
+    lineHeight: 28,
     marginBottom: 32,
   },
   separator: {

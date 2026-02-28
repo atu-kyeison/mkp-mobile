@@ -621,7 +621,7 @@ const createStyles = () => StyleSheet.create({
   itemType: { fontFamily: 'Cinzel_700Bold', fontSize: 9, color: Colors.accentGold, letterSpacing: 2 },
   favoritesList: { gap: 14 },
   favoriteItemCard: { padding: 20, borderRadius: 20 },
-  favoritesEmptyCard: { borderRadius: 34, paddingVertical: 52, paddingHorizontal: 24, alignItems: 'center' },
+  favoritesEmptyCard: { width: '100%', borderRadius: 34, paddingVertical: 52, paddingHorizontal: 24, alignItems: 'center', justifyContent: 'center' },
   favoritesIconWrap: {
     width: 72,
     height: 72,
@@ -632,6 +632,7 @@ const createStyles = () => StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(229,185,95,0.06)',
     marginBottom: 22,
+    alignSelf: 'center',
   },
   favoritesEmptyText: {
     fontFamily: 'PlayfairDisplay_400Regular_Italic',
@@ -644,6 +645,7 @@ const createStyles = () => StyleSheet.create({
   favoritesCta: {
     width: '100%',
     maxWidth: 320,
+    alignSelf: 'center',
     borderRadius: 12,
     backgroundColor: Colors.accentGold,
     alignItems: 'center',
@@ -680,7 +682,7 @@ const createStyles = () => StyleSheet.create({
   legendText: { fontFamily: 'Inter_400Regular', fontSize: 11, color: 'rgba(229,185,95,0.6)' },
   legendSeparator: { color: 'rgba(229,185,95,0.25)' },
   emptyPromptCard: { borderRadius: 28, minHeight: 220, paddingVertical: 30, paddingHorizontal: 24, alignItems: 'center', justifyContent: 'space-between' },
-  emptyPromptText: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 15, color: 'rgba(255,255,255,0.45)', textAlign: 'center', alignSelf: 'flex-start' },
+  emptyPromptText: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 15, color: 'rgba(255,255,255,0.45)', textAlign: 'center' },
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
   bottomSheet: { backgroundColor: Colors.backgroundDark, borderTopLeftRadius: 34, borderTopRightRadius: 34, paddingHorizontal: 24, paddingTop: 10, paddingBottom: 38, borderTopWidth: 1, borderTopColor: 'rgba(229,185,95,0.3)' },
   sheetHandle: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.18)', marginBottom: 18 },
