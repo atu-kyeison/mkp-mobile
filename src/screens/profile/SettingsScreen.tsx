@@ -43,6 +43,16 @@ const SettingsScreen = ({ navigation, route }: any) => {
     setThemeOpen(false);
   };
 
+  const switchTrackColor = useMemo(
+    () => ({
+      false: 'rgba(255, 255, 255, 0.16)',
+      true: 'rgba(229, 185, 95, 0.42)',
+    }),
+    []
+  );
+
+  const switchThumbColor = (enabled: boolean) => (enabled ? Colors.antiqueGold : 'rgba(255, 255, 255, 0.9)');
+
   return (
     <MidnightBackground>
       <SafeAreaView style={styles.safeArea}>
@@ -135,8 +145,10 @@ const SettingsScreen = ({ navigation, route }: any) => {
                 <Switch
                   value={reminders}
                   onValueChange={setReminders}
-                  trackColor={{ false: 'rgba(255, 255, 255, 0.1)', true: 'rgba(229, 185, 95, 0.4)' }}
-                  thumbColor={reminders ? Colors.antiqueGold : '#f4f3f4'}
+                  trackColor={switchTrackColor}
+                  thumbColor={switchThumbColor(reminders)}
+                  ios_backgroundColor="rgba(255, 255, 255, 0.16)"
+                  style={styles.switchControl}
                 />
               </GlassCard>
               <Text style={styles.sectionInfo}>{t('settings.formation.privacyInfo')}</Text>
@@ -144,21 +156,31 @@ const SettingsScreen = ({ navigation, route }: any) => {
 
             <Section title={t('settings.section.care')}>
               <GlassCard style={styles.settingCard}>
-                <Text style={styles.settingValue}>{t('settings.care.churchMessages')}</Text>
+                <View style={styles.settingInfo}>
+                  <Text style={styles.settingValue}>{t('settings.care.churchMessages')}</Text>
+                  <Text style={styles.settingHint}>{t('settings.care.churchMessagesHint')}</Text>
+                </View>
                 <Switch
                   value={churchMessages}
                   onValueChange={setChurchMessages}
-                  trackColor={{ false: 'rgba(255, 255, 255, 0.1)', true: 'rgba(229, 185, 95, 0.4)' }}
-                  thumbColor={churchMessages ? Colors.antiqueGold : '#f4f3f4'}
+                  trackColor={switchTrackColor}
+                  thumbColor={switchThumbColor(churchMessages)}
+                  ios_backgroundColor="rgba(255, 255, 255, 0.16)"
+                  style={styles.switchControl}
                 />
               </GlassCard>
               <GlassCard style={styles.settingCard}>
-                <Text style={styles.settingValue}>{t('settings.care.encouragement')}</Text>
+                <View style={styles.settingInfo}>
+                  <Text style={styles.settingValue}>{t('settings.care.encouragement')}</Text>
+                  <Text style={styles.settingHint}>{t('settings.care.encouragementHint')}</Text>
+                </View>
                 <Switch
                   value={encouragement}
                   onValueChange={setEncouragement}
-                  trackColor={{ false: 'rgba(255, 255, 255, 0.1)', true: 'rgba(229, 185, 95, 0.4)' }}
-                  thumbColor={encouragement ? Colors.antiqueGold : '#f4f3f4'}
+                  trackColor={switchTrackColor}
+                  thumbColor={switchThumbColor(encouragement)}
+                  ios_backgroundColor="rgba(255, 255, 255, 0.16)"
+                  style={styles.switchControl}
                 />
               </GlassCard>
             </Section>
@@ -245,6 +267,9 @@ const styles = StyleSheet.create({
   settingLabel: { fontFamily: 'Inter_400Regular', fontSize: 10, color: 'rgba(255, 255, 255, 0.4)', textTransform: 'uppercase', letterSpacing: 2, marginBottom: 4 },
   settingValue: { fontFamily: 'PlayfairDisplay_400Regular', fontSize: 17, lineHeight: 24, color: 'white', flexShrink: 1 },
   settingHint: { fontFamily: 'Inter_300Light', fontSize: 11, color: 'rgba(255, 255, 255, 0.4)', marginTop: 4 },
+  switchControl: {
+    transform: [{ scaleX: 0.92 }, { scaleY: 0.92 }],
+  },
   changeChurchButton: { alignSelf: 'center', paddingTop: 2 },
   changeText: {
     fontFamily: 'Inter_400Regular',
