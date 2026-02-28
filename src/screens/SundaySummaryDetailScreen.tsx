@@ -198,7 +198,7 @@ export const SundaySummaryDetailScreen = ({ navigation, route }: any) => {
                     <View style={styles.moodIconWrap}>
                       <MaterialIcons name="filter-vintage" size={28} color={Colors.accentGold} />
                     </View>
-                    <View>
+                    <View style={styles.moodInfo}>
                       <Text style={styles.moodTitle}>{sundayCopy.moodTitle}</Text>
                       <Text style={styles.moodSubtitle}>{sundayCopy.moodSubtitle}</Text>
                     </View>
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
   reflectionDate: { fontFamily: 'Cinzel_700Bold', fontSize: 10, color: Colors.accentGold, letterSpacing: 2, marginBottom: 8 },
   reflectionPreview: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 14, lineHeight: 22, color: 'rgba(255,255,255,0.8)' },
 
-  moodCard: { padding: 18, borderRadius: 20, flexDirection: 'row', alignItems: 'center', gap: 14 },
+  moodCard: { padding: 18, borderRadius: 20, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 14 },
   moodIconWrap: {
     width: 48,
     height: 48,
@@ -306,8 +306,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  moodInfo: { alignItems: 'center' },
   moodTitle: { fontFamily: 'Inter_600SemiBold', fontSize: 14, color: '#fff', marginBottom: 2 },
-  moodSubtitle: { fontFamily: 'Inter_400Regular', fontSize: 11, color: 'rgba(255,255,255,0.45)' },
+  moodSubtitle: { fontFamily: 'Inter_400Regular', fontSize: 11, color: 'rgba(255,255,255,0.45)', textAlign: 'center' },
 
   comingSoonCard: { padding: 18, borderRadius: 20, marginBottom: 10, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   comingSoonMuted: { opacity: 0.42 },

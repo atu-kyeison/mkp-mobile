@@ -165,7 +165,7 @@ const styles = StyleSheet.create({
   wordsCard: { padding: 20, borderRadius: 28, minHeight: 250 },
   wordsText: { fontFamily: 'Inter_300Light', fontSize: 16, lineHeight: 47, color: 'rgba(255,255,255,0.82)', marginBottom: 24 },
   moodPill: {
-    alignSelf: 'flex-start',
+    alignSelf: 'center',
     borderRadius: 999,
     borderWidth: 1,
     borderColor: 'rgba(255,255,255,0.15)',
