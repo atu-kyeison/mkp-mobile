@@ -8,12 +8,12 @@ import { GlassCard } from '../components/GlassCard';
 import { useI18n } from '../i18n/I18nProvider';
 
 const MOODS = [
-  { id: 'peaceful', label: 'Peaceful', icon: 'self-improvement' as const },
-  { id: 'rushed', label: 'Rushed', icon: 'bolt' as const },
-  { id: 'anxious', label: 'Anxious', icon: 'waves' as const },
-  { id: 'grateful', label: 'Grateful', icon: 'favorite' as const },
-  { id: 'tired', label: 'Tired', icon: 'bedtime' as const },
-  { id: 'focused', label: 'Focused', icon: 'track-changes' as const },
+  { id: 'peaceful', label: 'Peaceful', icon: 'self-improvement' as const, iconOffset: { x: -1, y: 1 } },
+  { id: 'rushed', label: 'Rushed', icon: 'bolt' as const, iconOffset: { x: 1, y: 0 } },
+  { id: 'anxious', label: 'Anxious', icon: 'waves' as const, iconOffset: { x: 0, y: 1 } },
+  { id: 'grateful', label: 'Grateful', icon: 'favorite' as const, iconOffset: { x: 0, y: 1 } },
+  { id: 'tired', label: 'Tired', icon: 'bedtime' as const, iconOffset: { x: 0, y: 1 } },
+  { id: 'focused', label: 'Focused', icon: 'track-changes' as const, iconOffset: { x: 0, y: 0 } },
 ];
 
 export const MoodCheckInScreen = ({ navigation, route }: any) => {
@@ -74,7 +74,15 @@ export const MoodCheckInScreen = ({ navigation, route }: any) => {
                       name={mood.icon}
                       size={30}
                       color={Colors.accentGold}
-                      style={styles.moodIcon}
+                      style={[
+                        styles.moodIcon,
+                        {
+                          transform: [
+                            { translateX: mood.iconOffset?.x || 0 },
+                            { translateY: mood.iconOffset?.y || 0 },
+                          ],
+                        },
+                      ]}
                     />
                   </View>
                 </View>
