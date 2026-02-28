@@ -81,7 +81,9 @@ export const MoodDetailScreen = ({ navigation, route }: any) => {
             <Text style={styles.cardSubtitle}>{t('moodDetail.innerPosture')}</Text>
 
             <View style={styles.iconContainer}>
-              <MaterialIcons name={detail.icon} size={72} color={Colors.accentGold} style={styles.icon} />
+              <View style={styles.iconFrame}>
+                <MaterialIcons name={detail.icon} size={68} color={Colors.accentGold} style={styles.icon} />
+              </View>
             </View>
 
             <Text style={styles.title}>{t(detail.titleKey)}</Text>
@@ -196,6 +198,12 @@ const createStyles = () => StyleSheet.create({
     backgroundColor: 'rgba(229, 185, 95, 0.08)',
     borderWidth: 1,
     borderColor: 'rgba(229, 185, 95, 0.24)',
+  },
+  iconFrame: {
+    width: 72,
+    height: 72,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   icon: {
     opacity: 0.9,
