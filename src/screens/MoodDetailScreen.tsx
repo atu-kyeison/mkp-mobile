@@ -22,19 +22,19 @@ const MOOD_DETAILS: Record<
     icon: 'dark-mode',
     titleKey: 'moodDetail.title.tired',
     descriptionKey: 'moodDetail.desc.tired',
-    iconOffset: { y: 1 },
+    iconOffset: { x: 0, y: 1 },
   },
   rushed: {
     icon: 'bolt',
     titleKey: 'moodDetail.title.rushed',
     descriptionKey: 'moodDetail.desc.rushed',
-    iconOffset: { x: 1 },
+    iconOffset: { x: 1, y: 0 },
   },
   grateful: {
     icon: 'favorite',
     titleKey: 'moodDetail.title.grateful',
     descriptionKey: 'moodDetail.desc.grateful',
-    iconOffset: { y: 1 },
+    iconOffset: { x: -1, y: 1 },
   },
   peaceful: {
     icon: 'yard',
@@ -46,11 +46,13 @@ const MOOD_DETAILS: Record<
     icon: 'center-focus-strong',
     titleKey: 'moodDetail.title.focused',
     descriptionKey: 'moodDetail.desc.focused',
+    iconOffset: { x: 0, y: 0 },
   },
   anxious: {
     icon: 'waves',
     titleKey: 'moodDetail.title.anxious',
     descriptionKey: 'moodDetail.desc.anxious',
+    iconOffset: { x: 0, y: 1 },
   }
 };
 
