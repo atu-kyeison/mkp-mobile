@@ -128,13 +128,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
-    paddingTop: 20,
+    paddingTop: 16,
     paddingHorizontal: 24,
     alignItems: 'center',
   },
   skipButton: {
     alignSelf: 'flex-end',
-    marginBottom: 16,
+    marginBottom: 12,
   },
   skipText: {
     fontFamily: 'Inter_400Regular',
@@ -156,7 +156,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 1,
     backgroundColor: 'rgba(229, 185, 95, 0.4)',
-    marginBottom: 40,
+    marginBottom: 28,
   },
   title: {
     fontFamily: 'PlayfairDisplay_400Regular_Italic',
@@ -171,13 +171,13 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     justifyContent: 'center',
     paddingHorizontal: 18,
-    paddingBottom: 24,
-    paddingTop: 18,
+    paddingBottom: 10,
+    paddingTop: 12,
   },
   moodCardContainer: {
     width: '44%',
-    aspectRatio: 0.92,
-    margin: '2.8%',
+    aspectRatio: 0.84,
+    margin: '2.5%',
   },
   moodCard: {
     flex: 1,
@@ -231,9 +231,9 @@ const styles = StyleSheet.create({
     includeFontPadding: false,
   },
   footer: {
-    paddingTop: 14,
+    paddingTop: 8,
     paddingHorizontal: 32,
-    paddingBottom: 32,
+    paddingBottom: 18,
     alignItems: 'center',
     backgroundColor: 'transparent',
   },
@@ -265,12 +265,12 @@ const styles = StyleSheet.create({
     fontSize: 10,
     color: 'rgba(255, 255, 255, 0.36)',
     letterSpacing: 1.5,
-    marginTop: 32,
+    marginTop: 18,
     textTransform: 'uppercase',
     textAlign: 'center',
   },
   supportLink: {
-    marginTop: 12,
+    marginTop: 8,
     alignSelf: 'center',
   },
   supportLinkText: {
