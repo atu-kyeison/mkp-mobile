@@ -7,12 +7,45 @@ import { Colors } from '../../constants/Colors';
 import { BackgroundGradient } from '../components/BackgroundGradient';
 import { GlassCard } from '../components/GlassCard';
 import { useI18n } from '../i18n/I18nProvider';
-import { getJournalEntries } from '../storage/journalStore';
+import { getJournalEntries, JournalEntry } from '../storage/journalStore';
+
+const SAMPLE_MOODS = ['peaceful', 'rushed', 'anxious', 'grateful', 'tired', 'focused'] as const;
+
+const buildPreviewEntries = (): JournalEntry[] => {
+  const today = new Date();
+
+  return SAMPLE_MOODS.map((mood, index) => {
+    const entryDate = new Date(today);
+    entryDate.setDate(today.getDate() - index);
+    entryDate.setHours(9, 0, 0, 0);
+
+    return {
+      id: `insight-preview-${mood}-${index}`,
+      createdAt: entryDate.toISOString(),
+      body: `Preview reflection for ${mood}.`,
+      invitationText: 'Preview rhythm entry.',
+      journalVariant: 'mid_week',
+      mood,
+      linkedSermonTitle: index % 2 === 0 ? 'Abide and Remain' : undefined,
+      linkedSermonUrl: index % 2 === 0 ? 'https://www.youtube.com/' : undefined,
+    };
+  });
+};
+
+const MOOD_COLORS: Record<string, string> = {
+  peaceful: 'rgba(130, 154, 177, 0.82)',
+  rushed: 'rgba(212, 163, 115, 0.82)',
+  anxious: 'rgba(122, 162, 247, 0.82)',
+  grateful: 'rgba(229, 185, 95, 0.88)',
+  tired: 'rgba(148, 163, 184, 0.78)',
+  focused: 'rgba(168, 218, 220, 0.82)',
+};
 
 export const InsightsScreen = () => {
   const { t, locale } = useI18n();
   const navigation = useNavigation<any>();
   const [entriesThisWeek, setEntriesThisWeek] = useState(0);
+  const [moodHistory, setMoodHistory] = useState<string[]>([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -21,15 +54,24 @@ export const InsightsScreen = () => {
       weekAgo.setDate(now.getDate() - 6);
       weekAgo.setHours(0, 0, 0, 0);
 
+      const savedEntries = getJournalEntries();
+      const sourceEntries = savedEntries.length > 0 ? savedEntries : buildPreviewEntries();
+      const weeklyEntries = sourceEntries.filter((entry) => {
+        const created = new Date(entry.createdAt);
+        return !Number.isNaN(created.getTime()) && created >= weekAgo && created <= now;
+      });
+
       const uniqueDays = new Set(
-        getJournalEntries()
-          .filter((entry) => {
-            const created = new Date(entry.createdAt);
-            return !Number.isNaN(created.getTime()) && created >= weekAgo && created <= now;
-          })
-          .map((entry) => entry.createdAt.slice(0, 10))
+        weeklyEntries.map((entry) => entry.createdAt.slice(0, 10))
       );
       setEntriesThisWeek(uniqueDays.size);
+      setMoodHistory(
+        weeklyEntries
+          .filter((entry) => Boolean(entry.mood))
+          .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+          .map((entry) => entry.mood as string)
+          .slice(-6)
+      );
     }, [])
   );
 
@@ -71,7 +113,17 @@ export const InsightsScreen = () => {
           <GlassCard style={styles.sectionCard}>
             <Text style={styles.sectionLabel}>{t('insights.rhythm')}</Text>
             <View style={styles.moodArcContainer}>
-              <View style={styles.moodArc} />
+              <View style={styles.moodArcTrack}>
+                {moodHistory.map((mood, index) => (
+                  <View
+                    key={`${mood}-${index}`}
+                    style={[
+                      styles.moodArcSegment,
+                      { backgroundColor: MOOD_COLORS[mood] || 'rgba(130, 154, 177, 0.7)' },
+                    ]}
+                  />
+                ))}
+              </View>
             </View>
             <View style={styles.arcLabels}>
               <Text style={styles.arcLabel}>{t('insights.earlier')}</Text>
@@ -174,15 +226,19 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'flex-end',
-    overflow: 'hidden',
   },
-  moodArc: {
+  moodArcTrack: {
     width: '100%',
-    height: 48,
-    borderRadius: 50,
-    backgroundColor: 'rgba(130, 154, 177, 0.6)', // Using peaceful color as base
-    // In actual implementation, this would be a gradient
-    opacity: 0.6,
+    height: 18,
+    borderRadius: 999,
+    overflow: 'hidden',
+    flexDirection: 'row',
+    backgroundColor: 'rgba(255, 255, 255, 0.08)',
+    borderWidth: 1,
+    borderColor: 'rgba(229, 185, 95, 0.12)',
+  },
+  moodArcSegment: {
+    flex: 1,
   },
   arcLabels: {
     flexDirection: 'row',

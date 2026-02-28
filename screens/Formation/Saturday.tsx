@@ -134,13 +134,14 @@ const createStyles = () => StyleSheet.create({
     color: 'rgba(229, 185, 95, 0.7)',
     letterSpacing: 2,
     textTransform: 'uppercase',
-    marginBottom: 16,
+    marginBottom: 8,
   },
   mainText: {
-    fontFamily: 'PlayfairDisplay_400Regular',
+    fontFamily: 'Inter_400Regular',
     fontSize: 19,
     color: Colors.text,
-    lineHeight: 30,
+    lineHeight: 28,
+    fontWeight: '500',
     marginBottom: 32,
   },
   separator: {
