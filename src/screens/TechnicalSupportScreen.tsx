@@ -140,12 +140,14 @@ const styles = StyleSheet.create({
   },
   sendButton: {
     width: '100%',
+    maxWidth: 340,
     height: 58,
     backgroundColor: Colors.accentGold,
     borderRadius: 29,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
+    alignSelf: 'center',
     shadowColor: Colors.accentGold,
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.2,
@@ -192,5 +194,6 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.3)',
     textAlign: 'center',
     marginTop: 32,
+    alignSelf: 'center',
   },
 });

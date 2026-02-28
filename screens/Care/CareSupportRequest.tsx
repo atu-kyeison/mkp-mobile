@@ -339,6 +339,8 @@ const createStyles = () => StyleSheet.create({
   },
   buttonContainer: {
     marginTop: 22,
+    width: '100%',
+    alignSelf: 'center',
   },
   submitStateCard: {
     marginTop: 20,
@@ -371,8 +373,10 @@ const createStyles = () => StyleSheet.create({
   stateButtons: {
     width: '100%',
     gap: 10,
+    alignSelf: 'center',
   },
   stateButton: {
     width: '100%',
+    alignSelf: 'center',
   },
 });

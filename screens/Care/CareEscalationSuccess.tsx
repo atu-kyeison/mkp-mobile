@@ -90,6 +90,8 @@ const styles = StyleSheet.create({
   },
   fullWidthButton: {
     width: '100%',
+    maxWidth: 340,
+    alignSelf: 'center',
   },
   link: {
     fontFamily: 'Cinzel_700Bold',
@@ -98,6 +100,7 @@ const styles = StyleSheet.create({
     color: Colors.accentGold,
     textDecorationLine: 'underline',
     textDecorationColor: Colors.accentGold,
+    textAlign: 'center',
   },
   footer: {
     marginTop: 22,

@@ -96,7 +96,7 @@ export default function Sunday({ navigation }: any) {
 
             <TouchableOpacity
               style={styles.listenLink}
-              onPress={openChurchMessage}
+              onPress={() => openChurchMessage()}
             >
               <Text style={styles.listenLinkText}>{copy.listen}</Text>
             </TouchableOpacity>

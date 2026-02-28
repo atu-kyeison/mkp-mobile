@@ -725,6 +725,9 @@ const createStyles = () => StyleSheet.create({
   addReflectionButton: {
     marginTop: 8,
     minWidth: 260,
+    maxWidth: 320,
+    width: '100%',
+    alignSelf: 'center',
     borderRadius: 999,
     backgroundColor: Colors.accentGold,
     paddingVertical: 20,
@@ -747,6 +750,7 @@ const createStyles = () => StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: 'rgba(229,185,95,0.45)',
     paddingBottom: 2,
+    alignSelf: 'center',
   },
   logMoodText: {
     fontFamily: 'Cinzel_700Bold',
@@ -755,7 +759,7 @@ const createStyles = () => StyleSheet.create({
     color: Colors.accentGold,
   },
   sheetErrorText: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 17, color: '#D97B66' },
-  retryButton: { borderWidth: 1, borderColor: 'rgba(229,185,95,0.4)', borderRadius: 12, paddingHorizontal: 28, paddingVertical: 11, backgroundColor: 'rgba(255,255,255,0.03)' },
+  retryButton: { borderWidth: 1, borderColor: 'rgba(229,185,95,0.4)', borderRadius: 12, paddingHorizontal: 28, paddingVertical: 11, backgroundColor: 'rgba(255,255,255,0.03)', alignSelf: 'center' },
   retryText: { fontFamily: 'Cinzel_700Bold', fontSize: 11, letterSpacing: 2, color: 'rgba(255,255,255,0.82)' },
   readOnlyNote: {
     marginTop: 8,

@@ -141,6 +141,7 @@ const createStyles = () => StyleSheet.create({
   },
   linkButton: {
     marginTop: 20,
+    alignSelf: 'center',
   },
   linkText: {
     fontFamily: 'Inter_400Regular',
