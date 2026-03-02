@@ -7,9 +7,10 @@ import { CustomButton } from '../../components/CustomButton';
 import { Colors } from '../../constants/Colors';
 import { useI18n } from '../../src/i18n/I18nProvider';
 
-export default function CareEscalationSuccess({ navigation }: any) {
+export default function CareEscalationSuccess({ navigation, route }: any) {
   const insets = useSafeAreaInsets();
   const { t } = useI18n();
+  const threadCreated = Boolean(route?.params?.threadCreated);
   return (
     <GradientBackground style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -22,11 +23,13 @@ export default function CareEscalationSuccess({ navigation }: any) {
           </GlassCard>
 
           <View style={styles.ctaGroup}>
-            <CustomButton
-              title={t('care.success.viewInbox')}
-              onPress={() => navigation.navigate('CareInbox')}
-              style={styles.fullWidthButton}
-            />
+            {threadCreated ? (
+              <CustomButton
+                title={t('care.success.viewInbox')}
+                onPress={() => navigation.navigate('CareInbox')}
+                style={styles.fullWidthButton}
+              />
+            ) : null}
             <CustomButton
               title={t('care.success.returnHome')}
               onPress={() => navigation.getParent()?.navigate('Home')}

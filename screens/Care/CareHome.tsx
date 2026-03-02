@@ -25,12 +25,20 @@ export default function CareHome({ navigation }: any) {
 
         <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 112 + insets.bottom }]} showsVerticalScrollIndicator={false}>
           <View style={styles.section}>
-            <TouchableOpacity
-              style={styles.inboxButton}
-              onPress={() => navigation.navigate('CareInbox')}
-            >
-              <Text style={styles.inboxButtonText}>{t('care.home.inbox')}</Text>
-            </TouchableOpacity>
+            <View style={styles.topActions}>
+              <TouchableOpacity
+                style={styles.inboxButton}
+                onPress={() => navigation.navigate('CareInbox')}
+              >
+                <Text style={styles.inboxButtonText}>{t('care.home.inbox')}</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.inboxButton}
+                onPress={() => navigation.navigate('ChurchMessages')}
+              >
+                <Text style={styles.inboxButtonText}>{t('care.home.messages')}</Text>
+              </TouchableOpacity>
+            </View>
             <GlassCard withGlow style={styles.mainCard}>
               <Text style={styles.cardLabel}>{t('care.home.prayer.label')}</Text>
               <Text style={styles.cardText}>
@@ -114,9 +122,15 @@ const createStyles = () => StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
+  topActions: {
+    width: '100%',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 10,
+    marginBottom: 16,
+  },
   inboxButton: {
     alignSelf: 'center',
-    marginBottom: 16,
     borderRadius: 999,
     borderWidth: 1,
     borderColor: 'rgba(229, 185, 95, 0.24)',

@@ -24,6 +24,7 @@ import {
   resolveCareSupportCategory,
 } from '../../src/care/supportCategories';
 import { createCareSupportThread } from '../../src/storage/careInboxStore';
+import { getCommunicationPrefs } from '../../src/storage/communicationPrefsStore';
 
 const CONTACT_METHODS: CareResponseChannel[] = ['in_app', 'email'];
 
@@ -32,6 +33,7 @@ export default function CareSupportRequest({ navigation, route }: any) {
   const { t } = useI18n();
   const { themeId } = useTheme();
   const styles = useMemo(() => createStyles(), [themeId]);
+  const communicationPrefs = useMemo(() => getCommunicationPrefs(), []);
   const preselectedType = resolveCareSupportCategory(route?.params?.initialHelpType as string | undefined);
   const [helpType, setHelpType] = useState<CareSupportCategoryId>(preselectedType);
   const [contactMethod, setContactMethod] = useState<CareResponseChannel>('in_app');
@@ -44,11 +46,14 @@ export default function CareSupportRequest({ navigation, route }: any) {
       Alert.alert(t('care.support.validation.title'), t('care.support.validation.messageRequired'));
       return;
     }
-    const thread = createCareSupportThread({
-      categoryId: helpType,
-      preferredChannel: contactMethod,
-      requestText: message.trim(),
-    });
+    const thread =
+      communicationPrefs.encouragement && contactMethod === 'in_app'
+        ? createCareSupportThread({
+            categoryId: helpType,
+            preferredChannel: contactMethod,
+            requestText: message.trim(),
+          })
+        : null;
     setSubmitState('idle');
     navigation.navigate('CareEscalationSuccess', {
       requestType: helpType,
@@ -56,7 +61,8 @@ export default function CareSupportRequest({ navigation, route }: any) {
       contactMethod,
       followUpChannel: contactMethod === 'email' ? 'auth_email' : 'in_app',
       notes: message,
-      threadId: thread.id,
+      threadId: thread?.id,
+      threadCreated: Boolean(thread),
     });
   };
 
@@ -127,31 +133,37 @@ export default function CareSupportRequest({ navigation, route }: any) {
                 placeholderTextColor="rgba(255, 255, 255, 0.35)"
               />
 
-              <Text style={[styles.sectionLabel, styles.sectionSpacing]}>
-                {t('care.support.section.contact')}
-              </Text>
-              <View style={styles.contactRow}>
-                {CONTACT_METHODS.map((method) => {
-                  const selected = method === contactMethod;
-                  return (
-                    <TouchableOpacity
-                      key={method}
-                      onPress={() => setContactMethod(method)}
-                      style={[styles.contactChip, selected && styles.contactChipSelected]}
-                    >
-                      <Text
-                        style={[
-                          styles.contactChipText,
-                          selected && styles.contactChipTextSelected,
-                        ]}
-                      >
-                        {method === 'in_app' ? t('care.support.contact.inapp') : t('care.support.contact.email')}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
-              <Text style={styles.contactHelpText}>{t('care.support.contactNote')}</Text>
+              {communicationPrefs.encouragement ? (
+                <>
+                  <Text style={[styles.sectionLabel, styles.sectionSpacing]}>
+                    {t('care.support.section.contact')}
+                  </Text>
+                  <View style={styles.contactRow}>
+                    {CONTACT_METHODS.map((method) => {
+                      const selected = method === contactMethod;
+                      return (
+                        <TouchableOpacity
+                          key={method}
+                          onPress={() => setContactMethod(method)}
+                          style={[styles.contactChip, selected && styles.contactChipSelected]}
+                        >
+                          <Text
+                            style={[
+                              styles.contactChipText,
+                              selected && styles.contactChipTextSelected,
+                            ]}
+                          >
+                            {method === 'in_app' ? t('care.support.contact.inapp') : t('care.support.contact.email')}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                  <Text style={styles.contactHelpText}>{t('care.support.contactNote')}</Text>
+                </>
+              ) : (
+                <Text style={styles.preferenceNote}>{t('care.preference.encouragementOff')}</Text>
+              )}
 
               <View style={styles.buttonContainer}>
                 <CustomButton title={t('care.support.send')} onPress={handleSubmit} />
@@ -324,6 +336,14 @@ const createStyles = () => StyleSheet.create({
     fontSize: 11,
     lineHeight: 16,
     color: 'rgba(255, 255, 255, 0.55)',
+  },
+  preferenceNote: {
+    marginTop: 20,
+    fontFamily: 'Inter_400Regular',
+    fontSize: 12,
+    lineHeight: 19,
+    color: 'rgba(229, 185, 95, 0.76)',
+    textAlign: 'center',
   },
   buttonContainer: {
     marginTop: 22,

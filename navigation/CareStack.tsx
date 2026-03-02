@@ -7,6 +7,7 @@ import CareSupportRequest from '../screens/Care/CareSupportRequest';
 import CareEscalationSuccess from '../screens/Care/CareEscalationSuccess';
 import { CareInboxScreen } from '../src/screens/CareInboxScreen';
 import { CareThreadScreen } from '../src/screens/CareThreadScreen';
+import { ChurchMessagesScreen } from '../src/screens/ChurchMessagesScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -24,6 +25,7 @@ export default function CareStack() {
       <Stack.Screen name="CareEscalationSuccess" component={CareEscalationSuccess} />
       <Stack.Screen name="CareInbox" component={CareInboxScreen} />
       <Stack.Screen name="CareThread" component={CareThreadScreen} />
+      <Stack.Screen name="ChurchMessages" component={ChurchMessagesScreen} />
     </Stack.Navigator>
   );
 }

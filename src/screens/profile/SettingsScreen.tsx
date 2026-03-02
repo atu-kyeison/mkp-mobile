@@ -9,15 +9,22 @@ import { MaterialIcons } from '@expo/vector-icons';
 import Colors from '../../constants/Colors';
 import { useI18n } from '../../i18n/I18nProvider';
 import { ThemeId, useTheme } from '../../theme/ThemeProvider';
+import {
+  getCommunicationPrefs,
+  setChurchMessagesPreference,
+  setEncouragementPreference,
+  setReminderPreference,
+} from '../../storage/communicationPrefsStore';
 
 const SettingsScreen = ({ navigation, route }: any) => {
   const { locale, setLocale, t } = useI18n();
   const { themeId, setThemeId, themeOptions } = useTheme();
   const insets = useSafeAreaInsets();
 
-  const [reminders, setReminders] = useState(true);
-  const [churchMessages, setChurchMessages] = useState(true);
-  const [encouragement, setEncouragement] = useState(false);
+  const initialPrefs = useMemo(() => getCommunicationPrefs(), []);
+  const [reminders, setReminders] = useState(initialPrefs.reminders);
+  const [churchMessages, setChurchMessages] = useState(initialPrefs.churchMessages);
+  const [encouragement, setEncouragement] = useState(initialPrefs.encouragement);
   const [themeOpen, setThemeOpen] = useState(false);
   const [connectedChurchName, setConnectedChurchName] = useState(
     () =>
@@ -52,6 +59,18 @@ const SettingsScreen = ({ navigation, route }: any) => {
   );
 
   const switchThumbColor = (enabled: boolean) => (enabled ? Colors.antiqueGold : 'rgba(255, 255, 255, 0.9)');
+  const updateReminders = (value: boolean) => {
+    setReminders(value);
+    setReminderPreference(value);
+  };
+  const updateChurchMessages = (value: boolean) => {
+    setChurchMessages(value);
+    setChurchMessagesPreference(value);
+  };
+  const updateEncouragement = (value: boolean) => {
+    setEncouragement(value);
+    setEncouragementPreference(value);
+  };
 
   return (
     <MidnightBackground>
@@ -157,7 +176,7 @@ const SettingsScreen = ({ navigation, route }: any) => {
                 </View>
                 <Switch
                   value={reminders}
-                  onValueChange={setReminders}
+                  onValueChange={updateReminders}
                   trackColor={switchTrackColor}
                   thumbColor={switchThumbColor(reminders)}
                   ios_backgroundColor="rgba(255, 255, 255, 0.16)"
@@ -175,7 +194,7 @@ const SettingsScreen = ({ navigation, route }: any) => {
                 </View>
                 <Switch
                   value={churchMessages}
-                  onValueChange={setChurchMessages}
+                  onValueChange={updateChurchMessages}
                   trackColor={switchTrackColor}
                   thumbColor={switchThumbColor(churchMessages)}
                   ios_backgroundColor="rgba(255, 255, 255, 0.16)"
@@ -189,7 +208,7 @@ const SettingsScreen = ({ navigation, route }: any) => {
                 </View>
                 <Switch
                   value={encouragement}
-                  onValueChange={setEncouragement}
+                  onValueChange={updateEncouragement}
                   trackColor={switchTrackColor}
                   thumbColor={switchThumbColor(encouragement)}
                   ios_backgroundColor="rgba(255, 255, 255, 0.16)"
@@ -201,6 +220,15 @@ const SettingsScreen = ({ navigation, route }: any) => {
                   <View style={styles.settingInfo}>
                     <Text style={styles.settingValue}>{t('settings.care.inbox')}</Text>
                     <Text style={styles.settingHint}>{t('settings.care.inboxHint')}</Text>
+                  </View>
+                  <MaterialIcons name="chevron-right" size={24} color={Colors.antiqueGold} />
+                </GlassCard>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => navigation.getParent()?.navigate('Church', { screen: 'ChurchMessages' })}>
+                <GlassCard style={styles.settingCard}>
+                  <View style={styles.settingInfo}>
+                    <Text style={styles.settingValue}>{t('settings.care.messagesFeed')}</Text>
+                    <Text style={styles.settingHint}>{t('settings.care.messagesFeedHint')}</Text>
                   </View>
                   <MaterialIcons name="chevron-right" size={24} color={Colors.antiqueGold} />
                 </GlassCard>

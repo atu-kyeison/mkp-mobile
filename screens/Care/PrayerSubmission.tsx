@@ -7,6 +7,8 @@ import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
 import { useI18n } from '../../src/i18n/I18nProvider';
 import { useTheme } from '../../src/theme/ThemeProvider';
+import { getCommunicationPrefs } from '../../src/storage/communicationPrefsStore';
+import { createCareSupportThread } from '../../src/storage/careInboxStore';
 
 export default function PrayerSubmission({ navigation }: any) {
   const insets = useSafeAreaInsets();
@@ -16,8 +18,16 @@ export default function PrayerSubmission({ navigation }: any) {
   const [anonymous, setAnonymous] = useState(false);
   const [pastoralSupport, setPastoralSupport] = useState(false);
   const [request, setRequest] = useState('');
+  const communicationPrefs = useMemo(() => getCommunicationPrefs(), []);
 
   const handleSharePrayer = () => {
+    if (pastoralSupport && communicationPrefs.encouragement && request.trim()) {
+      createCareSupportThread({
+        categoryId: 'pastor_conversation',
+        preferredChannel: 'in_app',
+        requestText: request.trim(),
+      });
+    }
     Alert.alert(
       t('care.prayer.alert.title'),
       t('care.prayer.alert.body'),
@@ -97,6 +107,12 @@ export default function PrayerSubmission({ navigation }: any) {
                     thumbColor={pastoralSupport ? Colors.accentGold : '#f4f3f4'}
                   />
                 </View>
+                {!communicationPrefs.encouragement ? (
+                  <>
+                    <View style={styles.separator} />
+                    <Text style={styles.prefNote}>{t('care.preference.encouragementOff')}</Text>
+                  </>
+                ) : null}
               </GlassCard>
             </View>
 
@@ -227,6 +243,13 @@ const createStyles = () => StyleSheet.create({
     height: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     marginVertical: 20,
+  },
+  prefNote: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 11,
+    lineHeight: 18,
+    color: 'rgba(229, 185, 95, 0.74)',
+    textAlign: 'center',
   },
   footer: {
     marginTop: 12,
