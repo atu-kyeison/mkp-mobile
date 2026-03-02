@@ -24,13 +24,18 @@ export default function Sunday({ navigation }: any) {
         churchName: 'Grace Fellowship',
         listen: '🔊 Escuchar el mensaje de esta semana',
         recapLabel: 'Resumen del domingo',
-        recapText:
-          '“Una reflexión serena sobre permanecer en la vid, resaltando la conexión sagrada entre la rama y la fuente. No somos llamados a producir, sino a permanecer.”',
+        recapParagraphs: [
+          'El pastor predicó sobre lo que significa permanecer en Cristo en lugar de vivir desde el esfuerzo o la autosuficiencia. Juan 15 nos recuerda que el fruto espiritual no nace de una presión interna, sino de una unión continua con Jesús, la Vid verdadera.',
+          'La invitación del sermón fue sencilla y profunda: quedarse cerca. La poda, la espera y la dependencia no son señales de abandono, sino parte de la obra amorosa de Dios para formar un pueblo que refleje su vida. El llamado de hoy no es producir para Dios, sino permanecer con Él.',
+        ],
         keyTruths: 'Verdades clave',
         truths: [
           'Soy una rama, diseñada para depender de la Vid Verdadera.',
-          'La poda no es castigo; es una invitación a la fructificación.',
-          'Separado de Él, mis esfuerzos se secan; en Él, mi gozo se completa.',
+          'El fruto espiritual crece desde la cercanía con Cristo, no desde la presión por rendir.',
+          'La poda no es castigo; a menudo es la forma en que Dios prepara una mayor fidelidad.',
+          'Permanecer requiere atención, confianza y disposición para quedarme donde Dios me está formando.',
+          'Separado de Jesús, mis esfuerzos se secan; en Él, mi vida recibe sustento y propósito.',
+          'El descanso en Cristo no detiene la formación; la profundiza.',
         ],
         scriptureSection: 'Escritura',
         scriptures: [
@@ -56,13 +61,18 @@ export default function Sunday({ navigation }: any) {
         churchName: 'Grace Fellowship',
         listen: '🔊 Listen to This Week’s Message',
         recapLabel: 'Sunday Recap',
-        recapText:
-          '"A serene reflection on abiding in the vine, emphasizing the sacred connection between the branch and the source. We are not called to produce, but to remain."',
+        recapParagraphs: [
+          'Pastor preached on what it means to abide in Christ rather than live from striving or self-sufficiency. John 15 reminds us that spiritual fruit does not come from internal pressure, but from a living union with Jesus, the true Vine.',
+          'The invitation of the sermon was simple and searching: stay near. Pruning, waiting, and dependence are not signs of abandonment, but part of God’s loving work in forming a people who reflect His life. The call for today is not to produce for God, but to remain with Him.',
+        ],
         keyTruths: 'Key Truths',
         truths: [
           'I am a branch, designed for dependence upon the True Vine.',
-          'Pruning is not punishment; it is the invitation to fruitfulness.',
-          'Apart from Him, my efforts are dry; in Him, my joy is made complete.',
+          'Spiritual fruit grows from nearness to Christ, not pressure to perform.',
+          'Pruning is not punishment; it is often how God prepares deeper faithfulness.',
+          'Abiding requires attention, trust, and a willingness to stay where God is forming me.',
+          'Apart from Jesus, my efforts dry out; in Him, my life is sustained and given purpose.',
+          'Resting in Christ does not interrupt formation; it deepens it.',
         ],
         scriptureSection: 'Scripture',
         scriptures: [
@@ -103,7 +113,11 @@ export default function Sunday({ navigation }: any) {
 
             <GlassCard style={styles.recapCard}>
               <Text style={styles.recapLabel}>{copy.recapLabel}</Text>
-              <Text style={styles.recapText}>{copy.recapText}</Text>
+              <View style={styles.recapParagraphList}>
+                {copy.recapParagraphs.map((paragraph) => (
+                  <Text key={paragraph} style={styles.recapText}>{paragraph}</Text>
+                ))}
+              </View>
             </GlassCard>
           </View>
 
@@ -184,6 +198,7 @@ const styles = StyleSheet.create({
     fontFamily: 'PlayfairDisplay_400Regular_Italic',
     fontSize: 30,
     color: Colors.text,
+    textAlign: 'center',
     marginBottom: 4,
   },
   subtitle: {
@@ -206,6 +221,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 2,
     marginBottom: 4,
+    textAlign: 'center',
   },
   churchInfo: {
     fontFamily: 'Inter_700Bold',
@@ -214,6 +230,7 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     letterSpacing: 2,
     marginBottom: 20,
+    textAlign: 'center',
   },
   listenLink: {
     marginBottom: 20,
@@ -222,10 +239,11 @@ const styles = StyleSheet.create({
     fontFamily: 'Inter_700Bold',
     fontSize: 10,
     color: Colors.accentGold,
+    textAlign: 'center',
   },
   recapCard: {
     width: '100%',
-    padding: 16,
+    padding: 18,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
   },
   recapLabel: {
@@ -234,13 +252,18 @@ const styles = StyleSheet.create({
     color: Colors.accentGold,
     letterSpacing: 2,
     textTransform: 'uppercase',
-    marginBottom: 6,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  recapParagraphList: {
+    gap: 12,
   },
   recapText: {
     fontFamily: 'PlayfairDisplay_400Regular_Italic',
-    fontSize: 14,
+    fontSize: 15,
     color: 'rgba(255, 255, 255, 0.9)',
-    lineHeight: 22,
+    lineHeight: 24,
+    textAlign: 'left',
   },
   truthsSection: {
     marginBottom: 32,
@@ -263,13 +286,15 @@ const styles = StyleSheet.create({
     color: Colors.accentGold,
     letterSpacing: 3,
     textTransform: 'uppercase',
+    textAlign: 'center',
   },
   truthsGrid: {
     gap: 10,
   },
   truthFull: {
     width: '100%',
-    padding: 16,
+    padding: 18,
+    alignItems: 'center',
   },
   truthDot: {
     width: 6,
@@ -277,6 +302,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
     backgroundColor: Colors.accentGold,
     marginBottom: 12,
+    alignSelf: 'center',
     shadowColor: Colors.accentGold,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.6,
@@ -284,9 +310,10 @@ const styles = StyleSheet.create({
   },
   truthText: {
     fontFamily: 'Inter_400Regular',
-    fontSize: 11,
+    fontSize: 12,
     color: 'rgba(255, 255, 255, 0.9)',
-    lineHeight: 16,
+    lineHeight: 19,
+    textAlign: 'center',
   },
   scriptureSection: {
     marginBottom: 32,
@@ -349,6 +376,7 @@ const styles = StyleSheet.create({
     color: 'rgba(229, 185, 95, 0.8)',
     letterSpacing: 2,
     textTransform: 'uppercase',
+    textAlign: 'center',
     marginBottom: 12,
   },
   identityMainText: {
@@ -368,5 +396,6 @@ const styles = StyleSheet.create({
     color: Colors.accentGold,
     letterSpacing: 2,
     textTransform: 'uppercase',
+    textAlign: 'center',
   },
 });
