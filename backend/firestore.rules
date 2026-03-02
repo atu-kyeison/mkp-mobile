@@ -1,179 +1,324 @@
 rules_version = '2';
 
+// ============================================================================
+// MKP Mobile – Firestore Security Rules
+//
+// Contract:  backend/contract-v1.1.md  (canonical)
+// Roadmap:   backend/roadmap-v1.md     (Phase 2 complete)
+//
+// Posture: DENY BY DEFAULT.
+// Any path not explicitly matched and allowed is denied.
+//
+// Role model (contract §5):
+//   member          standard member access
+//   pastor          care queues, church messages, sermon lifecycle, analytics
+//   admin           full church administration (superset of pastor)
+//   care_team       care requests and care threads; one reply per thread
+//   communications  church-wide message publishing
+//   media_team      sermon media upload/metadata only
+//
+// Feature gates:
+//   Church-level feature flags (church.features.*) gate capability at the
+//   function layer. Rules enforce role and membership boundaries. Full
+//   feature-gate enforcement in rules is deferred where a get() on the church
+//   document would add unacceptable overhead.
+//
+// Local-only data (journals, mood notes, reflection text):
+//   There are NO Firestore paths for these. Any attempt to write them to
+//   Firestore is denied by the default-deny posture.
+// ============================================================================
+
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // ============================================
-    // DENY BY DEFAULT - No rules = no access
-    // ============================================
+    // ========================================================================
+    // Helper functions
+    // ========================================================================
 
-    // Helper: Check if user is authenticated
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    // Helper: Get user's membership doc in a church
+    // Read the calling user's membership document in a church.
+    // Only call after confirming exists() via isMemberOf().
     function getMembership(churchId) {
       return get(/databases/$(database)/documents/churches/$(churchId)/members/$(request.auth.uid));
     }
 
-    // Helper: Check if user is a member of the church
+    // True if a membership document exists for this user in the church.
+    // Does not check status – use isActiveMemberOf for write-sensitive ops.
     function isMemberOf(churchId) {
       return isAuthenticated() &&
              exists(/databases/$(database)/documents/churches/$(churchId)/members/$(request.auth.uid));
     }
 
-    // Helper: Check if user has specific role in church
+    // True if the user has an active membership in the church.
+    // Required for most church-scoped reads and all writes.
+    function isActiveMemberOf(churchId) {
+      return isMemberOf(churchId) &&
+             getMembership(churchId).data.status == 'active';
+    }
+
+    // True if the user's active role is in the provided allowedRoles list.
     function hasRole(churchId, allowedRoles) {
       return isMemberOf(churchId) &&
              getMembership(churchId).data.role in allowedRoles &&
              getMembership(churchId).data.status == 'active';
     }
 
-    // Helper: Check if user is pastor or admin
+    // pastor | admin
     function isPastorOrAdmin(churchId) {
       return hasRole(churchId, ['pastor', 'admin']);
     }
 
-    // Helper: Check if user is leader, pastor, or admin
-    function isLeaderOrAbove(churchId) {
-      return hasRole(churchId, ['leader', 'pastor', 'admin']);
+    // pastor | admin | care_team
+    // May read care queues and care threads; care_team may send the one
+    // allowed church reply per thread (enforced in Cloud Functions).
+    function isCareStaff(churchId) {
+      return hasRole(churchId, ['pastor', 'admin', 'care_team']);
     }
 
-    // ============================================
-    // /users/{uid} - Global user profiles
-    // ============================================
+    // pastor | admin | communications
+    // May publish church-wide messages (contract §9).
+    // media_team is explicitly excluded here (contract §5.1, §9).
+    function canPublishChurchMessages(churchId) {
+      return hasRole(churchId, ['pastor', 'admin', 'communications']);
+    }
+
+    // pastor | admin | media_team
+    // May create/update sermon metadata and manage source media.
+    function canManageMedia(churchId) {
+      return hasRole(churchId, ['pastor', 'admin', 'media_team']);
+    }
+
+    // ========================================================================
+    // /users/{uid}  –  Global user profiles
+    // ========================================================================
     match /users/{uid} {
-      // Users can only read/write their own profile
+      // Users may read and update their own profile only.
       allow read, update: if isAuthenticated() && request.auth.uid == uid;
-      // Create allowed for new users setting up profile
+
+      // New profile creation is allowed for the authenticated user.
+      // The joinChurch function also writes here (merge), so the client
+      // can create a stub profile on first sign-in before joining a church.
       allow create: if isAuthenticated() && request.auth.uid == uid;
-      // Delete not allowed from client
+
+      // Deletion is not permitted from the client.
       allow delete: if false;
+
+      // ======================================================================
+      // /users/{uid}/preferences/communication
+      // ======================================================================
+      // Optional synced communication preferences (contract §7.2).
+      // Users control only their own preferences.
+      match /preferences/communication {
+        allow read, write: if isAuthenticated() && request.auth.uid == uid;
+      }
+
+      // ======================================================================
+      // /users/{uid}/fcmTokens/{tokenId}
+      // ======================================================================
+      // FCM push tokens (contract §7.3).
+      // Users manage only their own tokens.
+      match /fcmTokens/{tokenId} {
+        allow read, create, update, delete: if isAuthenticated() && request.auth.uid == uid;
+      }
     }
 
-    // ============================================
-    // /churches/{churchId} - Church tenant roots
-    // ============================================
+    // ========================================================================
+    // /churches/{churchId}  –  Church tenant roots
+    // ========================================================================
     match /churches/{churchId} {
-      // Members can read their church's basic info
-      allow read: if isMemberOf(churchId);
+      // Active members may read their church's public metadata.
+      allow read: if isActiveMemberOf(churchId);
 
-      // Only pastor/admin can update church settings
+      // Only pastor or admin may update church settings.
       allow update: if isPastorOrAdmin(churchId);
 
-      // Create/delete managed by backend only
+      // Church creation and deletion are backend-only operations.
       allow create, delete: if false;
 
-      // ============================================
-      // /churches/{churchId}/private/{docId} - Server-only data
-      // ============================================
-      // Contains joinCodeHash and other sensitive config
-      // NO client read access - Cloud Functions only
+      // ======================================================================
+      // /churches/{churchId}/private/{docId}  –  Server-only config
+      // ======================================================================
+      // Contains joinCodeHash, joinCodeSalt, and other sensitive config.
+      // NO client read or write access. Cloud Functions use Admin SDK.
       match /private/{docId} {
         allow read, write: if false;
       }
 
-      // ============================================
+      // ======================================================================
       // /churches/{churchId}/members/{uid}
-      // ============================================
+      // ======================================================================
       match /members/{uid} {
-        // Members can read other members in their church (for display)
-        allow read: if isMemberOf(churchId);
+        // Active members may read member profiles within their church.
+        // (Needed for display names, role badges in UI.)
+        allow read: if isActiveMemberOf(churchId);
 
-        // Members can update their own profile (limited fields)
+        // Members may update limited fields on their own profile.
         allow update: if isAuthenticated() &&
-                        request.auth.uid == uid &&
-                        isMemberOf(churchId) &&
-                        // Only allow updating these fields
-                        request.resource.data.diff(resource.data).affectedKeys()
-                          .hasOnly(['displayName', 'lastActiveAt']);
+                         request.auth.uid == uid &&
+                         isActiveMemberOf(churchId) &&
+                         request.resource.data.diff(resource.data).affectedKeys()
+                           .hasOnly(['displayName', 'lastActiveAt']);
 
-        // Pastor/admin can update any member (role changes, status)
+        // Pastor or admin may update any member (role changes, status).
         allow update: if isPastorOrAdmin(churchId);
 
-        // Create handled by Cloud Function (joinChurch)
+        // Creation is handled exclusively by the joinChurch Cloud Function.
         allow create: if false;
 
-        // Delete (leave church) - user can remove self, admin can remove others
+        // A member may remove themselves; pastor/admin may remove others.
         allow delete: if isAuthenticated() &&
-                        (request.auth.uid == uid || isPastorOrAdmin(churchId));
+                         (request.auth.uid == uid || isPastorOrAdmin(churchId));
       }
 
-      // ============================================
+      // ======================================================================
       // /churches/{churchId}/sermons/{sermonId}
-      // ============================================
+      // ======================================================================
       match /sermons/{sermonId} {
-        // All church members can read sermons
-        allow read: if isMemberOf(churchId);
+        // All active members may read published sermon metadata.
+        allow read: if isActiveMemberOf(churchId);
 
-        // Only pastor/admin can create/update/delete sermons
-        allow create, update, delete: if isPastorOrAdmin(churchId);
+        // Sermon metadata may be created or updated by pastor, admin, or
+        // media_team. Approval/publish status transitions are enforced in
+        // Cloud Functions (Phase 6+).
+        allow create, update: if canManageMedia(churchId);
 
-        // ============================================
+        // Deletion requires pastor or admin.
+        allow delete: if isPastorOrAdmin(churchId);
+
+        // ====================================================================
         // /churches/{churchId}/sermons/{sermonId}/transcripts/{versionId}
-        // ============================================
+        // ====================================================================
+        // Raw STT transcript artifacts (contract §7.8).
+        // Read restricted to staff who manage content; write is function-only
+        // (transcribeOnUpload, Phase 7).
         match /transcripts/{versionId} {
-          // Members can read transcripts
-          allow read: if isMemberOf(churchId);
-
-          // Only pastor/admin can manage transcripts
-          allow create, update, delete: if isPastorOrAdmin(churchId);
+          allow read: if isPastorOrAdmin(churchId) || canManageMedia(churchId);
+          allow create, update, delete: if false;
         }
       }
 
-      // ============================================
+      // ======================================================================
       // /churches/{churchId}/formationWeeks/{weekId}
-      // ============================================
+      // ======================================================================
       match /formationWeeks/{weekId} {
-        // All church members can read formation content
-        allow read: if isMemberOf(churchId);
+        // All active members may read published formation content.
+        allow read: if isActiveMemberOf(churchId);
 
-        // Only pastor/admin can create/update/delete formation content
+        // Only pastor or admin may manage formation content lifecycle.
+        // (Creation via generateFormationContent function in Phase 8.)
         allow create, update, delete: if isPastorOrAdmin(churchId);
       }
 
-      // ============================================
+      // ======================================================================
       // /churches/{churchId}/careRequests/{requestId}
-      // ============================================
+      // ======================================================================
       match /careRequests/{requestId} {
-        // ONLY pastor/admin can read care requests (privacy)
-        allow read: if isPastorOrAdmin(churchId);
+        // Care queue is visible only to care-eligible staff roles.
+        // Members do NOT read the full care queue (contract §14).
+        allow read: if isCareStaff(churchId);
 
-        // Members can create care requests for their church
-        // Must set their own UID as submitter
-        allow create: if isMemberOf(churchId) &&
-                        request.resource.data.submitterId == request.auth.uid &&
-                        request.resource.data.status == 'pending' &&
-                        request.resource.data.type in ['prayer', 'testimony', 'care_support'];
+        // Creation is handled exclusively by the submitCareRequest Cloud
+        // Function (Phase 3). Client-side direct writes are blocked to
+        // guarantee workflow integrity (server timestamps, thread seeding).
+        allow create: if false;
 
-        // Only pastor/admin can update care requests (status changes)
-        allow update: if isPastorOrAdmin(churchId);
+        // Care staff may update care request status / workflow fields.
+        allow update: if isCareStaff(churchId);
 
-        // Only pastor/admin can delete
+        // Only pastor or admin may delete care requests.
         allow delete: if isPastorOrAdmin(churchId);
       }
 
-      // ============================================
+      // ======================================================================
+      // /churches/{churchId}/careThreads/{threadId}
+      // ======================================================================
+      // Private one-time care follow-up threads (contract §7.11).
+      //
+      // Access model:
+      //   - A member may read only the thread where memberUserId == uid.
+      //   - Care staff (pastor | admin | care_team) may read all threads.
+      //   - All writes are function-only (submitCareRequest / respondToCareThread).
+      //
+      // MVP: maxChurchReplies is always 1. Thread closes after church reply.
+      // Enforcement of the one-reply rule is in Cloud Functions, not here.
+      match /careThreads/{threadId} {
+        allow read: if isCareStaff(churchId) ||
+                       (isActiveMemberOf(churchId) &&
+                        resource.data.memberUserId == request.auth.uid);
+
+        // All mutations are function-only. Functions use Admin SDK and bypass
+        // these rules, enforcing maxChurchReplies and status transitions.
+        allow create, update, delete: if false;
+
+        // ====================================================================
+        // /churches/{churchId}/careThreads/{threadId}/messages/{messageId}
+        // ====================================================================
+        // Messages inside a care thread (contract §7.12).
+        //
+        // Access model:
+        //   - A member may read messages only if they own the parent thread.
+        //   - Care staff may read all messages in all threads.
+        //   - All writes are function-only.
+        //
+        // The get() call reads the parent thread to verify memberUserId.
+        // This is one additional read per message list/get for members;
+        // acceptable given thread sizes (1–2 messages in MVP).
+        match /messages/{messageId} {
+          allow read: if isCareStaff(churchId) ||
+                         (isActiveMemberOf(churchId) &&
+                          get(/databases/$(database)/documents/churches/$(churchId)/careThreads/$(threadId)).data.memberUserId == request.auth.uid);
+
+          allow create, update, delete: if false;
+        }
+      }
+
+      // ======================================================================
+      // /churches/{churchId}/churchMessages/{messageId}
+      // ======================================================================
+      // Church-wide inbound-only broadcast feed (contract §7.13).
+      //
+      // Access model:
+      //   - Active members may read church messages (member app feed).
+      //   - Only pastor, admin, or communications may publish/update/delete.
+      //   - media_team is explicitly excluded from write access (contract §9).
+      //   - Members may NOT write, reply, or delete.
+      match /churchMessages/{messageId} {
+        allow read: if isActiveMemberOf(churchId);
+
+        // TODO (Phase 4): move create/update/delete to publishChurchMessage
+        // Cloud Function so feature-gate enforcement (church.features.churchMessages)
+        // is applied server-side. Until then, role enforcement is correct here.
+        allow create, update, delete: if canPublishChurchMessages(churchId);
+      }
+
+      // ======================================================================
       // /churches/{churchId}/analyticsWeekly/{weekStartDate}
-      // ============================================
+      // ======================================================================
+      // Aggregate-only weekly analytics (contract §7.14).
+      // Write is function-only (computeWeeklyAnalytics, Phase 9).
       match /analyticsWeekly/{weekStartDate} {
-        // Only pastor/admin can read analytics
+        // Only pastor or admin may read analytics.
         allow read: if isPastorOrAdmin(churchId);
 
-        // Write handled by Cloud Function only
+        // Write is Cloud Function only.
         allow create, update, delete: if false;
       }
     }
 
-    // ============================================
-    // EXPLICIT DENIALS - No other paths allowed
-    // ============================================
-
-    // No top-level collections allowed (flat collections denied)
-    // e.g., /sermons, /careRequests, /journals are all denied
-
-    // No journal paths exist - journals are local-only
-    // Any attempt to read/write /journals/* is denied by default
+    // ========================================================================
+    // EXPLICIT DENIAL NOTES
+    // ========================================================================
+    // All paths not matched above are denied by the default-deny posture.
+    //
+    // The following paths do not exist and must never be added without a
+    // deliberate contract revision:
+    //   /journals/*          – journals are local-only (contract §2.1)
+    //   /moodNotes/*         – mood notes are local-only (contract §2.1)
+    //   /reflections/*       – reflection text is local-only (contract §2.1)
+    //   /pastoralNotes/*     – no hidden pastoral notes in MVP (contract §8.3)
+    //   /prayerWall/*        – no public prayer wall (contract §2.3)
   }
 }
