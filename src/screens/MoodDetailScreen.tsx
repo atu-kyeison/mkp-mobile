@@ -34,7 +34,7 @@ const MOOD_DETAILS: Record<
     icon: 'favorite',
     titleKey: 'moodDetail.title.grateful',
     descriptionKey: 'moodDetail.desc.grateful',
-    iconOffset: { x: -1, y: 1 },
+    iconOffset: { x: 0, y: 1 },
   },
   peaceful: {
     icon: 'filter-vintage',

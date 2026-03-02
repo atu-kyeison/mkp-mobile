@@ -8,7 +8,7 @@ import { GlassCard } from '../components/GlassCard';
 import { useI18n } from '../i18n/I18nProvider';
 
 const MOODS = [
-  { id: 'peaceful', label: 'Peaceful', icon: 'self-improvement' as const, iconOffset: { x: -1, y: 1 } },
+  { id: 'peaceful', label: 'Peaceful', icon: 'filter-vintage' as const, iconOffset: { x: 0, y: 0 } },
   { id: 'rushed', label: 'Rushed', icon: 'bolt' as const, iconOffset: { x: 1, y: 0 } },
   { id: 'anxious', label: 'Anxious', icon: 'waves' as const, iconOffset: { x: 0, y: 1 } },
   { id: 'grateful', label: 'Grateful', icon: 'favorite' as const, iconOffset: { x: 0, y: 1 } },
