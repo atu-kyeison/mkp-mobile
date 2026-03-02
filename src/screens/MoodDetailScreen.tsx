@@ -72,7 +72,10 @@ export const MoodDetailScreen = ({ navigation, route }: any) => {
     [localeTag]
   );
   const dateStr = route.params?.date || fallbackDate || t('moodDetail.defaultDate');
-  const linkedEntry = route.params?.entryId ? getJournalEntryById(route.params.entryId) : null;
+  const routeEntry = route.params?.entry || null;
+  const linkedEntry =
+    routeEntry ||
+    (route.params?.entryId ? getJournalEntryById(route.params.entryId) : null);
 
   return (
     <BackgroundGradient style={styles.container}>

@@ -68,6 +68,7 @@ export const PastAwarenessListScreen = ({ navigation }: any) => {
                       moodId,
                       date: dateLabel,
                       entryId: entry.id,
+                      entry,
                     })
                   }
                 >
