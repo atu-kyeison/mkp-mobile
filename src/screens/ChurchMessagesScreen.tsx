@@ -36,18 +36,26 @@ export const ChurchMessagesScreen = ({ navigation }: any) => {
             </GlassCard>
           ) : (
             messages.map((message) => (
-              <GlassCard key={message.id} style={styles.messageCard}>
-                <Text style={styles.messageKind}>{t(`churchMessages.kind.${message.kind}`)}</Text>
-                <Text style={styles.messageTitle}>{message.title}</Text>
-                <Text style={styles.messageDate}>
-                  {new Date(message.createdAt).toLocaleDateString(localeTag, {
-                    weekday: 'short',
-                    month: 'short',
-                    day: 'numeric',
-                  }).toUpperCase()}
-                </Text>
-                <Text style={styles.messageBody}>{message.body}</Text>
-              </GlassCard>
+              <TouchableOpacity
+                key={message.id}
+                onPress={() => navigation.navigate('ChurchMessageDetail', { message })}
+              >
+                <GlassCard style={styles.messageCard}>
+                  <View style={styles.cardHeader}>
+                    <Text style={styles.messageKind}>{t(`churchMessages.kind.${message.kind}`)}</Text>
+                    <MaterialIcons name="chevron-right" size={18} color="rgba(229,185,95,0.46)" />
+                  </View>
+                  <Text style={styles.messageTitle}>{message.title}</Text>
+                  <Text style={styles.messageDate}>
+                    {new Date(message.createdAt).toLocaleDateString(localeTag, {
+                      weekday: 'short',
+                      month: 'short',
+                      day: 'numeric',
+                    }).toUpperCase()}
+                  </Text>
+                  <Text style={styles.messageBody} numberOfLines={3}>{message.body}</Text>
+                </GlassCard>
+              </TouchableOpacity>
             ))
           )}
         </ScrollView>
@@ -70,6 +78,7 @@ const styles = StyleSheet.create({
   emptyTitle: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 24, color: Colors.text, textAlign: 'center', marginBottom: 10 },
   emptyBody: { fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 22, color: 'rgba(255,255,255,0.7)', textAlign: 'center' },
   messageCard: { padding: 18, borderRadius: 24, marginBottom: 14, backgroundColor: 'rgba(13, 27, 42, 0.62)' },
+  cardHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 },
   messageKind: { fontFamily: 'Cinzel_700Bold', fontSize: 10, letterSpacing: 2, color: Colors.accentGold, textTransform: 'uppercase', marginBottom: 10 },
   messageTitle: { fontFamily: 'PlayfairDisplay_400Regular', fontSize: 22, color: Colors.text, marginBottom: 8 },
   messageDate: { fontFamily: 'Inter_400Regular', fontSize: 11, color: 'rgba(255,255,255,0.42)', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12 },
