@@ -21,6 +21,7 @@ import { ReflectionDetailScreen } from '../screens/ReflectionDetailScreen';
 import { MoodDetailScreen } from '../screens/MoodDetailScreen';
 import { JourneyHistoryScreen } from '../screens/JourneyHistoryScreen';
 import { InsightsScreen } from '../screens/InsightsScreen';
+import { PastAwarenessListScreen } from '../screens/PastAwarenessListScreen';
 import { TechnicalSupportScreen } from '../screens/TechnicalSupportScreen';
 import { SundaySummaryDetailScreen } from '../screens/SundaySummaryDetailScreen';
 
@@ -43,6 +44,7 @@ const JourneyStackNavigator = () => {
       <JourneyStack.Screen name="ReflectionEntry" component={ReflectionEntryScreen} />
       <JourneyStack.Screen name="ReflectionDetail" component={ReflectionDetailScreen} />
       <JourneyStack.Screen name="MoodDetail" component={MoodDetailScreen} />
+      <JourneyStack.Screen name="PastAwarenessList" component={PastAwarenessListScreen} />
       <JourneyStack.Screen name="Insights" component={InsightsScreen} />
       <JourneyStack.Screen name="SundaySummaryDetail" component={SundaySummaryDetailScreen} />
     </JourneyStack.Navigator>

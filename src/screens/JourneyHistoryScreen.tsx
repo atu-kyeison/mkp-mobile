@@ -9,6 +9,7 @@ import { GlassCard } from '../components/GlassCard';
 import { useI18n } from '../i18n/I18nProvider';
 import { useTheme } from '../theme/ThemeProvider';
 import { getJournalEntries, JournalEntry } from '../storage/journalStore';
+import { buildJourneyPreviewEntries } from '../utils/journeyPreview';
 
 type CalendarDay = {
   day: number;
@@ -19,8 +20,6 @@ type CalendarDay = {
   sunday?: boolean;
 };
 
-const SAMPLE_MOODS = ['peaceful', 'rushed', 'anxious', 'grateful', 'tired', 'focused'] as const;
-
 const MOOD_EMOJI: Record<string, string> = {
   anxious: '⛈️',
   rushed: '🌬️',
@@ -28,53 +27,6 @@ const MOOD_EMOJI: Record<string, string> = {
   grateful: '☀️',
   peaceful: '🌤️',
   focused: '🌅',
-};
-
-const buildSampleEntries = (locale: 'en' | 'es'): JournalEntry[] => {
-  const today = new Date();
-
-  return SAMPLE_MOODS.map((mood, index) => {
-    const entryDate = new Date(today);
-    entryDate.setDate(today.getDate() - index);
-    entryDate.setHours(9, 0, 0, 0);
-
-    return {
-      id: `sample-${mood}-${index}`,
-      createdAt: entryDate.toISOString(),
-      body:
-        locale === 'es'
-          ? mood === 'peaceful'
-            ? 'Hoy sentí una quietud serena y noté cuánto se aligeró mi espíritu cuando bajé el ritmo.'
-            : mood === 'rushed'
-              ? 'Todo se sintió rápido hoy. Necesité pausar y dejar que Dios reiniciara mi ritmo.'
-              : mood === 'anxious'
-                ? 'Había tensión bajo la superficie, pero nombrarla me ayudó a dejar de cargarla solo.'
-                : mood === 'grateful'
-                  ? 'Noté varios regalos pequeños hoy y sentí cómo mi corazón se suavizaba en gratitud.'
-                  : mood === 'tired'
-                    ? 'Mi cuerpo y mi mente se sintieron agotados, así que elegí el descanso en lugar de forzar más.'
-                    : 'Mi atención se sintió inusualmente clara hoy, y quise mantenerme alineado con lo que más importa.'
-          : mood === 'peaceful'
-            ? 'I felt a quiet steadiness today and noticed how much lighter my spirit became when I slowed down.'
-            : mood === 'rushed'
-              ? 'Everything felt fast today. I needed to pause and let God reset my pace.'
-              : mood === 'anxious'
-                ? 'There was tension under the surface, but naming it helped me stop carrying it alone.'
-                : mood === 'grateful'
-                  ? 'I noticed several small gifts today and felt my heart soften in gratitude.'
-                  : mood === 'tired'
-                    ? 'My body and mind felt worn down, so I chose rest over forcing more output.'
-                    : 'My attention felt unusually clear today, and I wanted to stay aligned with what mattered most.',
-      invitationText:
-        locale === 'es'
-          ? 'Un momento sencillo de conciencia se volvió parte de la formación de hoy.'
-          : 'A simple moment of awareness became part of today’s formation.',
-      journalVariant: 'mid_week',
-      mood,
-      linkedSermonTitle: index % 2 === 0 ? (locale === 'es' ? 'Permanece y descansa' : 'Abide and Remain') : undefined,
-      linkedSermonUrl: index % 2 === 0 ? 'https://www.youtube.com/' : undefined,
-    };
-  });
 };
 
 const toIsoDate = (date: Date) => {
@@ -128,7 +80,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
   const sheetTranslateY = useMemo(() => new Animated.Value(0), []);
 
   const displayEntries = useMemo(
-    () => (entries.length > 0 ? entries : buildSampleEntries(locale)),
+    () => (entries.length > 0 ? entries : buildJourneyPreviewEntries(locale)),
     [entries, locale]
   );
 
@@ -152,14 +104,6 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
   const calendarDays = useMemo(() => buildCalendarDays(monthCursor, entriesByDate), [monthCursor, entriesByDate]);
 
   const localeTag = locale === 'es' ? 'es-ES' : 'en-US';
-  const quickMoodDate = useMemo(
-    () =>
-      new Date()
-        .toLocaleDateString(localeTag, { weekday: 'long', month: 'short', day: 'numeric' })
-        .replace(',', ' -'),
-    [localeTag]
-  );
-
   const journeyItems = useMemo(
     () =>
       displayEntries.map((entry) => ({
@@ -195,11 +139,6 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
       return haystack.includes(normalizedSearch);
     });
   }, [journeyItems, normalizedSearch, t]);
-
-  const latestMoodEntry = useMemo(
-    () => displayEntries.find((entry) => Boolean(entry.mood)) || null,
-    [displayEntries]
-  );
 
   const detailTitle = useMemo(() => {
     if (!selectedDay) return '';
@@ -334,18 +273,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.quickLinkButton}
-                onPress={() =>
-                  navigation.navigate('MoodDetail', {
-                    moodId: latestMoodEntry?.mood || 'peaceful',
-                    date:
-                      latestMoodEntry
-                        ? new Date(latestMoodEntry.createdAt)
-                            .toLocaleDateString(localeTag, { weekday: 'long', month: 'short', day: 'numeric' })
-                            .replace(',', ' -')
-                        : quickMoodDate,
-                    entryId: latestMoodEntry?.id,
-                  })
-                }
+                onPress={() => navigation.navigate('PastAwarenessList')}
               >
                 <Text style={styles.quickLinkText}>{t('journey.quick.awareness')}</Text>
               </TouchableOpacity>
