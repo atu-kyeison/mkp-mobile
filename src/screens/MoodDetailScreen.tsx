@@ -37,10 +37,10 @@ const MOOD_DETAILS: Record<
     iconOffset: { x: -1, y: 1 },
   },
   peaceful: {
-    icon: 'self-improvement',
+    icon: 'filter-vintage',
     titleKey: 'moodDetail.title.peaceful',
     descriptionKey: 'moodDetail.desc.peaceful',
-    iconOffset: { x: 0, y: 1 },
+    iconOffset: { x: 0, y: 0 },
   },
   focused: {
     icon: 'center-focus-strong',

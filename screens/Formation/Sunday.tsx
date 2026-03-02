@@ -7,7 +7,32 @@ import { GlassCard } from '../../components/GlassCard';
 import { openChurchMessage, openScriptureReference } from '../../constants/Actions';
 import { useI18n } from '../../src/i18n/I18nProvider';
 
-export default function Sunday({ navigation }: any) {
+type SundayScriptureEntry = {
+  quote?: string;
+  text?: string;
+  reference: string;
+};
+
+type SundayPayload = {
+  sermonTitle?: string;
+  sermonPart?: string;
+  scriptureRef?: string;
+  preacherName?: string;
+  churchName?: string;
+  messageUrl?: string;
+  recapLabel?: string;
+  recapParagraphs?: string[];
+  recapText?: string;
+  keyTruths?: string;
+  truths?: string[];
+  scriptureSection?: string;
+  scriptures?: SundayScriptureEntry[];
+  identityLabel?: string;
+  identityMain?: string;
+  footer?: string;
+};
+
+export default function Sunday({ navigation, route }: any) {
   const insets = useSafeAreaInsets();
   const { locale } = useI18n();
   const localeTag = locale === 'es' ? 'es-ES' : 'en-US';
@@ -15,7 +40,7 @@ export default function Sunday({ navigation }: any) {
     .toLocaleDateString(localeTag, { weekday: 'long', month: 'short', day: 'numeric' })
     .replace(',', ' •');
   const isEs = locale === 'es';
-  const copy = isEs
+  const defaultCopy = isEs
     ? {
         sermonTitle: 'La Vid y los Pámpanos',
         sermonPart: 'Parte 1',
@@ -90,6 +115,28 @@ export default function Sunday({ navigation }: any) {
           'May you find rest tonight knowing your identity is secure in the Beloved. You are held, you are known, and you are cherished.',
         footer: 'Formation begins tomorrow.',
       };
+  const payload: SundayPayload | undefined = route?.params?.content;
+  const recapParagraphs =
+    payload?.recapParagraphs && payload.recapParagraphs.length > 0
+      ? payload.recapParagraphs
+      : payload?.recapText
+        ? [payload.recapText]
+        : defaultCopy.recapParagraphs;
+  const truths = payload?.truths && payload.truths.length > 0 ? payload.truths : defaultCopy.truths;
+  const scriptures =
+    payload?.scriptures && payload.scriptures.length > 0
+      ? payload.scriptures.map((entry) => ({
+          quote: entry.quote || entry.text || '',
+          reference: entry.reference,
+        }))
+      : defaultCopy.scriptures;
+  const copy = {
+    ...defaultCopy,
+    ...payload,
+    recapParagraphs,
+    truths,
+    scriptures,
+  };
   return (
     <GradientBackground variant="sacred" style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
@@ -106,7 +153,7 @@ export default function Sunday({ navigation }: any) {
 
             <TouchableOpacity
               style={styles.listenLink}
-              onPress={() => openChurchMessage()}
+              onPress={() => openChurchMessage(copy.messageUrl)}
             >
               <Text style={styles.listenLinkText}>{copy.listen}</Text>
             </TouchableOpacity>

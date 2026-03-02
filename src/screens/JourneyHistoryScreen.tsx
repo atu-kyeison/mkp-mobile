@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Modal, StyleSheet, View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Animated, PanResponder } from 'react-native';
+import { Modal, StyleSheet, View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Animated, PanResponder, TextInput } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { Colors } from '../../constants/Colors';
@@ -124,6 +124,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
   const [detailState, setDetailState] = useState<'loading' | 'ready' | 'empty' | 'error'>('loading');
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [selectedDayEntries, setSelectedDayEntries] = useState<JournalEntry[]>([]);
+  const [searchQuery, setSearchQuery] = useState('');
   const sheetTranslateY = useMemo(() => new Animated.Value(0), []);
 
   const displayEntries = useMemo(
@@ -175,6 +176,25 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
     [displayEntries, localeTag, t]
   );
 
+  const normalizedSearch = searchQuery.trim().toLowerCase();
+
+  const filteredJourneyItems = useMemo(() => {
+    if (!normalizedSearch) return journeyItems;
+
+    return journeyItems.filter((item) => {
+      const haystack = [
+        item.date,
+        item.type,
+        item.content,
+        item.invitation,
+        item.mood ? t(`mood.label.${item.mood}`) : '',
+      ]
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(normalizedSearch);
+    });
+  }, [journeyItems, normalizedSearch, t]);
+
   const latestMoodEntry = useMemo(
     () => displayEntries.find((entry) => Boolean(entry.mood)) || null,
     [displayEntries]
@@ -196,6 +216,22 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
     () => journeyItems.filter((item) => favoriteIds.includes(item.id)),
     [favoriteIds, journeyItems]
   );
+
+  const filteredFavoriteItems = useMemo(() => {
+    if (!normalizedSearch) return favoriteItems;
+    return favoriteItems.filter((item) => {
+      const haystack = [
+        item.date,
+        item.type,
+        item.content,
+        item.invitation,
+        item.mood ? t(`mood.label.${item.mood}`) : '',
+      ]
+        .join(' ')
+        .toLowerCase();
+      return haystack.includes(normalizedSearch);
+    });
+  }, [favoriteItems, normalizedSearch, t]);
 
   const resolveDayState = (day: CalendarDay) => {
     setDetailState('loading');
@@ -314,6 +350,22 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
               </TouchableOpacity>
             </View>
 
+            <View style={styles.searchWrap}>
+              <MaterialIcons name="search" size={18} color="rgba(229, 185, 95, 0.72)" />
+              <TextInput
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder={t('journey.search.placeholder')}
+                placeholderTextColor="rgba(255,255,255,0.36)"
+                style={styles.searchInput}
+              />
+              {searchQuery ? (
+                <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={10}>
+                  <MaterialIcons name="close" size={16} color="rgba(255,255,255,0.54)" />
+                </TouchableOpacity>
+              ) : null}
+            </View>
+
             <View style={styles.timelineLine} />
             {journeyItems.length === 0 ? (
               <GlassCard style={styles.emptyPromptCard}>
@@ -330,8 +382,12 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                   <Text style={styles.favoritesCtaText}>{t('journey.favoritesCta')}</Text>
                 </TouchableOpacity>
               </GlassCard>
+            ) : filteredJourneyItems.length === 0 ? (
+              <GlassCard style={styles.emptyPromptCard}>
+                <Text style={styles.emptyPromptText}>{t('journey.search.empty')}</Text>
+              </GlassCard>
             ) : null}
-            {journeyItems.map((item) => (
+            {filteredJourneyItems.map((item) => (
               <View key={item.id} style={styles.itemContainer}>
                 <View style={styles.timelineDot} />
                 <View style={styles.itemContent}>
@@ -375,6 +431,21 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
           </ScrollView>
         ) : activeTab === 'FAVORITES' ? (
           <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 150 + insets.bottom }]} showsVerticalScrollIndicator={false}>
+            <View style={styles.searchWrap}>
+              <MaterialIcons name="search" size={18} color="rgba(229, 185, 95, 0.72)" />
+              <TextInput
+                value={searchQuery}
+                onChangeText={setSearchQuery}
+                placeholder={t('journey.search.placeholder')}
+                placeholderTextColor="rgba(255,255,255,0.36)"
+                style={styles.searchInput}
+              />
+              {searchQuery ? (
+                <TouchableOpacity onPress={() => setSearchQuery('')} hitSlop={10}>
+                  <MaterialIcons name="close" size={16} color="rgba(255,255,255,0.54)" />
+                </TouchableOpacity>
+              ) : null}
+            </View>
             {favoriteItems.length === 0 ? (
               <GlassCard style={styles.favoritesEmptyCard}>
                 <View style={styles.favoritesIconWrap}>
@@ -393,9 +464,13 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                   <Text style={styles.favoritesCtaText}>{t('journey.favoritesCta')}</Text>
                 </TouchableOpacity>
               </GlassCard>
+            ) : filteredFavoriteItems.length === 0 ? (
+              <GlassCard style={styles.emptyPromptCard}>
+                <Text style={styles.emptyPromptText}>{t('journey.search.empty')}</Text>
+              </GlassCard>
             ) : (
               <View style={styles.favoritesList}>
-                {favoriteItems.map((item) => (
+                {filteredFavoriteItems.map((item) => (
                   <GlassCard key={item.id} style={styles.favoriteItemCard}>
                     <View style={styles.itemHeaderRow}>
                       <Text style={styles.itemType}>{item.type}</Text>
@@ -640,6 +715,25 @@ const createStyles = () => StyleSheet.create({
   quickLinks: { flexDirection: 'row', gap: 12, marginBottom: 24 },
   quickLinkButton: { flex: 1, borderWidth: 1, borderColor: 'rgba(229, 185, 95, 0.35)', borderRadius: 14, paddingVertical: 12, alignItems: 'center', backgroundColor: 'rgba(13, 27, 42, 0.45)' },
   quickLinkText: { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1.8, color: Colors.accentGold },
+  searchWrap: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 185, 95, 0.18)',
+    backgroundColor: 'rgba(13, 27, 42, 0.48)',
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 11,
+    marginBottom: 24,
+  },
+  searchInput: {
+    flex: 1,
+    fontFamily: 'Inter_400Regular',
+    fontSize: 14,
+    color: 'rgba(255,255,255,0.9)',
+    paddingVertical: 0,
+  },
   timelineLine: { position: 'absolute', left: 24, top: 0, bottom: 0, width: 1, backgroundColor: 'rgba(229, 185, 95, 0.2)' },
   itemContainer: { flexDirection: 'row', marginBottom: 32 },
   timelineDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: 'rgba(229, 185, 95, 0.4)', borderWidth: 1, borderColor: 'rgba(229, 185, 95, 0.6)', position: 'absolute', left: -5.5, top: 16 },
