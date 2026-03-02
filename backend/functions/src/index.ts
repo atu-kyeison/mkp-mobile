@@ -5,13 +5,13 @@
  * Roadmap:   backend/roadmap-v1.md
  * Test plan: backend/test-plan-v1.md
  *
- * Phase 1 (this file): joinChurch
- * Phase 3 (next):      submitCareRequest, respondToCareThread
- * Phase 4 (next):      publishChurchMessage
- * Phase 5 (next):      notifyMemberCareReply, notifyChurchMessagePublished
- * Phase 7 (next):      transcribeOnUpload
- * Phase 8 (next):      generateFormationContent
- * Phase 9 (next):      computeWeeklyAnalytics
+ * Phase 1 (complete): joinChurch
+ * Phase 3 (complete): submitCareRequest, respondToCareThread
+ * Phase 4 (next):     publishChurchMessage
+ * Phase 5 (next):     notifyMemberCareReply, notifyChurchMessagePublished
+ * Phase 7 (next):     transcribeOnUpload
+ * Phase 8 (next):     generateFormationContent
+ * Phase 9 (next):     computeWeeklyAnalytics
  */
 
 import * as admin from "firebase-admin";
@@ -21,6 +21,36 @@ import { onCall, HttpsError } from "firebase-functions/v2/https";
 admin.initializeApp();
 
 const db = admin.firestore();
+
+// ---------------------------------------------------------------------------
+// Internal types
+// ---------------------------------------------------------------------------
+
+interface MemberData {
+  role: string;
+  status: string;
+  displayName: string;
+  email: string;
+}
+
+interface ChurchData {
+  name?: string;
+  features?: {
+    careThreads?: boolean;
+    churchMessages?: boolean;
+    mediaPipeline?: boolean;
+    sermonTranscription?: boolean;
+    formationGeneration?: boolean;
+    dashboardSSO?: boolean;
+  };
+}
+
+interface CareThreadData {
+  status: string;
+  churchReplyCount: number;
+  maxChurchReplies: number;
+  memberUserId: string;
+}
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -39,6 +69,41 @@ const db = admin.firestore();
 function hashJoinCode(salt: string, code: string): string {
   return crypto.createHash("sha256").update(salt + code).digest("hex");
 }
+
+/**
+ * Read and validate a church member document.
+ * Throws HttpsError if the member doesn't exist or is not active.
+ * Returns the member data for role checks.
+ */
+async function requireActiveMember(
+  churchId: string,
+  uid: string
+): Promise<MemberData> {
+  const snap = await db.doc(`churches/${churchId}/members/${uid}`).get();
+  if (!snap.exists) {
+    throw new HttpsError("permission-denied", "Not a member of this church.");
+  }
+  const data = snap.data() as MemberData;
+  if (data.status !== "active") {
+    throw new HttpsError("permission-denied", "Membership is not active.");
+  }
+  return data;
+}
+
+/**
+ * Read church document and return its data.
+ * Throws HttpsError if the church does not exist.
+ */
+async function requireChurch(churchId: string): Promise<ChurchData> {
+  const snap = await db.doc(`churches/${churchId}`).get();
+  if (!snap.exists) {
+    throw new HttpsError("not-found", "Church not found.");
+  }
+  return snap.data() as ChurchData;
+}
+
+// Roles that may access care queues and respond to care threads (contract §5.1).
+const CARE_STAFF_ROLES = new Set(["pastor", "admin", "care_team"]);
 
 // ---------------------------------------------------------------------------
 // Phase 1: joinChurch
@@ -96,16 +161,13 @@ export const joinChurch = onCall(
 
     const normalizedCode = joinCode.trim();
 
-    // ------------------------------------------------------------------
-    // 1. Read private config via Admin SDK.
-    //    Firestore rules block ALL client access to /private/{docId}.
-    //    Only Cloud Functions (admin credentials) can read this path.
-    // ------------------------------------------------------------------
+    // Read private config via Admin SDK.
+    // Firestore rules block ALL client access to /private/{docId}.
     const configRef = db.doc(`churches/${churchId}/private/config`);
     const configSnap = await configRef.get();
 
     if (!configSnap.exists) {
-      // Return generic error – do not confirm whether the church exists.
+      // Generic error – do not confirm whether the church exists.
       throw new HttpsError("not-found", "Invalid join code.");
     }
 
@@ -116,59 +178,31 @@ export const joinChurch = onCall(
     };
 
     if (!config.joinCodeHash || !config.joinCodeSalt) {
-      // Config exists but is missing required fields – treat as invalid.
       throw new HttpsError("not-found", "Invalid join code.");
     }
 
-    // ------------------------------------------------------------------
-    // 2. Validate join code.
-    // ------------------------------------------------------------------
     const computedHash = hashJoinCode(config.joinCodeSalt, normalizedCode);
     if (computedHash !== config.joinCodeHash) {
       throw new HttpsError("permission-denied", "Invalid join code.");
     }
 
-    // ------------------------------------------------------------------
-    // 3. Load church root document to return name in context.
-    // ------------------------------------------------------------------
-    const churchRef = db.doc(`churches/${churchId}`);
-    const churchSnap = await churchRef.get();
+    const church = await requireChurch(churchId);
 
-    if (!churchSnap.exists) {
-      // Should not happen if private/config exists, but guard anyway.
-      throw new HttpsError("not-found", "Church not found.");
-    }
-
-    const church = churchSnap.data() as { name?: string };
-
-    // ------------------------------------------------------------------
-    // 4. Load Firebase Auth record for display name / email.
-    // ------------------------------------------------------------------
     const userRecord = await admin.auth().getUser(uid);
     const now = admin.firestore.FieldValue.serverTimestamp();
 
-    // ------------------------------------------------------------------
-    // 5. Create or restore the membership document.
-    // ------------------------------------------------------------------
     const memberRef = db.doc(`churches/${churchId}/members/${uid}`);
     const memberSnap = await memberRef.get();
     let role = "member";
 
     if (memberSnap.exists) {
-      const existing = memberSnap.data() as { status: string; role: string };
-
+      const existing = memberSnap.data() as MemberData;
       if (existing.status === "blocked") {
         throw new HttpsError("permission-denied", "Unable to join this church.");
       }
-
       role = existing.role;
-
-      // Re-activate a member who previously left or became inactive.
       await memberRef.update({ status: "active", lastActiveAt: now });
     } else {
-      // New membership – always starts as 'member'.
-      // Role elevation (pastor, admin, etc.) is done by church admins,
-      // never through the join flow.
       await memberRef.set({
         displayName: userRecord.displayName ?? userRecord.email ?? uid,
         email: userRecord.email ?? "",
@@ -179,50 +213,298 @@ export const joinChurch = onCall(
       });
     }
 
-    // ------------------------------------------------------------------
-    // 6. Update the user's global profile.
-    //    merge:true preserves existing fields (email, displayName, etc.)
-    // ------------------------------------------------------------------
-    const userRef = db.doc(`users/${uid}`);
-    await userRef.set(
-      {
-        currentChurchId: churchId,
-        lastLoginAt: now,
-      },
+    // Update global user profile; merge preserves existing fields.
+    await db.doc(`users/${uid}`).set(
+      { currentChurchId: churchId, lastLoginAt: now },
       { merge: true }
     );
 
-    return {
-      churchId,
-      churchName: church.name ?? "",
-      role,
-    };
+    return { churchId, churchName: church.name ?? "", role };
   }
 );
 
 // ---------------------------------------------------------------------------
-// Phase 3 (deferred): submitCareRequest
+// Phase 3: submitCareRequest
 // ---------------------------------------------------------------------------
-// TODO: implement submitCareRequest
-//   Input:  { churchId, type, content, isAnonymous, preferredChannel, categoryId? }
-//   - verify active membership (role: member+)
-//   - write careRequests/{requestId} with submitterId = uid, status = 'pending'
-//   - if preferredChannel == 'in_app' && church.features.careThreads == true:
-//       create careThreads/{threadId}  (maxChurchReplies: 1, churchReplyCount: 0)
-//       seed first message: { senderType: 'member', senderUserId: uid, body: content }
-//   - return { requestId, threadId? }
+
+/**
+ * submitCareRequest
+ *
+ * Creates a care request for the calling member. If the request channel is
+ * in-app and the church has careThreads enabled, a private care thread is
+ * created and the member's initial message is seeded. All care writes are
+ * function-only; the client cannot write to careRequests or careThreads.
+ *
+ * Request data:
+ *   {
+ *     churchId:         string,
+ *     type:             'prayer' | 'testimony' | 'care_support',
+ *     content:          string,
+ *     isAnonymous:      boolean,
+ *     preferredChannel: 'in_app' | 'email',
+ *     categoryId?:      string
+ *   }
+ *
+ * Returns:
+ *   { requestId: string, threadId?: string }
+ *
+ * Errors:
+ *   unauthenticated      – no auth session
+ *   invalid-argument     – missing or invalid fields
+ *   permission-denied    – not an active member
+ *   not-found            – church not found
+ */
+export const submitCareRequest = onCall(
+  { enforceAppCheck: false },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Must be signed in.");
+    }
+
+    const uid = request.auth.uid;
+    const {
+      churchId,
+      type,
+      content,
+      isAnonymous,
+      preferredChannel,
+      categoryId,
+    } = request.data as {
+      churchId?: unknown;
+      type?: unknown;
+      content?: unknown;
+      isAnonymous?: unknown;
+      preferredChannel?: unknown;
+      categoryId?: unknown;
+    };
+
+    // Input validation
+    if (!churchId || typeof churchId !== "string" || churchId.trim() === "") {
+      throw new HttpsError("invalid-argument", "churchId is required.");
+    }
+    if (!type || !["prayer", "testimony", "care_support"].includes(type as string)) {
+      throw new HttpsError(
+        "invalid-argument",
+        "type must be prayer, testimony, or care_support."
+      );
+    }
+    if (!content || typeof content !== "string" || content.trim() === "") {
+      throw new HttpsError("invalid-argument", "content is required.");
+    }
+    if (!preferredChannel || !["in_app", "email"].includes(preferredChannel as string)) {
+      throw new HttpsError(
+        "invalid-argument",
+        "preferredChannel must be in_app or email."
+      );
+    }
+    if (categoryId !== undefined && typeof categoryId !== "string") {
+      throw new HttpsError("invalid-argument", "categoryId must be a string.");
+    }
+
+    // Verify active membership
+    const member = await requireActiveMember(churchId, uid);
+
+    // Load church to check feature flags
+    const church = await requireChurch(churchId);
+
+    const now = admin.firestore.FieldValue.serverTimestamp();
+    const shouldCreateThread =
+      preferredChannel === "in_app" &&
+      church.features?.careThreads === true;
+
+    // Pre-generate document references so IDs are known before any write.
+    const requestRef = db.collection(`churches/${churchId}/careRequests`).doc();
+    const requestId = requestRef.id;
+
+    let threadId: string | undefined;
+    let threadRef: admin.firestore.DocumentReference | undefined;
+    let messageRef: admin.firestore.DocumentReference | undefined;
+
+    if (shouldCreateThread) {
+      threadRef = db.collection(`churches/${churchId}/careThreads`).doc();
+      threadId = threadRef.id;
+      messageRef = threadRef.collection("messages").doc();
+    }
+
+    // Write all docs atomically.
+    const batch = db.batch();
+
+    batch.set(requestRef, {
+      type,
+      submitterId: uid,
+      // submitterName is stored server-side regardless of isAnonymous.
+      // The isAnonymous flag controls display in the pastoral interface;
+      // it does not remove the record from the care workflow (contract §7.10).
+      submitterName: member.displayName,
+      content: (content as string).trim(),
+      status: "pending",
+      isAnonymous: isAnonymous === true,
+      preferredChannel,
+      categoryId: (categoryId as string | undefined) ?? null,
+      threadId: threadId ?? null,
+      createdAt: now,
+      resolvedAt: null,
+      resolvedBy: null,
+    });
+
+    if (shouldCreateThread && threadRef && messageRef && threadId) {
+      batch.set(threadRef, {
+        requestId,
+        memberUserId: uid,
+        categoryId: (categoryId as string | undefined) ?? null,
+        preferredChannel,
+        status: "awaiting_reply",
+        maxChurchReplies: 1,    // locked MVP value (contract §7.11)
+        churchReplyCount: 0,
+        lastMessageAt: now,
+        createdAt: now,
+        updatedAt: now,
+      });
+
+      batch.set(messageRef, {
+        senderType: "member",
+        senderUserId: uid,
+        body: (content as string).trim(),
+        createdAt: now,
+      });
+    }
+
+    await batch.commit();
+
+    const result: { requestId: string; threadId?: string } = { requestId };
+    if (threadId) result.threadId = threadId;
+    return result;
+  }
+);
 
 // ---------------------------------------------------------------------------
-// Phase 3 (deferred): respondToCareThread
+// Phase 3: respondToCareThread
 // ---------------------------------------------------------------------------
-// TODO: implement respondToCareThread
-//   Input:  { churchId, threadId, body }
-//   - verify caller role is pastor | admin | care_team
-//   - verify church.features.careThreads == true
-//   - read careThreads/{threadId}; reject if churchReplyCount >= maxChurchReplies (1)
-//   - write messages/{messageId}: { senderType: 'church', senderUserId: uid, body }
-//   - atomically increment churchReplyCount and set status = 'closed'
-//   - trigger notifyMemberCareReply (Phase 5)
+
+/**
+ * respondToCareThread
+ *
+ * Allows an authorized church staff member to send the one permitted church
+ * reply in a private care thread. The thread is closed after this reply.
+ *
+ * The one-reply-max rule is enforced inside a Firestore transaction to
+ * prevent race conditions if two staff members attempt to reply simultaneously
+ * (contract §8.2, §13.3).
+ *
+ * Request data:
+ *   { churchId: string, threadId: string, body: string }
+ *
+ * Returns:
+ *   { threadId: string, messageId: string }
+ *
+ * Errors:
+ *   unauthenticated      – no auth session
+ *   invalid-argument     – missing or invalid fields
+ *   permission-denied    – not active care staff
+ *   not-found            – church or thread not found, or feature disabled
+ *   failed-precondition  – thread already closed or reply limit reached
+ */
+export const respondToCareThread = onCall(
+  { enforceAppCheck: false },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Must be signed in.");
+    }
+
+    const uid = request.auth.uid;
+    const { churchId, threadId, body } = request.data as {
+      churchId?: unknown;
+      threadId?: unknown;
+      body?: unknown;
+    };
+
+    // Input validation
+    if (!churchId || typeof churchId !== "string" || churchId.trim() === "") {
+      throw new HttpsError("invalid-argument", "churchId is required.");
+    }
+    if (!threadId || typeof threadId !== "string" || threadId.trim() === "") {
+      throw new HttpsError("invalid-argument", "threadId is required.");
+    }
+    if (!body || typeof body !== "string" || body.trim() === "") {
+      throw new HttpsError("invalid-argument", "body is required.");
+    }
+
+    // Verify active membership and role
+    const member = await requireActiveMember(churchId, uid);
+    if (!CARE_STAFF_ROLES.has(member.role)) {
+      throw new HttpsError(
+        "permission-denied",
+        "Not authorized to respond to care threads."
+      );
+    }
+
+    // Verify church feature gate
+    const church = await requireChurch(churchId);
+    if (church.features?.careThreads !== true) {
+      throw new HttpsError(
+        "not-found",
+        "Care threads are not enabled for this church."
+      );
+    }
+
+    const threadRef = db.doc(`churches/${churchId}/careThreads/${threadId}`);
+
+    // Use a transaction to atomically enforce the one-reply-max rule.
+    // Without a transaction, two simultaneous calls could both pass the
+    // count check and write two replies.
+    const messageId = await db.runTransaction(async (tx) => {
+      const threadSnap = await tx.get(threadRef);
+
+      if (!threadSnap.exists) {
+        throw new HttpsError("not-found", "Care thread not found.");
+      }
+
+      const thread = threadSnap.data() as CareThreadData;
+
+      if (thread.status === "closed") {
+        throw new HttpsError(
+          "failed-precondition",
+          "This care thread is already closed."
+        );
+      }
+
+      if (thread.churchReplyCount >= thread.maxChurchReplies) {
+        // Should not normally be reached if status transitions are correct,
+        // but guard defensively to enforce the contract hard limit.
+        throw new HttpsError(
+          "failed-precondition",
+          "Maximum church replies already sent for this thread."
+        );
+      }
+
+      const msgRef = threadRef.collection("messages").doc();
+      const now = admin.firestore.FieldValue.serverTimestamp();
+
+      tx.set(msgRef, {
+        senderType: "church",
+        senderUserId: uid,
+        body: (body as string).trim(),
+        createdAt: now,
+      });
+
+      tx.update(threadRef, {
+        churchReplyCount: admin.firestore.FieldValue.increment(1),
+        status: "closed",
+        lastMessageAt: now,
+        updatedAt: now,
+      });
+
+      return msgRef.id;
+    });
+
+    // TODO (Phase 5): trigger notifyMemberCareReply
+    //   - read memberUserId from thread (requires a separate read after tx)
+    //   - check /users/{memberUserId}/preferences/communication.careReplyNotificationsEnabled
+    //   - send FCM push if token exists and preference is true
+
+    return { threadId: threadId as string, messageId };
+  }
+);
 
 // ---------------------------------------------------------------------------
 // Phase 4 (deferred): publishChurchMessage
