@@ -184,7 +184,6 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
 
     return journeyItems.filter((item) => {
       const haystack = [
-        item.date,
         item.type,
         item.content,
         item.invitation,
@@ -223,7 +222,6 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
     if (!normalizedSearch) return favoriteItems;
     return favoriteItems.filter((item) => {
       const haystack = [
-        item.date,
         item.type,
         item.content,
         item.invitation,
