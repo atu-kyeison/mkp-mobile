@@ -92,56 +92,58 @@ export const MoodDetailScreen = ({ navigation, route }: any) => {
         >
           <View style={styles.content}>
           <GlassCard variant="large" style={styles.detailCard}>
-            <Text style={styles.cardSubtitle}>{t('moodDetail.innerPosture')}</Text>
+            <View style={styles.detailCardContent}>
+              <Text style={styles.cardSubtitle}>{t('moodDetail.innerPosture')}</Text>
 
-            <View style={styles.iconContainer}>
-              <View style={styles.iconFrame}>
-                <MaterialIcons
-                  name={detail.icon}
-                  size={68}
-                  color={Colors.accentGold}
-                  style={[
-                    styles.icon,
-                    detail.iconOffset
-                      ? {
-                          transform: [
-                            { translateX: detail.iconOffset.x || 0 },
-                            { translateY: detail.iconOffset.y || 0 },
-                          ],
-                        }
-                      : null,
-                  ]}
-                />
+              <View style={styles.iconContainer}>
+                <View style={styles.iconFrame}>
+                  <MaterialIcons
+                    name={detail.icon}
+                    size={68}
+                    color={Colors.accentGold}
+                    style={[
+                      styles.icon,
+                      detail.iconOffset
+                        ? {
+                            transform: [
+                              { translateX: detail.iconOffset.x || 0 },
+                              { translateY: detail.iconOffset.y || 0 },
+                            ],
+                          }
+                        : null,
+                    ]}
+                  />
+                </View>
               </View>
-            </View>
 
-            <Text style={styles.title}>{t(detail.titleKey)}</Text>
-            <Text style={styles.description}>{t(detail.descriptionKey)}</Text>
+              <Text style={styles.title}>{t(detail.titleKey)}</Text>
+              <Text style={styles.description}>{t(detail.descriptionKey)}</Text>
 
-            <TouchableOpacity
-              style={styles.journalButton}
-              onPress={() => {
-                if (linkedEntry) {
-                  navigation.navigate('ReflectionDetail', {
-                    entryId: linkedEntry.id,
-                    date: dateStr.toUpperCase(),
-                    invitation: linkedEntry.invitationText || '',
-                    mood: linkedEntry.mood,
-                    fromSunday: Boolean(linkedEntry.linkedSermonTitle),
-                    content: linkedEntry.body,
+              <TouchableOpacity
+                style={styles.journalButton}
+                onPress={() => {
+                  if (linkedEntry) {
+                    navigation.navigate('ReflectionDetail', {
+                      entryId: linkedEntry.id,
+                      date: dateStr.toUpperCase(),
+                      invitation: linkedEntry.invitationText || '',
+                      mood: linkedEntry.mood,
+                      fromSunday: Boolean(linkedEntry.linkedSermonTitle),
+                      content: linkedEntry.body,
+                    });
+                    return;
+                  }
+
+                  navigation.navigate('ReflectionEntry', {
+                    journalVariant: 'mid_week',
+                    fromMoodDetail: true,
                   });
-                  return;
-                }
-
-                navigation.navigate('ReflectionEntry', {
-                  journalVariant: 'mid_week',
-                  fromMoodDetail: true,
-                });
-              }}
+                }}
               >
-              <MaterialIcons name="history-edu" size={24} color={Colors.accentGold} />
-              <Text style={styles.journalButtonText}>{t('moodDetail.journalEntry')}</Text>
-            </TouchableOpacity>
+                <MaterialIcons name="history-edu" size={24} color={Colors.accentGold} />
+                <Text style={styles.journalButtonText}>{t('moodDetail.journalEntry')}</Text>
+              </TouchableOpacity>
+            </View>
           </GlassCard>
 
           <View style={styles.footerNoteContainer}>
@@ -204,10 +206,13 @@ const createStyles = () => StyleSheet.create({
   detailCard: {
     width: '100%',
     alignSelf: 'center',
-    alignItems: 'center',
-    justifyContent: 'center',
     paddingHorizontal: 30,
     paddingVertical: 28,
+  },
+  detailCardContent: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   cardSubtitle: {
     fontFamily: 'Cinzel_700Bold',
@@ -221,6 +226,7 @@ const createStyles = () => StyleSheet.create({
     width: 104,
     height: 104,
     borderRadius: 52,
+    alignSelf: 'center',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 24,
