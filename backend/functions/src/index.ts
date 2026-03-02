@@ -7,7 +7,7 @@
  *
  * Phase 1 (complete): joinChurch
  * Phase 3 (complete): submitCareRequest, respondToCareThread
- * Phase 4 (next):     publishChurchMessage
+ * Phase 4 (complete): publishChurchMessage
  * Phase 5 (next):     notifyMemberCareReply, notifyChurchMessagePublished
  * Phase 7 (next):     transcribeOnUpload
  * Phase 8 (next):     generateFormationContent
@@ -104,6 +104,10 @@ async function requireChurch(churchId: string): Promise<ChurchData> {
 
 // Roles that may access care queues and respond to care threads (contract §5.1).
 const CARE_STAFF_ROLES = new Set(["pastor", "admin", "care_team"]);
+
+// Roles that may publish church-wide messages (contract §9).
+// media_team is explicitly excluded.
+const CHURCH_MESSAGE_ROLES = new Set(["pastor", "admin", "communications"]);
 
 // ---------------------------------------------------------------------------
 // Phase 1: joinChurch
@@ -507,15 +511,136 @@ export const respondToCareThread = onCall(
 );
 
 // ---------------------------------------------------------------------------
-// Phase 4 (deferred): publishChurchMessage
+// Phase 4: publishChurchMessage
 // ---------------------------------------------------------------------------
-// TODO: implement publishChurchMessage
-//   Input:  { churchId, title, body, kind, audience, expiresAt? }
-//   - verify caller role is pastor | admin | communications
-//   - verify church.features.churchMessages == true
-//   - write churchMessages/{messageId}: { title, body, kind, audience,
-//       publishedBy: uid, createdAt, expiresAt? }
-//   - trigger notifyChurchMessagePublished (Phase 5)
+
+/**
+ * publishChurchMessage
+ *
+ * Creates a church-wide broadcast message. Only pastor, admin, or
+ * communications roles may publish. Members are read-only consumers of this
+ * feed; replies are not supported (contract §9).
+ *
+ * Request data:
+ *   {
+ *     churchId:   string,
+ *     title:      string,
+ *     body:       string,
+ *     kind:       'pastoral' | 'announcement' | 'reminder',
+ *     audience:   string,   // TODO: formalize allowed values (MVP default: 'all')
+ *     expiresAt?: string    // ISO 8601 date string, optional
+ *   }
+ *
+ * Returns:
+ *   { messageId: string }
+ *
+ * Errors:
+ *   unauthenticated   – no auth session
+ *   invalid-argument  – missing or invalid fields
+ *   permission-denied – not an authorized publishing role
+ *   not-found         – church not found, or churchMessages feature disabled
+ */
+export const publishChurchMessage = onCall(
+  { enforceAppCheck: false },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Must be signed in.");
+    }
+
+    const uid = request.auth.uid;
+    const { churchId, title, body, kind, audience, expiresAt } =
+      request.data as {
+        churchId?: unknown;
+        title?: unknown;
+        body?: unknown;
+        kind?: unknown;
+        audience?: unknown;
+        expiresAt?: unknown;
+      };
+
+    // Input validation
+    if (!churchId || typeof churchId !== "string" || churchId.trim() === "") {
+      throw new HttpsError("invalid-argument", "churchId is required.");
+    }
+    if (!title || typeof title !== "string" || title.trim() === "") {
+      throw new HttpsError("invalid-argument", "title is required.");
+    }
+    if (!body || typeof body !== "string" || body.trim() === "") {
+      throw new HttpsError("invalid-argument", "body is required.");
+    }
+    if (
+      !kind ||
+      !["pastoral", "announcement", "reminder"].includes(kind as string)
+    ) {
+      throw new HttpsError(
+        "invalid-argument",
+        "kind must be pastoral, announcement, or reminder."
+      );
+    }
+    if (!audience || typeof audience !== "string" || audience.trim() === "") {
+      throw new HttpsError("invalid-argument", "audience is required.");
+    }
+
+    // expiresAt is optional. If provided, must be a parseable ISO date string.
+    let expiresAtTimestamp: admin.firestore.Timestamp | null = null;
+    if (expiresAt !== undefined && expiresAt !== null) {
+      if (typeof expiresAt !== "string") {
+        throw new HttpsError(
+          "invalid-argument",
+          "expiresAt must be an ISO date string."
+        );
+      }
+      const parsed = Date.parse(expiresAt);
+      if (isNaN(parsed)) {
+        throw new HttpsError(
+          "invalid-argument",
+          "expiresAt must be a valid ISO date string."
+        );
+      }
+      expiresAtTimestamp = admin.firestore.Timestamp.fromDate(new Date(parsed));
+    }
+
+    // Verify active membership and role.
+    // media_team is excluded by CHURCH_MESSAGE_ROLES (contract §9).
+    const member = await requireActiveMember(churchId, uid);
+    if (!CHURCH_MESSAGE_ROLES.has(member.role)) {
+      throw new HttpsError(
+        "permission-denied",
+        "Not authorized to publish church messages."
+      );
+    }
+
+    // Verify church feature gate.
+    const church = await requireChurch(churchId);
+    if (church.features?.churchMessages !== true) {
+      throw new HttpsError(
+        "not-found",
+        "Church messages are not enabled for this church."
+      );
+    }
+
+    const now = admin.firestore.FieldValue.serverTimestamp();
+    const messageRef = db
+      .collection(`churches/${churchId}/churchMessages`)
+      .doc();
+
+    await messageRef.set({
+      title: (title as string).trim(),
+      body: (body as string).trim(),
+      kind,
+      audience: (audience as string).trim(),
+      publishedBy: uid,
+      createdAt: now,
+      expiresAt: expiresAtTimestamp,
+    });
+
+    // TODO (Phase 5): trigger notifyChurchMessagePublished
+    //   - fan-out FCM push to active members with tokens and
+    //     churchMessagesEnabled == true in /preferences/communication
+
+    return { messageId: messageRef.id };
+  }
+);
 
 // ---------------------------------------------------------------------------
 // Phase 5 (deferred): notification hooks
