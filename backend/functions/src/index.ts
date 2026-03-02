@@ -15,12 +15,18 @@
  */
 
 import * as admin from "firebase-admin";
+import {
+  getFirestore,
+  FieldValue,
+  Timestamp,
+  DocumentReference,
+} from "firebase-admin/firestore";
 import * as crypto from "crypto";
 import { onCall, HttpsError } from "firebase-functions/v2/https";
 
 admin.initializeApp();
 
-const db = admin.firestore();
+const db = getFirestore();
 
 // ---------------------------------------------------------------------------
 // Internal types
@@ -178,7 +184,7 @@ export const joinChurch = onCall(
     const config = configSnap.data() as {
       joinCodeHash?: string;
       joinCodeSalt?: string;
-      codeGeneratedAt?: admin.firestore.Timestamp;
+      codeGeneratedAt?: Timestamp;
     };
 
     if (!config.joinCodeHash || !config.joinCodeSalt) {
@@ -193,7 +199,7 @@ export const joinChurch = onCall(
     const church = await requireChurch(churchId);
 
     const userRecord = await admin.auth().getUser(uid);
-    const now = admin.firestore.FieldValue.serverTimestamp();
+    const now = FieldValue.serverTimestamp();
 
     const memberRef = db.doc(`churches/${churchId}/members/${uid}`);
     const memberSnap = await memberRef.get();
@@ -311,7 +317,7 @@ export const submitCareRequest = onCall(
     // Load church to check feature flags
     const church = await requireChurch(churchId);
 
-    const now = admin.firestore.FieldValue.serverTimestamp();
+    const now = FieldValue.serverTimestamp();
     const shouldCreateThread =
       preferredChannel === "in_app" &&
       church.features?.careThreads === true;
@@ -321,8 +327,8 @@ export const submitCareRequest = onCall(
     const requestId = requestRef.id;
 
     let threadId: string | undefined;
-    let threadRef: admin.firestore.DocumentReference | undefined;
-    let messageRef: admin.firestore.DocumentReference | undefined;
+    let threadRef: DocumentReference | undefined;
+    let messageRef: DocumentReference | undefined;
 
     if (shouldCreateThread) {
       threadRef = db.collection(`churches/${churchId}/careThreads`).doc();
@@ -482,7 +488,7 @@ export const respondToCareThread = onCall(
       }
 
       const msgRef = threadRef.collection("messages").doc();
-      const now = admin.firestore.FieldValue.serverTimestamp();
+      const now = FieldValue.serverTimestamp();
 
       tx.set(msgRef, {
         senderType: "church",
@@ -492,7 +498,7 @@ export const respondToCareThread = onCall(
       });
 
       tx.update(threadRef, {
-        churchReplyCount: admin.firestore.FieldValue.increment(1),
+        churchReplyCount: FieldValue.increment(1),
         status: "closed",
         lastMessageAt: now,
         updatedAt: now,
@@ -582,7 +588,7 @@ export const publishChurchMessage = onCall(
     }
 
     // expiresAt is optional. If provided, must be a parseable ISO date string.
-    let expiresAtTimestamp: admin.firestore.Timestamp | null = null;
+    let expiresAtTimestamp: Timestamp | null = null;
     if (expiresAt !== undefined && expiresAt !== null) {
       if (typeof expiresAt !== "string") {
         throw new HttpsError(
@@ -597,7 +603,7 @@ export const publishChurchMessage = onCall(
           "expiresAt must be a valid ISO date string."
         );
       }
-      expiresAtTimestamp = admin.firestore.Timestamp.fromDate(new Date(parsed));
+      expiresAtTimestamp = Timestamp.fromDate(new Date(parsed));
     }
 
     // Verify active membership and role.
@@ -619,7 +625,7 @@ export const publishChurchMessage = onCall(
       );
     }
 
-    const now = admin.firestore.FieldValue.serverTimestamp();
+    const now = FieldValue.serverTimestamp();
     const messageRef = db
       .collection(`churches/${churchId}/churchMessages`)
       .doc();
