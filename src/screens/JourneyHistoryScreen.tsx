@@ -170,6 +170,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
         invitation: entry.invitationText || '',
         mood: entry.mood,
         fromSunday: Boolean(entry.linkedSermonTitle),
+        sermonTitle: entry.linkedSermonTitle || '',
         sermonUrl: entry.linkedSermonUrl,
         isItalic: false,
       })),
@@ -187,6 +188,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
         item.type,
         item.content,
         item.invitation,
+        item.sermonTitle,
         item.mood ? t(`mood.label.${item.mood}`) : '',
       ]
         .join(' ')
@@ -225,6 +227,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
         item.type,
         item.content,
         item.invitation,
+        item.sermonTitle,
         item.mood ? t(`mood.label.${item.mood}`) : '',
       ]
         .join(' ')
