@@ -25,6 +25,12 @@ export default function CareHome({ navigation }: any) {
 
         <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: 112 + insets.bottom }]} showsVerticalScrollIndicator={false}>
           <View style={styles.section}>
+            <TouchableOpacity
+              style={styles.inboxButton}
+              onPress={() => navigation.navigate('CareInbox')}
+            >
+              <Text style={styles.inboxButtonText}>{t('care.home.inbox')}</Text>
+            </TouchableOpacity>
             <GlassCard withGlow style={styles.mainCard}>
               <Text style={styles.cardLabel}>{t('care.home.prayer.label')}</Text>
               <Text style={styles.cardText}>
@@ -107,6 +113,23 @@ const createStyles = () => StyleSheet.create({
   section: {
     alignItems: 'center',
     marginBottom: 16,
+  },
+  inboxButton: {
+    alignSelf: 'center',
+    marginBottom: 16,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 185, 95, 0.24)',
+    backgroundColor: 'rgba(229, 185, 95, 0.08)',
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  inboxButtonText: {
+    fontFamily: 'Cinzel_700Bold',
+    fontSize: 10,
+    letterSpacing: 1.8,
+    color: Colors.accentGold,
+    textTransform: 'uppercase',
   },
   mainCard: {
     width: '100%',

@@ -17,30 +17,24 @@ import { CustomButton } from '../../components/CustomButton';
 import { Colors } from '../../constants/Colors';
 import { useI18n } from '../../src/i18n/I18nProvider';
 import { useTheme } from '../../src/theme/ThemeProvider';
+import {
+  CARE_SUPPORT_CATEGORIES,
+  CareResponseChannel,
+  CareSupportCategoryId,
+  resolveCareSupportCategory,
+} from '../../src/care/supportCategories';
+import { createCareSupportThread } from '../../src/storage/careInboxStore';
 
-const HELP_TYPES = [
-  'A conversation with a pastor',
-  'Discipleship / next steps',
-  'Accountability support',
-  'Baptism request',
-  'Baby dedication request',
-  "I'm going through something difficult",
-  'I recently gave my life to Christ',
-  'Other',
-] as const;
-
-const CONTACT_METHODS = ['InApp', 'Email'] as const;
+const CONTACT_METHODS: CareResponseChannel[] = ['in_app', 'email'];
 
 export default function CareSupportRequest({ navigation, route }: any) {
   const insets = useSafeAreaInsets();
   const { t } = useI18n();
   const { themeId } = useTheme();
   const styles = useMemo(() => createStyles(), [themeId]);
-  const preselectedType = route?.params?.initialHelpType as (typeof HELP_TYPES)[number] | undefined;
-  const [helpType, setHelpType] =
-    useState<(typeof HELP_TYPES)[number]>(preselectedType && HELP_TYPES.includes(preselectedType) ? preselectedType : HELP_TYPES[0]);
-  const [contactMethod, setContactMethod] =
-    useState<(typeof CONTACT_METHODS)[number]>('InApp');
+  const preselectedType = resolveCareSupportCategory(route?.params?.initialHelpType as string | undefined);
+  const [helpType, setHelpType] = useState<CareSupportCategoryId>(preselectedType);
+  const [contactMethod, setContactMethod] = useState<CareResponseChannel>('in_app');
   const [message, setMessage] = useState('');
   const [submitState, setSubmitState] = useState<'idle' | 'sending' | 'error'>('idle');
 
@@ -50,13 +44,19 @@ export default function CareSupportRequest({ navigation, route }: any) {
       Alert.alert(t('care.support.validation.title'), t('care.support.validation.messageRequired'));
       return;
     }
+    const thread = createCareSupportThread({
+      categoryId: helpType,
+      preferredChannel: contactMethod,
+      requestText: message.trim(),
+    });
     setSubmitState('idle');
     navigation.navigate('CareEscalationSuccess', {
       requestType: helpType,
-      careCategory: helpType === 'I recently gave my life to Christ' ? 'new_believer' : 'general',
+      careCategory: helpType === 'new_believer' ? 'new_believer' : 'general',
       contactMethod,
-      followUpChannel: contactMethod === 'Email' ? 'auth_email' : 'in_app',
+      followUpChannel: contactMethod === 'email' ? 'auth_email' : 'in_app',
       notes: message,
+      threadId: thread.id,
     });
   };
 
@@ -92,32 +92,23 @@ export default function CareSupportRequest({ navigation, route }: any) {
             <GlassCard withGlow style={styles.card}>
               <Text style={styles.sectionLabel}>{t('care.support.section.type')}</Text>
               <View style={styles.chipsRow}>
-                {HELP_TYPES.map((option) => {
-                  const selected = option === helpType;
+                {CARE_SUPPORT_CATEGORIES.map((option) => {
+                  const selected = option.id === helpType;
                   return (
                     <TouchableOpacity
-                      key={option}
-                      onPress={() => setHelpType(option)}
+                      key={option.id}
+                      onPress={() => setHelpType(option.id)}
                       style={[styles.chip, selected && styles.chipSelected]}
                     >
                       <Text style={[styles.chipText, selected && styles.chipTextSelected]}>
-                        {
-                          option === 'A conversation with a pastor' ? t('care.support.type.pastor') :
-                          option === 'Discipleship / next steps' ? t('care.support.type.discipleship') :
-                          option === 'Accountability support' ? t('care.support.type.accountability') :
-                          option === 'Baptism request' ? t('care.support.type.baptism') :
-                          option === 'Baby dedication request' ? t('care.support.type.dedication') :
-                          option === "I'm going through something difficult" ? t('care.support.type.difficult') :
-                          option === 'I recently gave my life to Christ' ? t('care.support.type.newBeliever') :
-                          t('care.support.type.other')
-                        }
+                        {t(option.labelKey)}
                       </Text>
                     </TouchableOpacity>
                   );
                 })}
               </View>
 
-              {helpType === "I'm going through something difficult" ? (
+              {helpType === 'difficult_season' ? (
                 <Text style={styles.crisisNote}>
                   {t('care.support.crisis')}
                 </Text>
@@ -154,10 +145,7 @@ export default function CareSupportRequest({ navigation, route }: any) {
                           selected && styles.contactChipTextSelected,
                         ]}
                       >
-                        {
-                          method === 'InApp' ? t('care.support.contact.inapp') :
-                          t('care.support.contact.email')
-                        }
+                        {method === 'in_app' ? t('care.support.contact.inapp') : t('care.support.contact.email')}
                       </Text>
                     </TouchableOpacity>
                   );

@@ -7,7 +7,10 @@
  * Planned functions (deferred):
  * - joinChurch: validate join code, add member to church
  * - submitCareRequest: create care request with server timestamp
+ * - createCareThread: open private in-app care thread after request submission
+ * - respondToCareThread: allow one church reply max per thread
  * - notifyPastor: send push notification for care escalation
+ * - notifyMemberCareReply: send push notification when church reply arrives
  */
 
 import * as functions from "firebase-functions";

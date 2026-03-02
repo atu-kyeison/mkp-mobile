@@ -23,8 +23,14 @@ export default function CareEscalationSuccess({ navigation }: any) {
 
           <View style={styles.ctaGroup}>
             <CustomButton
+              title={t('care.success.viewInbox')}
+              onPress={() => navigation.navigate('CareInbox')}
+              style={styles.fullWidthButton}
+            />
+            <CustomButton
               title={t('care.success.returnHome')}
               onPress={() => navigation.getParent()?.navigate('Home')}
+              variant="outline"
               style={styles.fullWidthButton}
             />
             <TouchableOpacity onPress={() => navigation.navigate('PrayerSubmission')}>

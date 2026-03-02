@@ -196,6 +196,15 @@ const SettingsScreen = ({ navigation, route }: any) => {
                   style={styles.switchControl}
                 />
               </GlassCard>
+              <TouchableOpacity onPress={() => navigation.getParent()?.navigate('Church', { screen: 'CareInbox' })}>
+                <GlassCard style={styles.settingCard}>
+                  <View style={styles.settingInfo}>
+                    <Text style={styles.settingValue}>{t('settings.care.inbox')}</Text>
+                    <Text style={styles.settingHint}>{t('settings.care.inboxHint')}</Text>
+                  </View>
+                  <MaterialIcons name="chevron-right" size={24} color={Colors.antiqueGold} />
+                </GlassCard>
+              </TouchableOpacity>
             </Section>
 
             <Section title={t('settings.section.help')}>

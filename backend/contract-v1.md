@@ -137,6 +137,51 @@ Care/prayer requests from members. Pastor/admin read-only.
 | `createdAt` | timestamp | Submission timestamp |
 | `resolvedAt` | timestamp? | Resolution timestamp |
 | `resolvedBy` | string? | UID of resolver |
+| `categoryId` | string | "pastor_conversation" \| "discipleship_next_steps" \| "accountability_support" \| "baptism_request" \| "baby_dedication_request" \| "difficult_season" \| "new_believer" \| "other" |
+| `preferredChannel` | string | "in_app" \| "email" |
+| `threadId` | string? | Private thread created for in-app follow-up |
+
+---
+
+### `/churches/{churchId}/careThreads/{threadId}`
+
+Private one-to-one care follow-up thread between a member and the church team.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `requestId` | string | Parent care request |
+| `memberUserId` | string | Member UID |
+| `categoryId` | string | Care support category |
+| `preferredChannel` | string | "in_app" \| "email" |
+| `status` | string | "awaiting_reply" \| "closed" |
+| `maxChurchReplies` | number | Always `1` in MVP |
+| `churchReplyCount` | number | Count of church replies sent |
+| `lastMessageAt` | timestamp | Most recent message timestamp |
+| `createdAt` | timestamp | Thread creation timestamp |
+| `updatedAt` | timestamp | Last update timestamp |
+
+**MVP constraint**:
+- Church teams may send **one in-app reply maximum** per thread.
+- After the first church reply, the thread becomes `closed`.
+- This preserves MKP as a formation-first app rather than an ongoing chat surface.
+
+---
+
+### `/churches/{churchId}/careThreads/{threadId}/messages/{messageId}`
+
+Messages within a private care thread.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `senderType` | string | "member" \| "church" |
+| `senderUserId` | string? | UID if applicable |
+| `body` | string | Message content |
+| `createdAt` | timestamp | Message timestamp |
+
+**MVP messaging rule**:
+- Message 1: member request
+- Message 2: optional church reply
+- No ongoing conversation thread beyond that second message
 
 ---
 
