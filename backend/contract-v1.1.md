@@ -632,9 +632,16 @@ Notification preferences may be stored under `/users/{uid}/preferences/communica
 ### 13.1 Immediate implementation targets
 
 `joinChurch`
-- validates join code via `/private/config`
+- requires both `churchId` and `joinCode` as inputs
+- validates join code via `/churches/{churchId}/private/config`
 - creates membership
 - returns church context
+
+Join code discovery model:
+- the client does not discover churches by join code alone
+- `churchId` must be known before the function is called
+- QR codes and invite links may prefill `churchId` in the app, but the backend still requires and validates `joinCode`
+- this prevents join code enumeration and enforces explicit church selection
 
 `submitCareRequest`
 - validates active membership

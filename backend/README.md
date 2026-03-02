@@ -2,36 +2,42 @@
 
 Firebase backend for MKP Mobile app.
 
-## Quick Start
+Contract: `contract-v1.1.md` (canonical)
+Roadmap:  `roadmap-v1.md`
+Tests:    `test-plan-v1.md`
 
-### Prerequisites
+---
+
+## Prerequisites
 
 - Node.js 20+
 - Firebase CLI: `npm install -g firebase-tools`
-- Firebase account with project created
+- Java 11+ (required by Firebase emulators)
 
-### Setup
+---
+
+## Setup
 
 ```bash
-# Install functions dependencies
+# Install function dependencies (run once, or after package.json changes)
 cd functions
 npm install
 cd ..
 
 # Login to Firebase (one time)
 firebase login
-
-# Update project ID in .firebaserc if needed
 ```
 
-### Local Development with Emulators
+---
+
+## Local Emulator Testing
+
+### Step 1 — Start the emulators
+
+Run from the `backend/` directory:
 
 ```bash
-# From backend/ directory
 firebase emulators:start
-
-# Or with seed data export
-firebase emulators:start --import=./emulator-data --export-on-exit
 ```
 
 Emulator UI: http://localhost:4000
@@ -43,44 +49,184 @@ Emulator UI: http://localhost:4000
 | Functions | 5001 |
 | UI        | 4000 |
 
-### Deploy
+Wait until all emulators report **ready** before continuing.
+
+---
+
+### Step 2 — Build the functions
+
+Run from `backend/functions/`:
 
 ```bash
-# Deploy rules only
+npm run build
+```
+
+The emulator loads compiled JS from `lib/`. Rebuild after any TypeScript change.
+
+---
+
+### Step 3 — Seed test data
+
+Run from `backend/functions/` (emulators must be running):
+
+```bash
+npm run seed
+```
+
+This creates:
+
+**church-alpha** — Grace Community Church
+- `features.careThreads = true`
+- `features.churchMessages = true`
+- Join code: `GRACE2024`
+
+**church-beta** — River of Life Church
+- `features.careThreads = false`  ← for feature-gate tests
+- `features.churchMessages = false`
+- Join code: `RIVER2024`
+
+**Test users** (all passwords: `password123`):
+
+| uid         | email             | role           | church       |
+|-------------|-------------------|----------------|--------------|
+| uid-alice   | alice@test.com    | member         | church-alpha |
+| uid-bob     | bob@test.com      | pastor         | church-alpha |
+| uid-carol   | carol@test.com    | care_team      | church-alpha |
+| uid-dave    | dave@test.com     | communications | church-alpha |
+| uid-eve     | eve@test.com      | media_team     | church-alpha |
+| uid-frank   | frank@test.com    | admin          | church-alpha |
+| uid-grace   | grace@test.com    | member         | church-beta  |
+| uid-henry   | henry@test.com    | pastor         | church-beta  |
+
+Seed is idempotent — safe to re-run.
+
+---
+
+### Step 4 — Run emulator tests
+
+Run from `backend/functions/` (emulators running + seed loaded + build complete):
+
+```bash
+npm run test:emulator
+```
+
+The test runner covers:
+- `joinChurch` — valid code, wrong code, unauthenticated, missing args
+- `submitCareRequest` — thread creation, email channel, feature-disabled church, bad type
+- `respondToCareThread` — member blocked, media_team blocked, one reply allowed, second reply blocked
+- `publishChurchMessage` — member blocked, media_team blocked, pastor/communications allowed, feature gate, bad kind
+
+---
+
+## Manual Function Calls (curl)
+
+### 1. Get an ID token from the Auth emulator
+
+```bash
+curl -s -X POST \
+  'http://127.0.0.1:9099/identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=fake-key' \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"alice@test.com","password":"password123","returnSecureToken":true}' \
+  | grep -o '"idToken":"[^"]*"'
+```
+
+### 2. Call a function
+
+```bash
+# joinChurch
+curl -X POST \
+  'http://127.0.0.1:5001/mkp-mobile-dev/us-central1/joinChurch' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer {ID_TOKEN}' \
+  -d '{"data":{"churchId":"church-alpha","joinCode":"GRACE2024"}}'
+
+# submitCareRequest
+curl -X POST \
+  'http://127.0.0.1:5001/mkp-mobile-dev/us-central1/submitCareRequest' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer {ID_TOKEN}' \
+  -d '{"data":{"churchId":"church-alpha","type":"prayer","content":"Please pray for me.","isAnonymous":false,"preferredChannel":"in_app"}}'
+
+# respondToCareThread  (requires pastor/admin/care_team token — use bob@test.com)
+curl -X POST \
+  'http://127.0.0.1:5001/mkp-mobile-dev/us-central1/respondToCareThread' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer {BOB_TOKEN}' \
+  -d '{"data":{"churchId":"church-alpha","threadId":"{THREAD_ID}","body":"We are praying for you."}}'
+
+# publishChurchMessage  (requires pastor/admin/communications — use bob@test.com or dave@test.com)
+curl -X POST \
+  'http://127.0.0.1:5001/mkp-mobile-dev/us-central1/publishChurchMessage' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer {BOB_TOKEN}' \
+  -d '{"data":{"churchId":"church-alpha","title":"Sunday Service","body":"Join us at 10am.","kind":"announcement","audience":"all"}}'
+```
+
+---
+
+## Deploy
+
+```bash
+# Rules only
 firebase deploy --only firestore:rules
 
-# Deploy indexes only
+# Indexes only
 firebase deploy --only firestore:indexes
 
-# Deploy functions only
+# Functions only
 firebase deploy --only functions
 
-# Deploy everything
+# Everything
 firebase deploy
 ```
+
+---
 
 ## Structure
 
 ```
 backend/
-├── firebase.json           # Firebase configuration
-├── firestore.rules         # Security rules (BE-03)
-├── firestore.indexes.json  # Indexes (BE-04)
-├── contract-v1.md          # Schema contract (BE-02)
-├── .firebaserc             # Project aliases
+├── firebase.json               Firebase configuration + emulator ports
+├── firestore.rules             Security rules (contract §14)
+├── firestore.indexes.json      Composite indexes
+├── contract-v1.1.md            Canonical backend contract
+├── roadmap-v1.md               Phase-by-phase implementation plan
+├── test-plan-v1.md             Emulator test plan
+├── .firebaserc                 Project aliases
 └── functions/
     ├── package.json
     ├── tsconfig.json
+    ├── seed.js                 Emulator seed script
+    ├── emulator-test.js        Emulator test runner
     └── src/
-        └── index.ts        # Cloud Functions entry
+        └── index.ts            Cloud Functions (Phases 1–4 complete)
 ```
 
-## Schema Reference
+---
 
-See `contract-v1.md` for the canonical Firestore schema.
+## Phase Status
 
-Key points:
-- All collections scoped under `/churches/{churchId}/` except `/users`
-- Journals and mood notes are **local-only** (no Firestore collection)
-- Care requests are pastor/admin read-only
-- Join code lookup via Cloud Function only (no client query)
+| Phase | Description                               | Status      |
+|-------|-------------------------------------------|-------------|
+| 0     | Contract lock                             | ✓ complete  |
+| 1     | `joinChurch`                              | ✓ complete  |
+| 2     | Rules + index alignment                   | ✓ complete  |
+| 3     | `submitCareRequest`, `respondToCareThread`| ✓ complete  |
+| 4     | `publishChurchMessage`                    | ✓ complete  |
+| 5     | Notification scaffolding                  | pending     |
+| 6     | Sermon media pipeline                     | pending     |
+| 7     | STT / transcription                       | pending     |
+| 8     | Formation generation                      | pending     |
+| 9     | Analytics                                 | pending     |
+| 10    | Emulator validation                       | → this pass |
+| 11    | Mobile app wiring                         | pending     |
+
+---
+
+## Privacy Boundaries (locked)
+
+- Journals, mood notes, and reflection text are **local-only**. No Firestore paths exist for them.
+- There is no public prayer wall.
+- There is no server-side pastoral notes system.
+- Care thread replies are capped at 1 per thread, enforced in Cloud Functions.
+- All church-scoped data requires active membership (validated in rules and functions).
