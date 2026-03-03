@@ -200,6 +200,10 @@ Pass criteria:
 ### 9.3 Sermon metadata consistency
 - sermon doc records source metadata correctly
 
+### 9.4 Upload completion path
+- authorized staff can mark sermon upload complete
+- upload path remains constrained to `sermons/{churchId}/{sermonId}/original/*`
+
 Pass criteria:
 - media pipeline entry is secure and role-scoped
 
@@ -219,6 +223,10 @@ Pass criteria:
 ### 10.4 Retention metadata
 - transcript artifact includes retention delete timestamp
 
+### 10.5 Trigger authorization
+- only lifecycle-authorized staff can run the transcription scaffold path
+- media-only roles do not gain transcript lifecycle control
+
 Pass criteria:
 - transcript lifecycle is represented safely even before full production rollout
 
@@ -234,6 +242,10 @@ Pass criteria:
 
 ### 11.3 Approval state
 - generated formation content can remain draft/approved/published as contract requires
+
+### 11.4 Lifecycle control
+- only authorized staff can generate or advance formation week lifecycle
+- publish requires prior approval
 
 Pass criteria:
 - formation docs are structurally valid and stateful
@@ -257,6 +269,10 @@ Pass criteria:
 ---
 
 ## 13. Notification Tests
+
+### 13.0 Preference and token schema
+- save communication preferences at `/users/{uid}/preferences/communication`
+- register and delete FCM tokens at `/users/{uid}/fcmTokens/{tokenId}`
 
 ### 13.1 Care reply notification hook
 - member notification path triggers when church reply is created

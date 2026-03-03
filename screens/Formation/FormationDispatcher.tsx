@@ -6,9 +6,17 @@ import Thursday from './Thursday';
 import Friday from './Friday';
 import Saturday from './Saturday';
 import Sunday from './Sunday';
+import { useAppDataSync } from '../../src/backend/appData';
 
 export default function FormationDispatcher(props: any) {
+  const { syncFormationWeek } = useAppDataSync();
   const day = new Date().getDay();
+
+  React.useEffect(() => {
+    void syncFormationWeek().catch(() => {
+      // Keep the existing local weekly package if backend sync fails.
+    });
+  }, [syncFormationWeek]);
 
   switch (day) {
     case 0: return <Sunday {...props} />;

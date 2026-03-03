@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
   container: { width: '100%', alignItems: 'center' },
   card: { width: '100%', maxWidth: 420, paddingHorizontal: 28, paddingTop: 32, paddingBottom: 28, alignSelf: 'center' },
   logoContainer: { alignItems: 'center', marginBottom: 28 },
-  brandText: { fontFamily: 'Cinzel_400Regular', fontSize: 10, letterSpacing: 4, color: Colors.antiqueGold },
+  brandText: { fontFamily: 'Cinzel_400Regular', fontSize: 10, letterSpacing: 4, color: Colors.antiqueGold, marginTop: 12 },
   header: { alignItems: 'center', marginBottom: 28 },
   title: { fontFamily: 'PlayfairDisplay_500Medium', fontSize: 28, color: 'white', textAlign: 'center', lineHeight: 36, marginBottom: 12 },
   subtitle: { fontFamily: 'Inter_300Light', fontSize: 14, color: 'rgba(255, 255, 255, 0.5)', textAlign: 'center', lineHeight: 22, paddingHorizontal: 16 },

@@ -20,6 +20,8 @@ const MOOD_SCORES: Record<string, number> = {
   anxious: -2,
   rushed: -1,
   tired: -1,
+  heavy: -2,
+  longing: 1,
   focused: 1,
   grateful: 1,
   peaceful: 2,

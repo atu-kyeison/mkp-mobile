@@ -10,32 +10,52 @@ import { useI18n } from '../../i18n/I18nProvider';
 import { LogoBadge } from '../../components/LogoBadge';
 import { getPrimaryBrandLogoUri, resolveChurchBrandingByCode } from '../../constants/brandAssets';
 import { ErrorStateCard } from '../../components/ErrorStateCard';
+import { useSession } from '../../backend/SessionProvider';
 
 const ChurchSearchScreen = ({ navigation }: any) => {
   const { t } = useI18n();
+  const { joinChurch } = useSession();
   const [code, setCode] = useState('');
   const [errorKind, setErrorKind] = useState<'required' | 'not_found' | null>(null);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const brandLogoUri = getPrimaryBrandLogoUri();
 
-  const handleConnect = () => {
+  const handleConnect = async () => {
+    if (isSubmitting) return;
     const normalized = code.trim();
     if (!normalized) {
       setErrorKind('required');
+      setErrorMessage(null);
       return;
     }
 
     const resolved = resolveChurchBrandingByCode(normalized);
-    if (!resolved.found) {
+    if (!resolved.found || !resolved.churchId) {
       setErrorKind('not_found');
+      setErrorMessage(null);
       return;
     }
 
+    setIsSubmitting(true);
     setErrorKind(null);
-    Settings.set({
-      'mkp.connectedChurchName': resolved.name,
-      'mkp.connectedChurchLogoUri': resolved.logoUri || '',
-    });
-    navigation.navigate('ChurchSuccess', { churchName: resolved.name, churchLogoUri: resolved.logoUri });
+    setErrorMessage(null);
+    try {
+      const result = await joinChurch({
+        churchId: resolved.churchId,
+        joinCode: normalized,
+      });
+      Settings.set({
+        'mkp.connectedChurchName': result.churchName,
+        'mkp.connectedChurchLogoUri': resolved.logoUri || '',
+      });
+      navigation.navigate('ChurchSuccess', { churchName: result.churchName, churchLogoUri: resolved.logoUri });
+    } catch (error) {
+      setErrorKind('not_found');
+      setErrorMessage(error instanceof Error ? error.message : t('auth.churchSearch.errorNotFound'));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const openCodeHelp = () =>
@@ -74,6 +94,7 @@ const ChurchSearchScreen = ({ navigation }: any) => {
                   onChangeText={(value) => {
                     setCode(value);
                     if (errorKind) setErrorKind(null);
+                    if (errorMessage) setErrorMessage(null);
                   }}
                 />
                 <View style={styles.buttonWrapper}><GoldButton title={t('auth.churchSearch.submit')} onPress={handleConnect} /></View>
@@ -86,9 +107,12 @@ const ChurchSearchScreen = ({ navigation }: any) => {
                 {errorKind ? (
                   <ErrorStateCard
                     title={t('auth.churchSearch.errorTitle')}
-                    body={t(errorKind === 'required' ? 'auth.churchSearch.errorRequired' : 'auth.churchSearch.errorNotFound')}
+                    body={errorMessage || t(errorKind === 'required' ? 'auth.churchSearch.errorRequired' : 'auth.churchSearch.errorNotFound')}
                     primaryLabel={t('auth.churchSearch.retry')}
-                    onPrimaryPress={() => setErrorKind(null)}
+                    onPrimaryPress={() => {
+                      setErrorKind(null);
+                      setErrorMessage(null);
+                    }}
                     secondaryLabel={t('auth.churchSearch.getHelp')}
                     onSecondaryPress={openCodeHelp}
                   />
@@ -113,7 +137,7 @@ const ChurchSearchScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   safeArea: { flex: 1 }, scrollContent: { flexGrow: 1, paddingTop: 20, paddingBottom: 24 },
   container: { flex: 1, paddingHorizontal: 20, justifyContent: 'center' }, headerContainer: { alignItems: 'center', marginBottom: 24 },
-  brandText: { fontFamily: 'Cinzel_400Regular', fontSize: 11, letterSpacing: 5, color: Colors.antiqueGold },
+  brandText: { fontFamily: 'Cinzel_400Regular', fontSize: 11, letterSpacing: 5, color: Colors.antiqueGold, marginTop: 12 },
   card: { width: '100%', maxWidth: 420, alignSelf: 'center', borderRadius: 28, paddingHorizontal: 28, paddingTop: 28, paddingBottom: 24 },
   header: { alignItems: 'center', marginBottom: 24 },
   title: { fontFamily: 'PlayfairDisplay_500Medium', fontSize: 30, color: 'white', textAlign: 'center', marginBottom: 12 },

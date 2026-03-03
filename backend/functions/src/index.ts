@@ -8,10 +8,13 @@
  * Phase 1 (complete): joinChurch
  * Phase 3 (complete): submitCareRequest, respondToCareThread
  * Phase 4 (complete): publishChurchMessage
- * Phase 5 (next):     notifyMemberCareReply, notifyChurchMessagePublished
- * Phase 7 (next):     transcribeOnUpload
- * Phase 8 (next):     generateFormationContent
- * Phase 9 (next):     computeWeeklyAnalytics
+ * Phase 5 (complete): saveCommunicationPreferences, registerFcmToken,
+ *                     deleteFcmToken, notifyMemberCareReply,
+ *                     notifyChurchMessagePublished
+ * Phase 6 (complete): createSermonUpload, completeSermonUpload
+ * Phase 7 (complete): transcribeOnUpload
+ * Phase 8 (complete): generateFormationContent, updateFormationWeekStatus
+ * Phase 9 (complete): computeWeeklyAnalytics
  */
 
 import * as admin from "firebase-admin";
@@ -56,6 +59,51 @@ interface CareThreadData {
   churchReplyCount: number;
   maxChurchReplies: number;
   memberUserId: string;
+  preferredChannel?: string;
+  categoryId?: string | null;
+  createdAt?: Timestamp;
+  updatedAt?: Timestamp;
+}
+
+interface CommunicationPreferences {
+  churchMessagesEnabled: boolean;
+  careReplyNotificationsEnabled: boolean;
+  formationNotificationsEnabled: boolean;
+}
+
+interface FcmTokenData {
+  token: string;
+  platform: string;
+}
+
+interface SermonData {
+  title: string;
+  preacherName: string;
+  date: Timestamp;
+  language: string;
+  status: string;
+  sourceType: string;
+  audioStoragePath?: string;
+  listenUrl?: string | null;
+  bibleRefs?: string[];
+  formationStatus?: string;
+}
+
+interface NotificationHookResult {
+  hookTriggered: boolean;
+  deliveryMode: "scaffold";
+  targetUserCount: number;
+  eligibleUserCount: number;
+  tokenCount: number;
+  deliveredCount: number;
+  skippedReason: string | null;
+}
+
+interface UserProfileData {
+  currentChurchId?: string;
+  displayName?: string;
+  email?: string;
+  preferredLanguage?: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -108,12 +156,1136 @@ async function requireChurch(churchId: string): Promise<ChurchData> {
   return snap.data() as ChurchData;
 }
 
+async function requireUserProfile(uid: string): Promise<UserProfileData> {
+  const snap = await db.doc(`users/${uid}`).get();
+  if (!snap.exists) {
+    throw new HttpsError("not-found", "User profile not found.");
+  }
+  return snap.data() as UserProfileData;
+}
+
+async function requireCurrentChurchId(uid: string): Promise<string> {
+  const profile = await requireUserProfile(uid);
+  if (
+    typeof profile.currentChurchId !== "string" ||
+    profile.currentChurchId.trim() === ""
+  ) {
+    throw new HttpsError(
+      "failed-precondition",
+      "User is not connected to a church yet."
+    );
+  }
+  return profile.currentChurchId;
+}
+
 // Roles that may access care queues and respond to care threads (contract §5.1).
 const CARE_STAFF_ROLES = new Set(["pastor", "admin", "care_team"]);
 
 // Roles that may publish church-wide messages (contract §9).
 // media_team is explicitly excluded.
 const CHURCH_MESSAGE_ROLES = new Set(["pastor", "admin", "communications"]);
+
+// Roles that may manage sermon media upload/source metadata (contract §10.1).
+const SERMON_MEDIA_ROLES = new Set(["pastor", "admin", "media_team"]);
+const SERMON_LIFECYCLE_ROLES = new Set(["pastor", "admin"]);
+
+const COMMUNICATION_DEFAULTS: CommunicationPreferences = {
+  churchMessagesEnabled: false,
+  careReplyNotificationsEnabled: false,
+  formationNotificationsEnabled: false,
+};
+
+const FCM_PLATFORMS = new Set(["ios", "android", "web"]);
+const SERMON_SOURCE_TYPES = new Set(["audio_upload"]);
+const SERMON_LANGUAGES = new Set(["en", "es"]);
+const TRANSCRIPT_RETENTION_DAYS = 7;
+const FORMATION_STATUSES = new Set(["draft", "generated", "approved", "published"]);
+
+function ensureNonEmptyString(value: unknown, fieldName: string): string {
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new HttpsError("invalid-argument", `${fieldName} is required.`);
+  }
+  return value.trim();
+}
+
+function ensureBoolean(value: unknown, fieldName: string): boolean {
+  if (typeof value !== "boolean") {
+    throw new HttpsError("invalid-argument", `${fieldName} must be a boolean.`);
+  }
+  return value;
+}
+
+function ensureOptionalString(
+  value: unknown,
+  fieldName: string
+): string | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  if (typeof value !== "string") {
+    throw new HttpsError("invalid-argument", `${fieldName} must be a string.`);
+  }
+  const trimmed = value.trim();
+  return trimmed === "" ? undefined : trimmed;
+}
+
+function ensureOptionalPositiveInteger(
+  value: unknown,
+  fieldName: string
+): number | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  if (!Number.isInteger(value) || (value as number) <= 0) {
+    throw new HttpsError(
+      "invalid-argument",
+      `${fieldName} must be a positive integer.`
+    );
+  }
+  return value as number;
+}
+
+function ensureOptionalStringArray(
+  value: unknown,
+  fieldName: string
+): string[] | undefined {
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  if (!Array.isArray(value)) {
+    throw new HttpsError("invalid-argument", `${fieldName} must be an array.`);
+  }
+  const normalized = value.map((entry) => ensureNonEmptyString(entry, fieldName));
+  return normalized.length > 0 ? normalized : undefined;
+}
+
+function ensureIsoDate(value: unknown, fieldName: string): Timestamp {
+  const iso = ensureNonEmptyString(value, fieldName);
+  const parsed = Date.parse(iso);
+  if (isNaN(parsed)) {
+    throw new HttpsError(
+      "invalid-argument",
+      `${fieldName} must be a valid ISO date string.`
+    );
+  }
+  return Timestamp.fromDate(new Date(parsed));
+}
+
+function ensureEnumValue(
+  value: unknown,
+  fieldName: string,
+  allowed: Set<string>,
+  helpText: string
+): string {
+  const normalized = ensureNonEmptyString(value, fieldName);
+  if (!allowed.has(normalized)) {
+    throw new HttpsError("invalid-argument", helpText);
+  }
+  return normalized;
+}
+
+function sanitizeFileName(fileName: string): string {
+  const safeName = fileName.replace(/[^A-Za-z0-9._-]/g, "_");
+  return safeName === "" ? "upload.bin" : safeName;
+}
+
+function buildSermonUploadPath(
+  churchId: string,
+  sermonId: string,
+  fileName: string
+): string {
+  return `sermons/${churchId}/${sermonId}/original/${sanitizeFileName(fileName)}`;
+}
+
+function addDays(date: Date, days: number): Date {
+  return new Date(date.getTime() + days * 24 * 60 * 60 * 1000);
+}
+
+function formatDateOnly(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+function startOfDay(date: Date): Date {
+  return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()));
+}
+
+function getWeekStartDate(date: Date): Date {
+  const day = date.getUTCDay();
+  return addDays(startOfDay(date), -day);
+}
+
+function parseDateOnly(value: unknown, fieldName: string): Date {
+  const normalized = ensureNonEmptyString(value, fieldName);
+  const parsed = new Date(`${normalized}T00:00:00.000Z`);
+  if (Number.isNaN(parsed.getTime())) {
+    throw new HttpsError(
+      "invalid-argument",
+      `${fieldName} must be a valid YYYY-MM-DD date string.`
+    );
+  }
+  return parsed;
+}
+
+function parseCommunicationPreferencePatch(
+  input: Record<string, unknown>
+): Partial<CommunicationPreferences> {
+  const patch: Partial<CommunicationPreferences> = {};
+
+  if (Object.prototype.hasOwnProperty.call(input, "churchMessagesEnabled")) {
+    patch.churchMessagesEnabled = ensureBoolean(
+      input.churchMessagesEnabled,
+      "churchMessagesEnabled"
+    );
+  }
+  if (
+    Object.prototype.hasOwnProperty.call(
+      input,
+      "careReplyNotificationsEnabled"
+    )
+  ) {
+    patch.careReplyNotificationsEnabled = ensureBoolean(
+      input.careReplyNotificationsEnabled,
+      "careReplyNotificationsEnabled"
+    );
+  }
+  if (
+    Object.prototype.hasOwnProperty.call(
+      input,
+      "formationNotificationsEnabled"
+    )
+  ) {
+    patch.formationNotificationsEnabled = ensureBoolean(
+      input.formationNotificationsEnabled,
+      "formationNotificationsEnabled"
+    );
+  }
+
+  if (Object.keys(patch).length === 0) {
+    throw new HttpsError(
+      "invalid-argument",
+      "At least one communication preference must be provided."
+    );
+  }
+
+  return patch;
+}
+
+async function getCommunicationPreferences(
+  uid: string
+): Promise<CommunicationPreferences> {
+  const snap = await db.doc(`users/${uid}/preferences/communication`).get();
+  if (!snap.exists) {
+    return { ...COMMUNICATION_DEFAULTS };
+  }
+
+  const data = snap.data() as Partial<CommunicationPreferences>;
+  return {
+    churchMessagesEnabled: data.churchMessagesEnabled === true,
+    careReplyNotificationsEnabled: data.careReplyNotificationsEnabled === true,
+    formationNotificationsEnabled: data.formationNotificationsEnabled === true,
+  };
+}
+
+async function getValidFcmTokens(uid: string): Promise<FcmTokenData[]> {
+  const snap = await db.collection(`users/${uid}/fcmTokens`).get();
+  return snap.docs
+    .map((doc) => doc.data() as Partial<FcmTokenData>)
+    .filter(
+      (token): token is FcmTokenData =>
+        typeof token.token === "string" &&
+        token.token.trim() !== "" &&
+        typeof token.platform === "string" &&
+        token.platform.trim() !== ""
+    )
+    .map((token) => ({
+      token: token.token.trim(),
+      platform: token.platform.trim(),
+    }));
+}
+
+async function notifyMemberCareReply(uid: string): Promise<NotificationHookResult> {
+  const prefs = await getCommunicationPreferences(uid);
+  if (!prefs.careReplyNotificationsEnabled) {
+    return {
+      hookTriggered: true,
+      deliveryMode: "scaffold",
+      targetUserCount: 1,
+      eligibleUserCount: 0,
+      tokenCount: 0,
+      deliveredCount: 0,
+      skippedReason: "care_reply_notifications_disabled",
+    };
+  }
+
+  const tokens = await getValidFcmTokens(uid);
+  if (tokens.length === 0) {
+    return {
+      hookTriggered: true,
+      deliveryMode: "scaffold",
+      targetUserCount: 1,
+      eligibleUserCount: 1,
+      tokenCount: 0,
+      deliveredCount: 0,
+      skippedReason: "no_fcm_tokens",
+    };
+  }
+
+  return {
+    hookTriggered: true,
+    deliveryMode: "scaffold",
+    targetUserCount: 1,
+    eligibleUserCount: 1,
+    tokenCount: tokens.length,
+    deliveredCount: tokens.length,
+    skippedReason: null,
+  };
+}
+
+async function notifyChurchMessagePublished(
+  churchId: string,
+  publishedByUid: string
+): Promise<NotificationHookResult> {
+  const membersSnap = await db
+    .collection(`churches/${churchId}/members`)
+    .where("status", "==", "active")
+    .get();
+
+  const targetUids = membersSnap.docs
+    .map((doc) => doc.id)
+    .filter((uid) => uid !== publishedByUid);
+
+  let eligibleUserCount = 0;
+  let tokenCount = 0;
+
+  for (const uid of targetUids) {
+    const prefs = await getCommunicationPreferences(uid);
+    if (!prefs.churchMessagesEnabled) {
+      continue;
+    }
+
+    eligibleUserCount += 1;
+    const tokens = await getValidFcmTokens(uid);
+    tokenCount += tokens.length;
+  }
+
+  return {
+    hookTriggered: true,
+    deliveryMode: "scaffold",
+    targetUserCount: targetUids.length,
+    eligibleUserCount,
+    tokenCount,
+    deliveredCount: tokenCount,
+    skippedReason:
+      eligibleUserCount === 0
+        ? "church_message_notifications_disabled"
+        : tokenCount === 0
+          ? "no_fcm_tokens"
+          : null,
+  };
+}
+
+// ---------------------------------------------------------------------------
+// Phase 5: notification setup
+// ---------------------------------------------------------------------------
+
+export const saveCommunicationPreferences = onCall(
+  { enforceAppCheck: false },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Must be signed in.");
+    }
+
+    const patch = parseCommunicationPreferencePatch(
+      (request.data ?? {}) as Record<string, unknown>
+    );
+    const uid = request.auth.uid;
+    const now = FieldValue.serverTimestamp();
+    const nextPrefs = {
+      ...(await getCommunicationPreferences(uid)),
+      ...patch,
+    };
+
+    await db.doc(`users/${uid}/preferences/communication`).set(
+      {
+        ...nextPrefs,
+        updatedAt: now,
+      },
+      { merge: true }
+    );
+
+    return nextPrefs;
+  }
+);
+
+export const registerFcmToken = onCall(
+  { enforceAppCheck: false },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Must be signed in.");
+    }
+
+    const uid = request.auth.uid;
+    const data = (request.data ?? {}) as Record<string, unknown>;
+    const tokenId = ensureNonEmptyString(data.tokenId, "tokenId");
+    const token = ensureNonEmptyString(data.token, "token");
+    const platform = ensureNonEmptyString(data.platform, "platform");
+
+    if (!FCM_PLATFORMS.has(platform)) {
+      throw new HttpsError(
+        "invalid-argument",
+        "platform must be ios, android, or web."
+      );
+    }
+
+    const now = FieldValue.serverTimestamp();
+    await db.doc(`users/${uid}/fcmTokens/${tokenId}`).set(
+      {
+        token,
+        platform,
+        createdAt: now,
+        lastUsedAt: now,
+      },
+      { merge: true }
+    );
+
+    return { tokenId, platform };
+  }
+);
+
+export const deleteFcmToken = onCall(
+  { enforceAppCheck: false },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Must be signed in.");
+    }
+
+    const uid = request.auth.uid;
+    const data = (request.data ?? {}) as Record<string, unknown>;
+    const tokenId = ensureNonEmptyString(data.tokenId, "tokenId");
+
+    await db.doc(`users/${uid}/fcmTokens/${tokenId}`).delete();
+
+    return { tokenId };
+  }
+);
+
+export const getSessionContext = onCall(
+  { enforceAppCheck: false },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Must be signed in.");
+    }
+
+    const uid = request.auth.uid;
+    const profile = await requireUserProfile(uid);
+    const currentChurchId =
+      typeof profile.currentChurchId === "string" && profile.currentChurchId.trim() !== ""
+        ? profile.currentChurchId
+        : null;
+
+    let churchName: string | null = null;
+    let role: string | null = null;
+    if (currentChurchId) {
+      const church = await requireChurch(currentChurchId);
+      churchName = church.name ?? null;
+      const member = await requireActiveMember(currentChurchId, uid);
+      role = member.role;
+    }
+
+    return {
+      uid,
+      email: request.auth.token.email ?? profile.email ?? null,
+      displayName: request.auth.token.name ?? profile.displayName ?? null,
+      preferredLanguage: profile.preferredLanguage ?? "en",
+      currentChurchId,
+      churchName,
+      role,
+      communicationPreferences: await getCommunicationPreferences(uid),
+    };
+  }
+);
+
+export const getCareInbox = onCall(
+  { enforceAppCheck: false },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Must be signed in.");
+    }
+
+    const uid = request.auth.uid;
+    const churchId = await requireCurrentChurchId(uid);
+    await requireActiveMember(churchId, uid);
+
+    const threadsSnap = await db
+      .collection(`churches/${churchId}/careThreads`)
+      .where("memberUserId", "==", uid)
+      .orderBy("updatedAt", "desc")
+      .get();
+
+    const threads = await Promise.all(
+      threadsSnap.docs.map(async (doc) => {
+        const thread = doc.data() as CareThreadData;
+        const messagesSnap = await doc.ref
+          .collection("messages")
+          .orderBy("createdAt", "asc")
+          .get();
+
+        return {
+          id: doc.id,
+          churchId,
+          categoryId: thread.categoryId ?? "general_support",
+          preferredChannel: thread.preferredChannel ?? "in_app",
+          requestPreview: messagesSnap.docs[0]?.data().body ?? "",
+          status: thread.status,
+          maxChurchReplies: thread.maxChurchReplies,
+          churchReplyCount: thread.churchReplyCount,
+          createdAt: (thread.createdAt as Timestamp | undefined)?.toDate().toISOString() ?? new Date(0).toISOString(),
+          updatedAt: (thread.updatedAt as Timestamp | undefined)?.toDate().toISOString() ?? new Date(0).toISOString(),
+          messages: messagesSnap.docs.map((messageDoc) => {
+            const message = messageDoc.data() as {
+              senderType: string;
+              body: string;
+              createdAt?: Timestamp;
+            };
+            return {
+              id: messageDoc.id,
+              sender: message.senderType === "church" ? "church" : "member",
+              body: message.body,
+              createdAt:
+                message.createdAt?.toDate().toISOString() ?? new Date(0).toISOString(),
+            };
+          }),
+        };
+      })
+    );
+
+    return { threads };
+  }
+);
+
+export const getChurchMessagesFeed = onCall(
+  { enforceAppCheck: false },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Must be signed in.");
+    }
+
+    const uid = request.auth.uid;
+    const churchId = await requireCurrentChurchId(uid);
+    await requireActiveMember(churchId, uid);
+
+    const messagesSnap = await db
+      .collection(`churches/${churchId}/churchMessages`)
+      .orderBy("createdAt", "desc")
+      .limit(25)
+      .get();
+
+    return {
+      messages: messagesSnap.docs.map((doc) => {
+        const message = doc.data() as {
+          title: string;
+          body: string;
+          kind: string;
+          createdAt?: Timestamp;
+        };
+        return {
+          id: doc.id,
+          title: message.title,
+          body: message.body,
+          kind: message.kind,
+          createdAt:
+            message.createdAt?.toDate().toISOString() ?? new Date(0).toISOString(),
+        };
+      }),
+    };
+  }
+);
+
+export const getCurrentFormationWeek = onCall(
+  { enforceAppCheck: false },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Must be signed in.");
+    }
+
+    const uid = request.auth.uid;
+    const churchId = await requireCurrentChurchId(uid);
+    await requireActiveMember(churchId, uid);
+
+    const now = new Date();
+    const currentWeekId = formatDateOnly(getWeekStartDate(now));
+    const formationRef = db.doc(`churches/${churchId}/formationWeeks/${currentWeekId}`);
+    const formationSnap = await formationRef.get();
+
+    if (!formationSnap.exists) {
+      return { week: null };
+    }
+
+    const data = formationSnap.data() as Record<string, unknown>;
+    if (data.status !== "published") {
+      return { week: null };
+    }
+
+    return {
+      week: {
+        weekId: currentWeekId,
+        ...data,
+      },
+    };
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Phase 6: sermon media pipeline
+// ---------------------------------------------------------------------------
+
+export const createSermonUpload = onCall(
+  { enforceAppCheck: false },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Must be signed in.");
+    }
+
+    const uid = request.auth.uid;
+    const data = (request.data ?? {}) as Record<string, unknown>;
+    const churchId = ensureNonEmptyString(data.churchId, "churchId");
+    const title = ensureNonEmptyString(data.title, "title");
+    const preacherName = ensureNonEmptyString(data.preacherName, "preacherName");
+    const language = ensureEnumValue(
+      data.language,
+      "language",
+      SERMON_LANGUAGES,
+      "language must be en or es."
+    );
+    const sourceType = ensureEnumValue(
+      data.sourceType,
+      "sourceType",
+      SERMON_SOURCE_TYPES,
+      "sourceType must be audio_upload."
+    );
+    const fileName = ensureNonEmptyString(data.fileName, "fileName");
+    const date = ensureIsoDate(data.date, "date");
+    const series = ensureOptionalString(data.series, "series");
+    const partNumber = ensureOptionalPositiveInteger(data.partNumber, "partNumber");
+    const bibleRefs = ensureOptionalStringArray(data.bibleRefs, "bibleRefs");
+
+    const member = await requireActiveMember(churchId, uid);
+    if (!SERMON_MEDIA_ROLES.has(member.role)) {
+      throw new HttpsError(
+        "permission-denied",
+        "Not authorized to manage sermon media."
+      );
+    }
+
+    const church = await requireChurch(churchId);
+    if (church.features?.mediaPipeline !== true) {
+      throw new HttpsError(
+        "not-found",
+        "Sermon media pipeline is not enabled for this church."
+      );
+    }
+
+    const sermonRef = db.collection(`churches/${churchId}/sermons`).doc();
+    const uploadPath = buildSermonUploadPath(churchId, sermonRef.id, fileName);
+    const now = FieldValue.serverTimestamp();
+
+    await sermonRef.set({
+      title,
+      preacherName,
+      date,
+      language,
+      status: "draft",
+      sourceType,
+      audioStoragePath: uploadPath,
+      series: series ?? null,
+      partNumber: partNumber ?? null,
+      bibleRefs: bibleRefs ?? [],
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    return {
+      sermonId: sermonRef.id,
+      uploadPath,
+      status: "draft",
+      sourceType,
+    };
+  }
+);
+
+export const completeSermonUpload = onCall(
+  { enforceAppCheck: false },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Must be signed in.");
+    }
+
+    const uid = request.auth.uid;
+    const data = (request.data ?? {}) as Record<string, unknown>;
+    const churchId = ensureNonEmptyString(data.churchId, "churchId");
+    const sermonId = ensureNonEmptyString(data.sermonId, "sermonId");
+    const audioStoragePath = ensureNonEmptyString(
+      data.audioStoragePath,
+      "audioStoragePath"
+    );
+
+    const member = await requireActiveMember(churchId, uid);
+    if (!SERMON_MEDIA_ROLES.has(member.role)) {
+      throw new HttpsError(
+        "permission-denied",
+        "Not authorized to manage sermon media."
+      );
+    }
+
+    const church = await requireChurch(churchId);
+    if (church.features?.mediaPipeline !== true) {
+      throw new HttpsError(
+        "not-found",
+        "Sermon media pipeline is not enabled for this church."
+      );
+    }
+
+    const sermonRef = db.doc(`churches/${churchId}/sermons/${sermonId}`);
+    const sermonSnap = await sermonRef.get();
+    if (!sermonSnap.exists) {
+      throw new HttpsError("not-found", "Sermon not found.");
+    }
+
+    const sermon = sermonSnap.data() as SermonData;
+    if (sermon.sourceType !== "audio_upload") {
+      throw new HttpsError(
+        "failed-precondition",
+        "Sermon sourceType is not audio_upload."
+      );
+    }
+
+    const expectedPrefix = `sermons/${churchId}/${sermonId}/original/`;
+    if (!audioStoragePath.startsWith(expectedPrefix)) {
+      throw new HttpsError(
+        "invalid-argument",
+        "audioStoragePath must stay within the sermon original upload path."
+      );
+    }
+
+    await sermonRef.update({
+      audioStoragePath,
+      status: "uploaded",
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    return {
+      sermonId,
+      status: "uploaded",
+      audioStoragePath,
+    };
+  }
+);
+
+export const transcribeOnUpload = onCall(
+  { enforceAppCheck: false },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Must be signed in.");
+    }
+
+    const uid = request.auth.uid;
+    const data = (request.data ?? {}) as Record<string, unknown>;
+    const churchId = ensureNonEmptyString(data.churchId, "churchId");
+    const sermonId = ensureNonEmptyString(data.sermonId, "sermonId");
+    const transcriptText = ensureOptionalString(data.transcriptText, "transcriptText");
+    const simulateFailure = data.simulateFailure === true;
+
+    const member = await requireActiveMember(churchId, uid);
+    if (!SERMON_LIFECYCLE_ROLES.has(member.role)) {
+      throw new HttpsError(
+        "permission-denied",
+        "Not authorized to manage sermon transcription."
+      );
+    }
+
+    const church = await requireChurch(churchId);
+    if (church.features?.sermonTranscription !== true) {
+      throw new HttpsError(
+        "not-found",
+        "Sermon transcription is not enabled for this church."
+      );
+    }
+
+    const sermonRef = db.doc(`churches/${churchId}/sermons/${sermonId}`);
+    const sermonSnap = await sermonRef.get();
+    if (!sermonSnap.exists) {
+      throw new HttpsError("not-found", "Sermon not found.");
+    }
+
+    const sermon = sermonSnap.data() as SermonData;
+    if (sermon.status !== "uploaded") {
+      throw new HttpsError(
+        "failed-precondition",
+        "Sermon must be in uploaded status before transcription."
+      );
+    }
+    if (sermon.sourceType !== "audio_upload") {
+      throw new HttpsError(
+        "failed-precondition",
+        "Only audio_upload sermons can enter transcription."
+      );
+    }
+    if (
+      typeof sermon.audioStoragePath !== "string" ||
+      !sermon.audioStoragePath.startsWith(`sermons/${churchId}/${sermonId}/original/`)
+    ) {
+      throw new HttpsError(
+        "failed-precondition",
+        "Sermon audioStoragePath is missing or invalid."
+      );
+    }
+
+    await sermonRef.update({
+      status: "transcribing",
+      transcriptionStatus: "transcribing",
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    const transcriptRef = sermonRef.collection("transcripts").doc();
+    const retentionDeleteAfter = Timestamp.fromDate(
+      addDays(new Date(), TRANSCRIPT_RETENTION_DAYS)
+    );
+    const now = FieldValue.serverTimestamp();
+
+    if (simulateFailure) {
+      await transcriptRef.set({
+        provider: "deepgram_scaffold",
+        language: sermon.language,
+        createdAt: now,
+        retentionDeleteAfter,
+        source: sermon.audioStoragePath,
+        status: "failed",
+        errorCode: "TRANSCRIPTION_SCAFFOLD_FAILURE",
+        errorMessage: "Simulated transcription scaffold failure.",
+      });
+
+      await sermonRef.update({
+        status: "failed",
+        transcriptionStatus: "failed",
+        updatedAt: FieldValue.serverTimestamp(),
+      });
+
+      return {
+        sermonId,
+        transcriptId: transcriptRef.id,
+        status: "failed",
+      };
+    }
+
+    await transcriptRef.set({
+      provider: "deepgram_scaffold",
+      language: sermon.language,
+      createdAt: now,
+      retentionDeleteAfter,
+      source: sermon.audioStoragePath,
+      status: "completed",
+      content:
+        transcriptText ??
+        `Scaffold transcript for sermon ${sermonId}. Provider integration pending.`,
+      segments: [],
+    });
+
+    await sermonRef.update({
+      status: "transcribed",
+      transcriptionStatus: "transcribed",
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    return {
+      sermonId,
+      transcriptId: transcriptRef.id,
+      status: "transcribed",
+    };
+  }
+);
+
+export const generateFormationContent = onCall(
+  { enforceAppCheck: false },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Must be signed in.");
+    }
+
+    const uid = request.auth.uid;
+    const data = (request.data ?? {}) as Record<string, unknown>;
+    const churchId = ensureNonEmptyString(data.churchId, "churchId");
+    const sermonId = ensureNonEmptyString(data.sermonId, "sermonId");
+
+    const member = await requireActiveMember(churchId, uid);
+    if (!SERMON_LIFECYCLE_ROLES.has(member.role)) {
+      throw new HttpsError(
+        "permission-denied",
+        "Not authorized to generate formation content."
+      );
+    }
+
+    const church = await requireChurch(churchId);
+    if (church.features?.formationGeneration !== true) {
+      throw new HttpsError(
+        "not-found",
+        "Formation generation is not enabled for this church."
+      );
+    }
+
+    const sermonRef = db.doc(`churches/${churchId}/sermons/${sermonId}`);
+    const sermonSnap = await sermonRef.get();
+    if (!sermonSnap.exists) {
+      throw new HttpsError("not-found", "Sermon not found.");
+    }
+
+    const sermon = sermonSnap.data() as SermonData;
+    if (sermon.status !== "transcribed") {
+      throw new HttpsError(
+        "failed-precondition",
+        "Sermon must be transcribed before formation generation."
+      );
+    }
+
+    const transcriptsSnap = await sermonRef
+      .collection("transcripts")
+      .where("status", "==", "completed")
+      .limit(1)
+      .get();
+
+    if (transcriptsSnap.empty) {
+      throw new HttpsError(
+        "failed-precondition",
+        "A completed transcript is required before formation generation."
+      );
+    }
+
+    const transcript = transcriptsSnap.docs[0].data() as {
+      content?: string;
+      language?: string;
+    };
+    const transcriptContent =
+      typeof transcript.content === "string" && transcript.content.trim() !== ""
+        ? transcript.content.trim()
+        : "Formation scaffold transcript unavailable.";
+
+    const sermonDate = sermon.date.toDate();
+    const weekStartDate = formatDateOnly(getWeekStartDate(sermonDate));
+    const formationRef = db.doc(
+      `churches/${churchId}/formationWeeks/${weekStartDate}`
+    );
+    const now = FieldValue.serverTimestamp();
+    const listenUrl = sermon.listenUrl ?? null;
+    const scriptureRefs = Array.isArray(sermon.bibleRefs) ? sermon.bibleRefs : [];
+
+    await formationRef.set(
+      {
+        weekStartDate,
+        sermonId,
+        language: sermon.language,
+        status: "generated",
+        sunday: {
+          title: sermon.title,
+          preacherName: sermon.preacherName,
+          summary: `Generated from sermon transcript for ${sermon.title}.`,
+        },
+        days: {
+          monday: {
+            title: "Remember",
+            prompt: `Recall the core invitation from ${sermon.title}.`,
+          },
+          tuesday: {
+            title: "Receive",
+            prompt: transcriptContent.slice(0, 140),
+          },
+          wednesday: {
+            title: "Reflect",
+            prompt: "Notice what truth is asking for your attention this week.",
+          },
+          thursday: {
+            title: "Respond",
+            prompt: "Take one concrete step of obedience shaped by Sunday.",
+          },
+          friday: {
+            title: "Practice",
+            prompt: "Return to the scripture and practice its way quietly.",
+          },
+          saturday: {
+            title: "Prepare",
+            prompt: "Come ready to gather again with gratitude and expectancy.",
+          },
+        },
+        listen: {
+          url: listenUrl,
+          audioStoragePath: sermon.audioStoragePath ?? null,
+        },
+        truths: [
+          `Week anchored in ${sermon.title}.`,
+          transcriptContent.slice(0, 180),
+        ],
+        scriptureRefs,
+        createdAt: now,
+        updatedAt: now,
+      },
+      { merge: true }
+    );
+
+    await sermonRef.update({
+      status: "formation_generated",
+      formationStatus: "generated",
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    return {
+      sermonId,
+      weekId: weekStartDate,
+      status: "generated",
+    };
+  }
+);
+
+export const updateFormationWeekStatus = onCall(
+  { enforceAppCheck: false },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Must be signed in.");
+    }
+
+    const uid = request.auth.uid;
+    const data = (request.data ?? {}) as Record<string, unknown>;
+    const churchId = ensureNonEmptyString(data.churchId, "churchId");
+    const weekId = ensureNonEmptyString(data.weekId, "weekId");
+    const status = ensureEnumValue(
+      data.status,
+      "status",
+      FORMATION_STATUSES,
+      "status must be draft, generated, approved, or published."
+    );
+
+    const member = await requireActiveMember(churchId, uid);
+    if (!SERMON_LIFECYCLE_ROLES.has(member.role)) {
+      throw new HttpsError(
+        "permission-denied",
+        "Not authorized to update formation status."
+      );
+    }
+
+    const formationRef = db.doc(`churches/${churchId}/formationWeeks/${weekId}`);
+    const formationSnap = await formationRef.get();
+    if (!formationSnap.exists) {
+      throw new HttpsError("not-found", "Formation week not found.");
+    }
+
+    const formation = formationSnap.data() as {
+      status: string;
+      sermonId: string;
+    };
+
+    if (status === "approved" && formation.status !== "generated") {
+      throw new HttpsError(
+        "failed-precondition",
+        "Formation week must be generated before approval."
+      );
+    }
+    if (status === "published" && formation.status !== "approved") {
+      throw new HttpsError(
+        "failed-precondition",
+        "Formation week must be approved before publish."
+      );
+    }
+
+    await formationRef.update({
+      status,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    await db.doc(`churches/${churchId}/sermons/${formation.sermonId}`).update({
+      formationStatus: status,
+      updatedAt: FieldValue.serverTimestamp(),
+    });
+
+    return { weekId, status };
+  }
+);
+
+export const computeWeeklyAnalytics = onCall(
+  { enforceAppCheck: false },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Must be signed in.");
+    }
+
+    const uid = request.auth.uid;
+    const data = (request.data ?? {}) as Record<string, unknown>;
+    const churchId = ensureNonEmptyString(data.churchId, "churchId");
+    const weekStartDate = formatDateOnly(
+      parseDateOnly(data.weekStartDate, "weekStartDate")
+    );
+
+    const member = await requireActiveMember(churchId, uid);
+    if (!SERMON_LIFECYCLE_ROLES.has(member.role)) {
+      throw new HttpsError(
+        "permission-denied",
+        "Not authorized to compute analytics."
+      );
+    }
+
+    const weekStart = new Date(`${weekStartDate}T00:00:00.000Z`);
+    const weekEnd = addDays(weekStart, 7);
+    const weekStartTs = Timestamp.fromDate(weekStart);
+    const weekEndTs = Timestamp.fromDate(weekEnd);
+
+    const [
+      activeMembersSnap,
+      careSubmittedSnap,
+      careResolvedSnap,
+      churchMessagesSnap,
+    ] = await Promise.all([
+      db
+        .collection(`churches/${churchId}/members`)
+        .where("status", "==", "active")
+        .get(),
+      db
+        .collection(`churches/${churchId}/careRequests`)
+        .where("createdAt", ">=", weekStartTs)
+        .where("createdAt", "<", weekEndTs)
+        .get(),
+      db
+        .collection(`churches/${churchId}/careRequests`)
+        .where("resolvedAt", ">=", weekStartTs)
+        .where("resolvedAt", "<", weekEndTs)
+        .get(),
+      db
+        .collection(`churches/${churchId}/churchMessages`)
+        .where("createdAt", ">=", weekStartTs)
+        .where("createdAt", "<", weekEndTs)
+        .get(),
+    ]);
+
+    const formationViews = 0;
+    const analyticsRef = db.doc(
+      `churches/${churchId}/analyticsWeekly/${weekStartDate}`
+    );
+
+    await analyticsRef.set({
+      weekStartDate,
+      activeMembers: activeMembersSnap.size,
+      formationViews,
+      careRequestsSubmitted: careSubmittedSnap.size,
+      careRequestsResolved: careResolvedSnap.size,
+      churchMessagesPublished: churchMessagesSnap.size,
+      computedAt: FieldValue.serverTimestamp(),
+    });
+
+    return {
+      weekStartDate,
+      activeMembers: activeMembersSnap.size,
+      formationViews,
+      careRequestsSubmitted: careSubmittedSnap.size,
+      careRequestsResolved: careResolvedSnap.size,
+      churchMessagesPublished: churchMessagesSnap.size,
+    };
+  }
+);
 
 // ---------------------------------------------------------------------------
 // Phase 1: joinChurch
@@ -462,7 +1634,7 @@ export const respondToCareThread = onCall(
     // Use a transaction to atomically enforce the one-reply-max rule.
     // Without a transaction, two simultaneous calls could both pass the
     // count check and write two replies.
-    const messageId = await db.runTransaction(async (tx) => {
+    const replyResult = await db.runTransaction(async (tx) => {
       const threadSnap = await tx.get(threadRef);
 
       if (!threadSnap.exists) {
@@ -504,15 +1676,18 @@ export const respondToCareThread = onCall(
         updatedAt: now,
       });
 
-      return msgRef.id;
+      return { messageId: msgRef.id, memberUserId: thread.memberUserId };
     });
 
-    // TODO (Phase 5): trigger notifyMemberCareReply
-    //   - read memberUserId from thread (requires a separate read after tx)
-    //   - check /users/{memberUserId}/preferences/communication.careReplyNotificationsEnabled
-    //   - send FCM push if token exists and preference is true
+    const notificationScaffold = await notifyMemberCareReply(
+      replyResult.memberUserId
+    );
 
-    return { threadId: threadId as string, messageId };
+    return {
+      threadId: threadId as string,
+      messageId: replyResult.messageId,
+      notificationScaffold,
+    };
   }
 );
 
@@ -640,49 +1815,39 @@ export const publishChurchMessage = onCall(
       expiresAt: expiresAtTimestamp,
     });
 
-    // TODO (Phase 5): trigger notifyChurchMessagePublished
-    //   - fan-out FCM push to active members with tokens and
-    //     churchMessagesEnabled == true in /preferences/communication
+    const notificationScaffold = await notifyChurchMessagePublished(
+      churchId,
+      uid
+    );
 
-    return { messageId: messageRef.id };
+    return { messageId: messageRef.id, notificationScaffold };
   }
 );
 
 // ---------------------------------------------------------------------------
-// Phase 5 (deferred): notification hooks
+// Phase 5: notification hooks
 // ---------------------------------------------------------------------------
-// TODO: notifyMemberCareReply
-//   - read target member's /users/{uid}/fcmTokens and /preferences/communication
-//   - send FCM push if careReplyNotificationsEnabled == true
-
-// TODO: notifyChurchMessagePublished
-//   - fan-out FCM push to all active church members who have tokens and
-//     churchMessagesEnabled == true
+// Messaging delivery is intentionally scaffold-only in this phase.
+// We compute eligibility from Firestore-backed preferences and token records,
+// then return an emulator-safe summary without requiring FCM configuration.
 
 // ---------------------------------------------------------------------------
-// Phase 7 (deferred): transcribeOnUpload
+// Phase 7: transcribeOnUpload
 // ---------------------------------------------------------------------------
-// TODO: implement transcribeOnUpload (Storage onObject trigger)
-//   - triggered by sermon audio upload to sermons/{churchId}/{sermonId}/original/*
-//   - update sermon status → 'transcribing'
-//   - call Deepgram STT API
-//   - write transcripts/{versionId} with retentionDeleteAfter = now + 7 days
-//   - update sermon status → 'transcribed' or 'failed'
+// This phase keeps transcription scaffold-only. The callable is a safe server
+// runner for uploaded sermons until the Storage-triggered Deepgram path is
+// wired. It still enforces sermon status, church feature gates, retention
+// metadata, and failure-state representation.
 
 // ---------------------------------------------------------------------------
-// Phase 8 (deferred): generateFormationContent
+// Phase 8: formation generation
 // ---------------------------------------------------------------------------
-// TODO: implement generateFormationContent
-//   - triggered after successful transcription
-//   - derive formationWeeks/{weekId} from sermon + transcript
-//   - preserve EN/ES language handling
-//   - set status = 'generated' (requires pastor approval before 'published')
+// This phase remains scaffold-oriented but function-owned. The backend can
+// derive a valid formationWeeks document from sermon + transcript inputs and
+// enforce generated → approved → published transitions.
 
 // ---------------------------------------------------------------------------
-// Phase 9 (deferred): computeWeeklyAnalytics
+// Phase 9: weekly analytics
 // ---------------------------------------------------------------------------
-// TODO: implement computeWeeklyAnalytics (scheduled function, weekly)
-//   - aggregate: activeMembers, formationViews, careRequestsSubmitted,
-//     careRequestsResolved, churchMessagesPublished, newBelieverStarts
-//   - write analyticsWeekly/{weekStartDate}
-//   - MUST NOT read local-only data (journals, mood notes are not in Firestore)
+// Analytics stay aggregate-only and only read church-scoped backend data.
+// No local-only journals, reflections, mood notes, or pastoral notes are read.

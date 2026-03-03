@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Settings } from 'react-native';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Switch } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -15,13 +15,23 @@ import {
   setEncouragementPreference,
   setReminderPreference,
 } from '../../storage/communicationPrefsStore';
+import { useSession } from '../../backend/SessionProvider';
 
 const SettingsScreen = ({ navigation, route }: any) => {
   const { locale, setLocale, t } = useI18n();
   const { themeId, setThemeId, themeOptions } = useTheme();
+  const { callFunction, session, signOut } = useSession();
   const insets = useSafeAreaInsets();
 
-  const initialPrefs = useMemo(() => getCommunicationPrefs(), []);
+  const initialPrefs = useMemo(() => {
+    const backendPrefs = session?.context?.communicationPreferences;
+    if (!backendPrefs) return getCommunicationPrefs();
+    return {
+      reminders: backendPrefs.formationNotificationsEnabled,
+      churchMessages: backendPrefs.churchMessagesEnabled,
+      encouragement: backendPrefs.careReplyNotificationsEnabled,
+    };
+  }, [session?.context?.communicationPreferences]);
   const [reminders, setReminders] = useState(initialPrefs.reminders);
   const [churchMessages, setChurchMessages] = useState(initialPrefs.churchMessages);
   const [encouragement, setEncouragement] = useState(initialPrefs.encouragement);
@@ -38,6 +48,12 @@ const SettingsScreen = ({ navigation, route }: any) => {
     () => t(themeOptions.find((option) => option.id === themeId)?.labelKey || 'settings.theme.midnight'),
     [themeId, themeOptions, t]
   );
+  useEffect(() => {
+    setReminders(initialPrefs.reminders);
+    setChurchMessages(initialPrefs.churchMessages);
+    setEncouragement(initialPrefs.encouragement);
+  }, [initialPrefs]);
+
   useFocusEffect(
     React.useCallback(() => {
       const savedChurchName = Settings.get('mkp.connectedChurchName') as string | undefined;
@@ -62,14 +78,29 @@ const SettingsScreen = ({ navigation, route }: any) => {
   const updateReminders = (value: boolean) => {
     setReminders(value);
     setReminderPreference(value);
+    void callFunction('saveCommunicationPreferences', {
+      formationNotificationsEnabled: value,
+    }).catch(() => {
+      // Keep the local setting even if the backend call fails.
+    });
   };
   const updateChurchMessages = (value: boolean) => {
     setChurchMessages(value);
     setChurchMessagesPreference(value);
+    void callFunction('saveCommunicationPreferences', {
+      churchMessagesEnabled: value,
+    }).catch(() => {
+      // Keep the local setting even if the backend call fails.
+    });
   };
   const updateEncouragement = (value: boolean) => {
     setEncouragement(value);
     setEncouragementPreference(value);
+    void callFunction('saveCommunicationPreferences', {
+      careReplyNotificationsEnabled: value,
+    }).catch(() => {
+      // Keep the local setting even if the backend call fails.
+    });
   };
 
   return (
@@ -260,7 +291,7 @@ const SettingsScreen = ({ navigation, route }: any) => {
                 <View style={styles.signOutDivider} />
                 <TouchableOpacity
                   style={styles.signOutButton}
-                  onPress={() => navigation.getParent()?.getParent()?.navigate('Auth', { screen: 'Welcome' })}
+                  onPress={() => signOut()}
                 >
                   <View style={styles.signOutCard}>
                     <Text style={styles.signOutText}>{t('settings.account.signOut')}</Text>

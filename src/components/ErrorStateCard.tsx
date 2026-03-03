@@ -83,15 +83,17 @@ const createStyles = () =>
       marginBottom: 12,
     },
     actions: {
-      flexDirection: 'row',
-      alignItems: 'center',
+      width: '100%',
+      alignItems: 'stretch',
       gap: 10,
     },
     primaryButton: {
+      width: '100%',
       borderRadius: 999,
       backgroundColor: Colors.accentGold,
       paddingVertical: 10,
       paddingHorizontal: 14,
+      alignItems: 'center',
     },
     primaryText: {
       fontFamily: 'Cinzel_700Bold',
@@ -101,12 +103,14 @@ const createStyles = () =>
       textTransform: 'uppercase',
     },
     secondaryButton: {
+      width: '100%',
       borderRadius: 999,
       borderWidth: 1,
       borderColor: 'rgba(229, 185, 95, 0.4)',
       paddingVertical: 10,
       paddingHorizontal: 14,
       backgroundColor: 'rgba(255, 255, 255, 0.03)',
+      alignItems: 'center',
     },
     secondaryText: {
       fontFamily: 'Cinzel_700Bold',

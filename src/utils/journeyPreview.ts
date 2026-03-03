@@ -1,6 +1,6 @@
 import { JournalEntry } from '../storage/journalStore';
 
-const SAMPLE_MOODS = ['peaceful', 'rushed', 'anxious', 'grateful', 'tired', 'focused'] as const;
+const SAMPLE_MOODS = ['peaceful', 'rushed', 'anxious', 'grateful', 'tired', 'heavy', 'longing'] as const;
 
 const findPreviousNonSunday = (startDate: Date, offset: number) => {
   const cursor = new Date(startDate);
@@ -43,7 +43,9 @@ export const buildJourneyPreviewEntries = (locale: 'en' | 'es', totalEntries = 6
                   ? 'Noté varios regalos pequeños hoy y sentí cómo mi corazón se suavizaba en gratitud.'
                   : mood === 'tired'
                     ? 'Mi cuerpo y mi mente se sintieron agotados, así que elegí el descanso en lugar de forzar más.'
-                    : 'Mi atención se sintió inusualmente clara hoy, y quise mantenerme alineado con lo que más importa.'
+                    : mood === 'heavy'
+                      ? 'Algo en mí se sintió cargado hoy, y nombrar ese peso me ayudó a dejar de fingir que estaba bien.'
+                      : 'Sentí un hambre santa hoy, como si Dios estuviera despertando en mí un deseo más profundo de cercanía y renovación.'
           : mood === 'peaceful'
             ? 'I felt a quiet steadiness today and noticed how much lighter my spirit became when I slowed down.'
             : mood === 'rushed'
@@ -54,7 +56,9 @@ export const buildJourneyPreviewEntries = (locale: 'en' | 'es', totalEntries = 6
                   ? 'I noticed several small gifts today and felt my heart soften in gratitude.'
                   : mood === 'tired'
                     ? 'My body and mind felt worn down, so I chose rest over forcing more output.'
-                    : 'My attention felt unusually clear today, and I wanted to stay aligned with what mattered most.',
+                    : mood === 'heavy'
+                      ? 'Something in me felt burdened today, and naming that weight helped me stop pretending I was fine.'
+                      : 'I felt a holy ache today, like God was stirring desire for deeper closeness and renewal.',
       invitationText:
         locale === 'es'
           ? 'Un momento sencillo de conciencia se volvió parte de la formación de hoy.'

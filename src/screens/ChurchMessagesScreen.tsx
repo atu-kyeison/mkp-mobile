@@ -1,19 +1,43 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MaterialIcons } from '@expo/vector-icons';
+import { useFocusEffect } from '@react-navigation/native';
 import { Colors } from '../../constants/Colors';
 import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { useI18n } from '../i18n/I18nProvider';
+import { useAppDataSync } from '../backend/appData';
 import { getCommunicationPrefs } from '../storage/communicationPrefsStore';
 import { getChurchMessages } from '../storage/churchMessagesStore';
 
 export const ChurchMessagesScreen = ({ navigation }: any) => {
   const { t, locale } = useI18n();
+  const { syncChurchMessages } = useAppDataSync();
   const prefs = useMemo(() => getCommunicationPrefs(), []);
-  const messages = useMemo(() => getChurchMessages(locale), [locale]);
+  const [messages, setMessages] = useState(() => getChurchMessages());
   const localeTag = locale === 'es' ? 'es-ES' : 'en-US';
+
+  useFocusEffect(
+    useCallback(() => {
+      let cancelled = false;
+      const load = async () => {
+        try {
+          await syncChurchMessages();
+        } catch {
+          // Fall back to the locally cached feed.
+        } finally {
+          if (!cancelled) {
+            setMessages(getChurchMessages());
+          }
+        }
+      };
+      void load();
+      return () => {
+        cancelled = true;
+      };
+    }, [syncChurchMessages])
+  );
 
   return (
     <GradientBackground style={styles.container}>

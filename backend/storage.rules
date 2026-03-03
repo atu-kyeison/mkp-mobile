@@ -1,0 +1,52 @@
+rules_version = '2';
+
+// ============================================================================
+// MKP Mobile – Cloud Storage Security Rules
+//
+// Contract:  backend/contract-v1.1.md  (§10.1 sermon media upload)
+// Roadmap:   backend/roadmap-v1.md     (Phase 6)
+//
+// Posture: DENY BY DEFAULT.
+// Raw sermon uploads are church-scoped and restricted to media-capable staff.
+// ============================================================================
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function membershipPath(churchId) {
+      return /databases/(default)/documents/churches/$(churchId)/members/$(request.auth.uid);
+    }
+
+    function churchPath(churchId) {
+      return /databases/(default)/documents/churches/$(churchId);
+    }
+
+    function isActiveMemberOf(churchId) {
+      return isAuthenticated() &&
+             firestore.exists(membershipPath(churchId)) &&
+             firestore.get(membershipPath(churchId)).data.status == 'active';
+    }
+
+    function hasRole(churchId, allowedRoles) {
+      return isActiveMemberOf(churchId) &&
+             firestore.get(membershipPath(churchId)).data.role in allowedRoles;
+    }
+
+    function mediaPipelineEnabled(churchId) {
+      return firestore.exists(churchPath(churchId)) &&
+             firestore.get(churchPath(churchId)).data.features.mediaPipeline == true;
+    }
+
+    function canManageSermonMedia(churchId) {
+      return hasRole(churchId, ['pastor', 'admin', 'media_team']) &&
+             mediaPipelineEnabled(churchId);
+    }
+
+    match /sermons/{churchId}/{sermonId}/original/{fileName=**} {
+      allow read, write, delete: if canManageSermonMedia(churchId);
+    }
+  }
+}

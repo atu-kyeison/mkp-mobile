@@ -78,7 +78,7 @@ async function seedChurches() {
   const batch = db.batch();
   const now = admin.firestore.FieldValue.serverTimestamp();
 
-  // Church Alpha — careThreads + churchMessages enabled
+  // Church Alpha — current MVP backend features enabled
   batch.set(db.doc(`churches/${CHURCH_ALPHA_ID}`), {
     name: 'Grace Community Church',
     slug: 'grace-community',
@@ -89,9 +89,9 @@ async function seedChurches() {
     features: {
       careThreads: true,
       churchMessages: true,
-      mediaPipeline: false,
-      sermonTranscription: false,
-      formationGeneration: false,
+      mediaPipeline: true,
+      sermonTranscription: true,
+      formationGeneration: true,
       dashboardSSO: false,
     },
     branding: {},
@@ -134,8 +134,8 @@ async function seedChurches() {
 
   await batch.commit();
   console.log('✓ Churches seeded');
-  console.log(`  church-alpha: join code = ${ALPHA_JOIN_CODE}  (features: careThreads=true, churchMessages=true)`);
-  console.log(`  church-beta:  join code = ${BETA_JOIN_CODE}  (features: careThreads=false, churchMessages=false)`);
+  console.log(`  church-alpha: join code = ${ALPHA_JOIN_CODE}  (features: careThreads=true, churchMessages=true, mediaPipeline=true, sermonTranscription=true, formationGeneration=true)`);
+  console.log(`  church-beta:  join code = ${BETA_JOIN_CODE}  (features: careThreads=false, churchMessages=false, mediaPipeline=false, sermonTranscription=false, formationGeneration=false)`);
 }
 
 async function seedUser(user) {

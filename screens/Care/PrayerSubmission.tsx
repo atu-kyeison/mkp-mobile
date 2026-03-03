@@ -1,47 +1,76 @@
 import React, { useMemo, useState } from 'react';
-import { Alert, StyleSheet, View, Text, ScrollView, TextInput, Switch } from 'react-native';
+import { Alert, StyleSheet, View, Text, ScrollView, TextInput, Switch, TouchableOpacity } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MaterialIcons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
 import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
+import { useAppDataSync } from '../../src/backend/appData';
+import { useSession } from '../../src/backend/SessionProvider';
 import { useI18n } from '../../src/i18n/I18nProvider';
 import { useTheme } from '../../src/theme/ThemeProvider';
 import { getCommunicationPrefs } from '../../src/storage/communicationPrefsStore';
-import { createCareSupportThread } from '../../src/storage/careInboxStore';
 
 export default function PrayerSubmission({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { t } = useI18n();
   const { themeId } = useTheme();
+  const { session, callFunction } = useSession();
+  const { syncCareInbox } = useAppDataSync();
   const styles = useMemo(() => createStyles(), [themeId]);
   const [anonymous, setAnonymous] = useState(false);
   const [pastoralSupport, setPastoralSupport] = useState(false);
   const [request, setRequest] = useState('');
   const communicationPrefs = useMemo(() => getCommunicationPrefs(), []);
 
-  const handleSharePrayer = () => {
-    if (pastoralSupport && communicationPrefs.encouragement && request.trim()) {
-      createCareSupportThread({
-        categoryId: 'pastor_conversation',
-        preferredChannel: 'in_app',
-        requestText: request.trim(),
-      });
+  const handleSharePrayer = async () => {
+    if (!request.trim()) {
+      Alert.alert(t('care.support.validation.title'), t('care.support.validation.messageRequired'));
+      return;
     }
-    Alert.alert(
-      t('care.prayer.alert.title'),
-      t('care.prayer.alert.body'),
-      [
-        { text: t('care.prayer.alert.done'), onPress: () => navigation.goBack() },
-        {
-          text: t('care.prayer.alert.needSupport'),
-          onPress: () =>
-            navigation.navigate('CareSupportRequest', {
-              initialHelpType: 'A conversation with a pastor',
-            }),
-        },
-      ]
-    );
+
+    const churchId = session?.context?.currentChurchId;
+    if (!churchId) {
+      Alert.alert(t('care.support.validation.title'), t('auth.churchSearch.errorRequired'));
+      return;
+    }
+
+    const preferredChannel =
+      pastoralSupport && communicationPrefs.encouragement ? 'in_app' : 'email';
+
+    try {
+      const result = await callFunction<{ requestId: string; threadId?: string }>('submitCareRequest', {
+        churchId,
+        type: 'prayer',
+        content: request.trim(),
+        isAnonymous: anonymous,
+        preferredChannel,
+        categoryId: pastoralSupport ? 'pastor_conversation' : 'other',
+      });
+      if (result.threadId) {
+        await syncCareInbox();
+      }
+      Alert.alert(
+        t('care.prayer.alert.title'),
+        t('care.prayer.alert.body'),
+        [
+          { text: t('care.prayer.alert.done'), onPress: () => navigation.goBack() },
+          {
+            text: t('care.prayer.alert.needSupport'),
+            onPress: () =>
+              navigation.navigate('CareSupportRequest', {
+                initialHelpType: 'A conversation with a pastor',
+              }),
+          },
+        ]
+      );
+    } catch (error) {
+      Alert.alert(
+        t('care.support.error'),
+        error instanceof Error ? error.message : t('care.prayer.alert.body')
+      );
+    }
   };
 
   return (
@@ -53,6 +82,9 @@ export default function PrayerSubmission({ navigation }: any) {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
+            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+              <MaterialIcons name="chevron-left" size={28} color={Colors.accentGold} />
+            </TouchableOpacity>
             <Text style={styles.headerLabel}>{t('care.header')}</Text>
             <View style={styles.divider} />
             <Text style={styles.title}>{t('care.prayer.title')}</Text>
@@ -78,6 +110,9 @@ export default function PrayerSubmission({ navigation }: any) {
                   <Text style={styles.star}>★</Text>
                 </View>
               </View>
+              <TouchableOpacity style={styles.secondaryExit} onPress={() => navigation.goBack()}>
+                <Text style={styles.secondaryExitText}>{t('reflection.detail.cancel')}</Text>
+              </TouchableOpacity>
             </GlassCard>
 
             <View style={styles.togglesCard}>
@@ -144,6 +179,16 @@ const createStyles = () => StyleSheet.create({
     alignItems: 'center',
     marginBottom: 14,
   },
+  backButton: {
+    position: 'absolute',
+    left: 0,
+    top: -2,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   headerLabel: {
     fontFamily: 'Cinzel_700Bold',
     fontSize: 10,
@@ -199,6 +244,16 @@ const createStyles = () => StyleSheet.create({
   submitButton: {
     paddingVertical: 12,
     paddingHorizontal: 32,
+  },
+  secondaryExit: {
+    marginTop: 16,
+    alignSelf: 'center',
+  },
+  secondaryExitText: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.56)',
+    textDecorationLine: 'underline',
   },
   stars: {
     flexDirection: 'column',

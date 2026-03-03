@@ -54,7 +54,7 @@ export default function CareHome({ navigation }: any) {
               style={styles.linkButton}
               onPress={() => navigation.navigate('CareSupportRequest')}
             >
-              <Text style={styles.linkText}>{t('care.home.needMore')}</Text>
+              <Text style={styles.linkText}>{t('care.home.nextStep')}</Text>
             </TouchableOpacity>
           </View>
 

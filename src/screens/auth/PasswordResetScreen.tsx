@@ -52,7 +52,7 @@ const PasswordResetScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   safeArea: { flex: 1 }, keyboardView: { flex: 1 }, scrollContent: { flexGrow: 1 }, container: { flex: 1, paddingTop: 60 },
   headerContainer: { alignItems: 'center', marginBottom: 40 },
-  brandText: { fontFamily: 'Cinzel_400Regular', fontSize: 11, letterSpacing: 5, color: Colors.antiqueGold },
+  brandText: { fontFamily: 'Cinzel_400Regular', fontSize: 11, letterSpacing: 5, color: Colors.antiqueGold, marginTop: 12 },
   card: { flex: 1, borderTopLeftRadius: 56, borderTopRightRadius: 56, paddingHorizontal: 40, paddingTop: 48, paddingBottom: 32 },
   header: { alignItems: 'center', marginBottom: 40 }, title: { fontFamily: 'PlayfairDisplay_500Medium', fontSize: 30, color: 'white', textAlign: 'center', marginBottom: 12 }, subtitle: { fontFamily: 'Inter_300Light', fontSize: 14, color: 'rgba(255, 255, 255, 0.4)', textAlign: 'center', lineHeight: 22, maxWidth: 260 },
   form: { flex: 1 }, inputGroup: { marginBottom: 24 }, label: { fontFamily: 'Inter_500Medium', fontSize: 10, letterSpacing: 2, color: 'rgba(229, 185, 95, 0.7)', marginLeft: 4, marginBottom: 8 },

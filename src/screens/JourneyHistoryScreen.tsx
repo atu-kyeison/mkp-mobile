@@ -9,6 +9,7 @@ import { GlassCard } from '../components/GlassCard';
 import { useI18n } from '../i18n/I18nProvider';
 import { useTheme } from '../theme/ThemeProvider';
 import { getJournalEntries, JournalEntry } from '../storage/journalStore';
+import { getJourneyFavoriteIds, saveJourneyFavoriteIds } from '../storage/journeyFavoritesStore';
 import { buildJourneyPreviewEntries } from '../utils/journeyPreview';
 
 type CalendarDay = {
@@ -26,7 +27,9 @@ const MOOD_EMOJI: Record<string, string> = {
   tired: '🌙',
   grateful: '☀️',
   peaceful: '🌤️',
-  focused: '🌅',
+  heavy: '🌧️',
+  longing: '✨',
+  focused: '🧭',
 };
 
 const toIsoDate = (date: Date) => {
@@ -87,6 +90,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
   useFocusEffect(
     useCallback(() => {
       setEntries(getJournalEntries());
+      setFavoriteIds(getJourneyFavoriteIds());
     }, [])
   );
 
@@ -145,12 +149,17 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
     const date = new Date(selectedDay.isoDate);
     return date.toLocaleDateString(localeTag, { month: 'short', day: 'numeric', year: 'numeric' }).toUpperCase();
   }, [localeTag, selectedDay]);
+  const formatEntryTime = useCallback(
+    (createdAt: string) =>
+      new Date(createdAt)
+        .toLocaleTimeString(localeTag, { hour: 'numeric', minute: '2-digit' })
+        .toUpperCase(),
+    [localeTag]
+  );
   const isSelectedDayToday = useMemo(
     () => (selectedDay ? selectedDay.isoDate === toIsoDate(new Date()) : false),
     [selectedDay]
   );
-
-  const activeDayEntry = selectedDayEntries[0];
 
   const favoriteItems = useMemo(
     () => journeyItems.filter((item) => favoriteIds.includes(item.id)),
@@ -174,12 +183,9 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
   }, [favoriteItems, normalizedSearch, t]);
 
   const resolveDayState = (day: CalendarDay) => {
-    setDetailState('loading');
-    setTimeout(() => {
-      const dayEntries = entriesByDate.get(day.isoDate) || [];
-      setSelectedDayEntries(dayEntries);
-      setDetailState(dayEntries.length > 0 ? 'ready' : 'empty');
-    }, 700);
+    const dayEntries = entriesByDate.get(day.isoDate) || [];
+    setSelectedDayEntries(dayEntries);
+    setDetailState(dayEntries.length > 0 ? 'ready' : 'empty');
   };
 
   const openDay = (day: CalendarDay) => {
@@ -196,12 +202,20 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
   };
 
   const toggleFavorite = (itemId: string) => {
-    setFavoriteIds((prev) =>
-      prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId]
-    );
+    setFavoriteIds((prev) => {
+      const next = prev.includes(itemId) ? prev.filter((id) => id !== itemId) : [...prev, itemId];
+      saveJourneyFavoriteIds(next);
+      return next;
+    });
   };
 
-  const closeSheet = () => {
+  const closeSheet = (onClosed?: () => void) => {
+    if (onClosed) {
+      sheetTranslateY.setValue(0);
+      setSelectedDay(null);
+      setTimeout(onClosed, 0);
+      return;
+    }
     Animated.timing(sheetTranslateY, {
       toValue: 420,
       duration: 180,
@@ -215,6 +229,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
   const sheetPanResponder = useMemo(
     () =>
       PanResponder.create({
+        onStartShouldSetPanResponder: () => false,
         onMoveShouldSetPanResponder: (_, gestureState) => gestureState.dy > 8 && Math.abs(gestureState.dx) < 20,
         onPanResponderMove: (_, gestureState) => {
           if (gestureState.dy > 0) {
@@ -236,6 +251,8 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
       }),
     [sheetTranslateY]
   );
+
+  const handlePanHandlers = sheetPanResponder.panHandlers;
 
   return (
     <BackgroundGradient style={styles.container}>
@@ -472,9 +489,8 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
 
         <Modal transparent visible={selectedDay !== null} animationType="fade" onRequestClose={() => setSelectedDay(null)}>
           <View style={styles.modalBackdrop}>
-            <TouchableOpacity style={StyleSheet.absoluteFill} onPress={closeSheet} />
+            <TouchableOpacity style={StyleSheet.absoluteFill} onPress={() => closeSheet()} />
             <Animated.View
-              {...sheetPanResponder.panHandlers}
               style={[
                 styles.bottomSheet,
                 {
@@ -485,16 +501,13 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                 },
               ]}
             >
-              <View style={styles.sheetHandleWrap}>
-                <View style={styles.sheetHandle} />
-              </View>
-              <View style={styles.sheetHeader}>
+              <View style={styles.sheetHeader} {...handlePanHandlers}>
                 <View style={styles.headerSpacer} />
                 <View style={styles.sheetTitleWrap}>
                   <Text style={styles.sheetDate}>{detailTitle}</Text>
                   <Text style={styles.sheetTitle}>{t('journey.dayDetail.title')}</Text>
                 </View>
-                <TouchableOpacity style={styles.closeButton} onPress={closeSheet}>
+                <TouchableOpacity style={styles.closeButton} onPress={() => closeSheet()}>
                   <MaterialIcons name="close" size={18} color="rgba(255,255,255,0.7)" />
                 </TouchableOpacity>
               </View>
@@ -512,69 +525,90 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                   contentContainerStyle={styles.sheetBodyReadyContent}
                   showsVerticalScrollIndicator={false}
                 >
-                  <TouchableOpacity
-                    style={styles.readySection}
-                    onPress={() =>
-                      navigation.navigate('MoodDetail', {
-                        moodId: activeDayEntry?.mood || 'peaceful',
-                        date: detailTitle,
-                        entryId: activeDayEntry?.id,
-                      })
-                    }
-                  >
-                    <View style={styles.readySectionHeader}>
-                      <Text style={styles.readyLabel}>{t('journey.dayDetail.innerPosture')}</Text>
-                      <MaterialIcons name="chevron-right" size={16} color="rgba(229,185,95,0.35)" />
+                  {isSelectedDayToday ? (
+                    <View style={styles.inlineActionRow}>
+                      <TouchableOpacity
+                        style={styles.inlinePrimaryAction}
+                        onPress={() => {
+                          closeSheet(() =>
+                            navigation.navigate('ReflectionEntry', {
+                              journalVariant: 'mid_week',
+                              openMoodOnEntry: false,
+                            })
+                          );
+                        }}
+                      >
+                        <Text style={styles.inlinePrimaryActionText}>{t('journey.dayDetail.addReflection')}</Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={styles.inlineSecondaryAction}
+                        onPress={() => {
+                          closeSheet(() =>
+                            navigation.navigate('MoodCheckIn', {
+                              nextScreen: 'JourneyHistory',
+                            })
+                          );
+                        }}
+                      >
+                        <Text style={styles.inlineSecondaryActionText}>{t('journey.dayDetail.logMood')}</Text>
+                      </TouchableOpacity>
                     </View>
-                    <View style={styles.moodPill}>
-                      <Text style={styles.moodEmoji}>
-                        {activeDayEntry?.mood ? MOOD_EMOJI[String(activeDayEntry.mood).toLowerCase()] || '🌿' : '🌿'}
-                      </Text>
-                      <Text style={styles.moodPillText}>
-                        {activeDayEntry?.mood ? t(`mood.label.${String(activeDayEntry.mood).toLowerCase()}`) : t('journey.dayDetail.fallbackMoodLogged')}
-                      </Text>
-                    </View>
-                    <Text style={styles.readySubText}>{activeDayEntry?.invitationText || t('journey.dayDetail.fallbackSavedReflection')}</Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={styles.readySection}
-                    onPress={() =>
-                      navigation.navigate('ReflectionDetail', {
-                        date: detailTitle,
-                        invitation: activeDayEntry?.invitationText || '',
-                        mood: activeDayEntry?.mood,
-                        fromSunday: Boolean(activeDayEntry?.linkedSermonTitle),
-                        sermonUrl: activeDayEntry?.linkedSermonUrl,
-                        content: activeDayEntry?.body || '',
-                      })
-                    }
-                  >
-                    <View style={styles.readySectionHeader}>
-                      <Text style={styles.readyLabel}>{t('journey.dayDetail.reflection')}</Text>
-                      <MaterialIcons name="chevron-right" size={16} color="rgba(229,185,95,0.35)" />
-                    </View>
-                    <Text style={styles.readyReflectionText}>
-                      {activeDayEntry?.body || t('journey.dayDetail.fallbackNoReflection')}
-                    </Text>
-                  </TouchableOpacity>
-
-                  <TouchableOpacity
-                    style={[styles.readySection, styles.readySundaySection]}
-                    onPress={() => navigation.navigate('SundaySummaryDetail')}
-                    disabled={!activeDayEntry?.linkedSermonTitle}
-                  >
-                    <View style={styles.readySectionHeader}>
-                      <Text style={styles.readyLabel}>{t('journey.dayDetail.fromSunday')}</Text>
-                      <MaterialIcons name="chevron-right" size={16} color="rgba(229,185,95,0.35)" />
-                    </View>
-                    <View style={styles.sundayRow}>
-                      <View style={styles.sundayAccent} />
-                      <Text style={styles.sundayText}>
-                        {activeDayEntry?.linkedSermonTitle || t('journey.dayDetail.fallbackNoSundayLink')}
-                      </Text>
-                    </View>
-                  </TouchableOpacity>
+                  ) : null}
+                  {selectedDayEntries.map((entry) => (
+                    <TouchableOpacity
+                      key={entry.id}
+                      style={styles.readyEntryCard}
+                      onPress={() =>
+                        closeSheet(() =>
+                          navigation.navigate('ReflectionDetail', {
+                            entryId: entry.id,
+                            date: detailTitle,
+                            invitation: entry.invitationText || '',
+                            mood: entry.mood,
+                            fromSunday: Boolean(entry.linkedSermonTitle),
+                            sermonUrl: entry.linkedSermonUrl,
+                            content: entry.body || '',
+                            journalVariant: entry.journalVariant,
+                          })
+                        )
+                      }
+                    >
+                      <GlassCard style={styles.readySection}>
+                        <View style={styles.readySectionHeader}>
+                          <View style={styles.readyHeaderCopy}>
+                            <Text style={styles.readyLabel}>{t('journey.dayDetail.reflection')}</Text>
+                            <Text style={styles.readyTime}>{formatEntryTime(entry.createdAt)}</Text>
+                          </View>
+                          <MaterialIcons name="chevron-right" size={16} color="rgba(229,185,95,0.35)" />
+                        </View>
+                        {entry.mood ? (
+                          <View style={styles.moodPill}>
+                            <Text style={styles.moodEmoji}>
+                              {MOOD_EMOJI[String(entry.mood).toLowerCase()] || '🌿'}
+                            </Text>
+                            <Text style={styles.moodPillText}>
+                              {t(`mood.label.${String(entry.mood).toLowerCase()}`)}
+                            </Text>
+                          </View>
+                        ) : null}
+                        <Text style={styles.readySubText}>
+                          {entry.invitationText || t('journey.dayDetail.fallbackSavedReflection')}
+                        </Text>
+                        <Text style={styles.readyReflectionText}>
+                          {entry.body || t('journey.dayDetail.fallbackNoReflection')}
+                        </Text>
+                        {entry.linkedSermonTitle ? (
+                          <View style={styles.readySundaySection}>
+                            <Text style={styles.readyLabel}>{t('journey.dayDetail.fromSunday')}</Text>
+                            <View style={styles.sundayRow}>
+                              <View style={styles.sundayAccent} />
+                              <Text style={styles.sundayText}>{entry.linkedSermonTitle}</Text>
+                            </View>
+                          </View>
+                        ) : null}
+                      </GlassCard>
+                    </TouchableOpacity>
+                  ))}
                 </ScrollView>
               ) : null}
 
@@ -743,9 +777,7 @@ const createStyles = () => StyleSheet.create({
   emptyPromptText: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 15, color: 'rgba(255,255,255,0.45)', textAlign: 'center' },
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
   bottomSheet: { backgroundColor: Colors.backgroundDark, borderTopLeftRadius: 34, borderTopRightRadius: 34, paddingHorizontal: 24, paddingTop: 10, paddingBottom: 38, borderTopWidth: 1, borderTopColor: 'rgba(229,185,95,0.3)' },
-  sheetHandleWrap: { alignItems: 'center', paddingBottom: 6 },
-  sheetHandle: { alignSelf: 'center', width: 44, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.18)', marginBottom: 18 },
-  sheetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 14 },
+  sheetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, paddingTop: 10 },
   headerSpacer: { width: 32 },
   sheetTitleWrap: { alignItems: 'center' },
   sheetDate: { fontFamily: 'Cinzel_700Bold', fontSize: 18, letterSpacing: 5, color: Colors.accentGold, marginBottom: 4 },
@@ -755,11 +787,49 @@ const createStyles = () => StyleSheet.create({
   sheetLoadingText: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 16, color: 'rgba(229,185,95,0.85)' },
   sheetBodyReady: { flex: 1, paddingTop: 2 },
   sheetBodyReadyContent: { paddingBottom: 8 },
-  readySection: { marginBottom: 20 },
-  readySectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 },
+  inlineActionRow: { marginBottom: 18, gap: 10 },
+  inlinePrimaryAction: {
+    width: '100%',
+    borderRadius: 18,
+    backgroundColor: Colors.accentGold,
+    paddingVertical: 14,
+    paddingHorizontal: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inlinePrimaryActionText: {
+    fontFamily: 'Cinzel_700Bold',
+    fontSize: 11,
+    letterSpacing: 2.2,
+    color: Colors.backgroundDark,
+    textAlign: 'center',
+  },
+  inlineSecondaryAction: {
+    width: '100%',
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: 'rgba(229,185,95,0.35)',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+    paddingVertical: 13,
+    paddingHorizontal: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  inlineSecondaryActionText: {
+    fontFamily: 'Cinzel_700Bold',
+    fontSize: 10,
+    letterSpacing: 2,
+    color: Colors.accentGold,
+    textAlign: 'center',
+  },
+  readyEntryCard: { marginBottom: 18 },
+  readySection: { marginBottom: 0, padding: 18 },
+  readySectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 10 },
+  readyHeaderCopy: { flex: 1, marginRight: 12 },
   readyLabel: { fontFamily: 'Cinzel_700Bold', fontSize: 10, letterSpacing: 3, color: Colors.accentGold },
+  readyTime: { fontFamily: 'Inter_400Regular', fontSize: 10, letterSpacing: 1.6, color: 'rgba(255,255,255,0.42)', textTransform: 'uppercase', marginTop: 4 },
   moodPill: {
-    alignSelf: 'center',
+    alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
@@ -773,9 +843,9 @@ const createStyles = () => StyleSheet.create({
   },
   moodEmoji: { fontSize: 18 },
   moodPillText: { fontFamily: 'Inter_400Regular', fontSize: 13, color: 'rgba(255,255,255,0.85)' },
-  readySubText: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 16, color: 'rgba(255,255,255,0.72)' },
-  readyReflectionText: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 18, lineHeight: 42, color: 'rgba(255,255,255,0.86)' },
-  readySundaySection: { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)', paddingTop: 16, marginBottom: 0 },
+  readySubText: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 15, lineHeight: 24, color: 'rgba(255,255,255,0.72)', marginBottom: 12 },
+  readyReflectionText: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 17, lineHeight: 30, color: 'rgba(255,255,255,0.86)' },
+  readySundaySection: { borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)', paddingTop: 14, marginTop: 14, marginBottom: 0 },
   sundayRow: { flexDirection: 'row', alignItems: 'center' },
   sundayAccent: { width: 5, height: 45, borderRadius: 3, backgroundColor: 'rgba(229,185,95,0.3)', marginRight: 12 },
   sundayText: { flex: 1, fontFamily: 'PlayfairDisplay_400Regular', fontSize: 16, color: 'rgba(255,255,255,0.78)' },

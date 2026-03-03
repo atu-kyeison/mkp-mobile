@@ -16,7 +16,9 @@ const MOOD_EMOJI: Record<string, string> = {
   anxious: '⛈️',
   grateful: '☀️',
   tired: '🌙',
-  focused: '🌅',
+  heavy: '🌧️',
+  longing: '✨',
+  focused: '🧭',
 };
 
 export const PastAwarenessListScreen = ({ navigation }: any) => {

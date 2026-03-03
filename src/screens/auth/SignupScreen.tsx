@@ -9,14 +9,49 @@ import Colors from '../../constants/Colors';
 import { useI18n } from '../../i18n/I18nProvider';
 import { LogoBadge } from '../../components/LogoBadge';
 import { getPrimaryBrandLogoUri } from '../../constants/brandAssets';
+import { ErrorStateCard } from '../../components/ErrorStateCard';
+import { useSession } from '../../backend/SessionProvider';
 
 const SignupScreen = ({ navigation }: any) => {
   const { t } = useI18n();
+  const { signUp } = useSession();
   const brandLogoUri = getPrimaryBrandLogoUri();
   const [firstName, setFirstName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isAgeVerified, setIsAgeVerified] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleSignUp = async () => {
+    if (isSubmitting) return;
+    if (!firstName.trim() || !email.trim() || !password.trim() || password.trim().length < 8 || !isAgeVerified) {
+      setErrorMessage(
+        !isAgeVerified
+          ? t('auth.signup.ageSubline')
+          : password.trim().length < 8
+            ? t('auth.signin.errorInvalid')
+            : t('auth.signin.errorMissing')
+      );
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage(null);
+
+    try {
+      await signUp({
+        email: email.trim(),
+        password: password.trim(),
+        displayName: firstName.trim(),
+      });
+      navigation.replace('ChurchSearch');
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : t('auth.signin.errorInvalid'));
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
   return (
     <MidnightBackground>
       <SafeAreaView style={styles.safeArea}>
@@ -29,17 +64,25 @@ const SignupScreen = ({ navigation }: any) => {
             <GlassCard style={styles.card}>
               <View style={styles.header}><Text style={styles.title}>{t('auth.signup.title')}</Text><Text style={styles.subtitle}>{t('auth.signup.subtitle')}</Text></View>
               <View style={styles.form}>
-                <View style={styles.inputGroup}><Text style={styles.label}>{t('auth.signup.firstNameLabel')}</Text><TextInput style={styles.input} placeholder={t('auth.signup.firstNamePlaceholder')} placeholderTextColor="rgba(255, 255, 255, 0.25)" value={firstName} onChangeText={setFirstName} /></View>
-                <View style={styles.inputGroup}><Text style={styles.label}>{t('auth.signin.emailLabel')}</Text><TextInput style={styles.input} placeholder={t('auth.input.emailPlaceholder')} placeholderTextColor="rgba(255, 255, 255, 0.25)" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={setEmail} /></View>
-                <View style={styles.inputGroup}><Text style={styles.label}>{t('auth.signin.passwordLabel')}</Text><TextInput style={styles.input} placeholder={t('auth.input.passwordPlaceholder')} placeholderTextColor="rgba(255, 255, 255, 0.25)" secureTextEntry value={password} onChangeText={setPassword} /></View>
+                <View style={styles.inputGroup}><Text style={styles.label}>{t('auth.signup.firstNameLabel')}</Text><TextInput style={styles.input} placeholder={t('auth.signup.firstNamePlaceholder')} placeholderTextColor="rgba(255, 255, 255, 0.25)" value={firstName} onChangeText={(value) => { setFirstName(value); if (errorMessage) setErrorMessage(null); }} /></View>
+                <View style={styles.inputGroup}><Text style={styles.label}>{t('auth.signin.emailLabel')}</Text><TextInput style={styles.input} placeholder={t('auth.input.emailPlaceholder')} placeholderTextColor="rgba(255, 255, 255, 0.25)" keyboardType="email-address" autoCapitalize="none" value={email} onChangeText={(value) => { setEmail(value); if (errorMessage) setErrorMessage(null); }} /></View>
+                <View style={styles.inputGroup}><Text style={styles.label}>{t('auth.signin.passwordLabel')}</Text><TextInput style={styles.input} placeholder={t('auth.input.passwordPlaceholder')} placeholderTextColor="rgba(255, 255, 255, 0.25)" secureTextEntry value={password} onChangeText={(value) => { setPassword(value); if (errorMessage) setErrorMessage(null); }} /></View>
                 <TouchableOpacity style={styles.checkboxContainer} activeOpacity={0.7} onPress={() => setIsAgeVerified(!isAgeVerified)}>
                   <View style={[styles.checkbox, isAgeVerified && styles.checkboxActive]}>{isAgeVerified && <MaterialIcons name="check" size={14} color={Colors.backgroundDark} />}</View>
                   <View style={styles.checkboxLabelContainer}><Text style={styles.checkboxLabel}>{t('auth.signup.ageLine')}</Text><Text style={styles.checkboxSublabel}>{t('auth.signup.ageSubline')}</Text></View>
                 </TouchableOpacity>
                 <View style={styles.buttonWrapper}>
-                  <GoldButton title={t('auth.signup.submit')} onPress={() => navigation.navigate('Terms', { nextScreen: 'ChurchSearch' })} />
+                  <GoldButton title={t('auth.signup.submit')} onPress={handleSignUp} />
                 </View>
                 <TouchableOpacity style={styles.signinLink} onPress={() => navigation.navigate('Signin', {})}><Text style={styles.signinText}>{t('auth.signup.hasAccount')} <Text style={styles.signinHighlight}>{t('auth.signup.signin')}</Text></Text></TouchableOpacity>
+                {errorMessage ? (
+                  <ErrorStateCard
+                    title={t('auth.signin.errorTitle')}
+                    body={errorMessage}
+                    primaryLabel={t('auth.signin.tryAgain')}
+                    onPrimaryPress={() => setErrorMessage(null)}
+                  />
+                ) : null}
               </View>
               <View style={styles.cardFooter}>
                 <Text style={styles.footerText}>
@@ -57,7 +100,7 @@ const SignupScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   safeArea: { flex: 1 }, keyboardView: { flex: 1 }, scrollContent: { flexGrow: 1, paddingTop: 20, paddingBottom: 24 },
   headerContainer: { alignItems: 'center', marginBottom: 24, paddingHorizontal: 20 },
-  brandText: { fontFamily: 'Cinzel_400Regular', fontSize: 11, letterSpacing: 5, color: Colors.antiqueGold },
+  brandText: { fontFamily: 'Cinzel_400Regular', fontSize: 11, letterSpacing: 5, color: Colors.antiqueGold, marginTop: 12 },
   card: { width: '100%', maxWidth: 420, alignSelf: 'center', marginHorizontal: 20, borderRadius: 28, paddingHorizontal: 28, paddingTop: 28, paddingBottom: 24 },
   header: { alignItems: 'center', marginBottom: 24 }, title: { fontFamily: 'PlayfairDisplay_500Medium', fontSize: 30, color: 'white', textAlign: 'center', marginBottom: 8 }, subtitle: { fontFamily: 'Inter_300Light', fontSize: 14, color: 'rgba(255, 255, 255, 0.4)', textAlign: 'center' },
   form: {}, inputGroup: { marginBottom: 16 }, label: { fontFamily: 'Inter_500Medium', fontSize: 10, letterSpacing: 2, color: 'rgba(229, 185, 95, 0.7)', marginLeft: 4, marginBottom: 6 },

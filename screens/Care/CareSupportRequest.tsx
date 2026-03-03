@@ -17,60 +17,92 @@ import { CustomButton } from '../../components/CustomButton';
 import { Colors } from '../../constants/Colors';
 import { useI18n } from '../../src/i18n/I18nProvider';
 import { useTheme } from '../../src/theme/ThemeProvider';
+import { useAppDataSync } from '../../src/backend/appData';
+import { useSession } from '../../src/backend/SessionProvider';
 import {
-  CARE_SUPPORT_CATEGORIES,
   CareResponseChannel,
   CareSupportCategoryId,
   resolveCareSupportCategory,
 } from '../../src/care/supportCategories';
-import { createCareSupportThread } from '../../src/storage/careInboxStore';
 import { getCommunicationPrefs } from '../../src/storage/communicationPrefsStore';
 
 const CONTACT_METHODS: CareResponseChannel[] = ['in_app', 'email'];
+const VISIBLE_NEXT_STEP_OPTIONS: Array<{
+  id: CareSupportCategoryId;
+  labelKey: string;
+}> = [
+  { id: 'new_believer', labelKey: 'care.support.type.newBeliever' },
+  { id: 'baptism_request', labelKey: 'care.support.type.baptism' },
+  { id: 'other', labelKey: 'care.support.type.unsure' },
+];
 
 export default function CareSupportRequest({ navigation, route }: any) {
   const insets = useSafeAreaInsets();
   const { t } = useI18n();
   const { themeId } = useTheme();
+  const { session, callFunction } = useSession();
+  const { syncCareInbox } = useAppDataSync();
   const styles = useMemo(() => createStyles(), [themeId]);
   const communicationPrefs = useMemo(() => getCommunicationPrefs(), []);
-  const preselectedType = resolveCareSupportCategory(route?.params?.initialHelpType as string | undefined);
+  const resolvedType = resolveCareSupportCategory(route?.params?.initialHelpType as string | undefined);
+  const preselectedType = VISIBLE_NEXT_STEP_OPTIONS.some((option) => option.id === resolvedType)
+    ? resolvedType
+    : 'other';
   const [helpType, setHelpType] = useState<CareSupportCategoryId>(preselectedType);
   const [contactMethod, setContactMethod] = useState<CareResponseChannel>('in_app');
   const [message, setMessage] = useState('');
   const [submitState, setSubmitState] = useState<'idle' | 'sending' | 'error'>('idle');
 
-  const completeSendAttempt = () => {
+  const completeSendAttempt = async () => {
     if (!message.trim()) {
       setSubmitState('idle');
       Alert.alert(t('care.support.validation.title'), t('care.support.validation.messageRequired'));
       return;
     }
-    const thread =
-      communicationPrefs.encouragement && contactMethod === 'in_app'
-        ? createCareSupportThread({
-            categoryId: helpType,
-            preferredChannel: contactMethod,
-            requestText: message.trim(),
-          })
-        : null;
-    setSubmitState('idle');
-    navigation.navigate('CareEscalationSuccess', {
-      requestType: helpType,
-      careCategory: helpType === 'new_believer' ? 'new_believer' : 'general',
-      contactMethod,
-      followUpChannel: contactMethod === 'email' ? 'auth_email' : 'in_app',
-      notes: message,
-      threadId: thread?.id,
-      threadCreated: Boolean(thread),
-    });
+    const churchId = session?.context?.currentChurchId;
+    if (!churchId) {
+      setSubmitState('idle');
+      Alert.alert(t('care.support.validation.title'), t('auth.churchSearch.errorRequired'));
+      return;
+    }
+
+    const preferredChannel =
+      communicationPrefs.encouragement && contactMethod === 'in_app' ? 'in_app' : 'email';
+
+    try {
+      const result = await callFunction<{ requestId: string; threadId?: string }>('submitCareRequest', {
+        churchId,
+        type: 'care_support',
+        content: message.trim(),
+        isAnonymous: false,
+        preferredChannel,
+        categoryId: helpType,
+      });
+      if (result.threadId) {
+        await syncCareInbox();
+      }
+      setSubmitState('idle');
+      navigation.navigate('CareEscalationSuccess', {
+        requestType: helpType,
+        careCategory: helpType === 'new_believer' ? 'new_believer' : 'general',
+        contactMethod: preferredChannel,
+        followUpChannel: preferredChannel === 'email' ? 'auth_email' : 'in_app',
+        notes: message,
+        threadId: result.threadId,
+        threadCreated: Boolean(result.threadId),
+      });
+    } catch (error) {
+      setSubmitState('error');
+      Alert.alert(
+        t('care.support.error'),
+        error instanceof Error ? error.message : t('care.support.saved.body')
+      );
+    }
   };
 
   const handleSubmit = () => {
     setSubmitState('sending');
-
-    // Until backend wiring is in place, emulate network behavior while keeping states exclusive.
-    setTimeout(completeSendAttempt, 900);
+    void completeSendAttempt();
   };
 
   const handleBack = () => {
@@ -86,7 +118,7 @@ export default function CareSupportRequest({ navigation, route }: any) {
           </TouchableOpacity>
           <Text style={styles.headerLabel}>{t('care.header')}</Text>
           <View style={styles.divider} />
-          <Text style={styles.title}>{t('care.support.title')}</Text>
+          <Text style={styles.title}>{t('care.nextSteps.title')}</Text>
         </View>
 
         <ScrollView
@@ -96,9 +128,9 @@ export default function CareSupportRequest({ navigation, route }: any) {
         >
           {submitState === 'idle' ? (
             <GlassCard withGlow style={styles.card}>
-              <Text style={styles.sectionLabel}>{t('care.support.section.type')}</Text>
+              <Text style={styles.sectionLabel}>{t('care.nextSteps.section.type')}</Text>
               <View style={styles.chipsRow}>
-                {CARE_SUPPORT_CATEGORIES.map((option) => {
+                {VISIBLE_NEXT_STEP_OPTIONS.map((option) => {
                   const selected = option.id === helpType;
                   return (
                     <TouchableOpacity
@@ -114,14 +146,8 @@ export default function CareSupportRequest({ navigation, route }: any) {
                 })}
               </View>
 
-              {helpType === 'difficult_season' ? (
-                <Text style={styles.crisisNote}>
-                  {t('care.support.crisis')}
-                </Text>
-              ) : null}
-
               <Text style={[styles.sectionLabel, styles.sectionSpacing]}>
-                {t('care.support.section.message')}
+                {t('care.nextSteps.section.message')}
               </Text>
               <TextInput
                 style={styles.textInput}
@@ -129,14 +155,14 @@ export default function CareSupportRequest({ navigation, route }: any) {
                 numberOfLines={5}
                 value={message}
                 onChangeText={setMessage}
-                placeholder={t('care.support.placeholder')}
+                placeholder={t('care.nextSteps.placeholder')}
                 placeholderTextColor="rgba(255, 255, 255, 0.35)"
               />
 
               {communicationPrefs.encouragement ? (
                 <>
                   <Text style={[styles.sectionLabel, styles.sectionSpacing]}>
-                    {t('care.support.section.contact')}
+                    {t('care.nextSteps.section.contact')}
                   </Text>
                   <View style={styles.contactRow}>
                     {CONTACT_METHODS.map((method) => {
@@ -159,14 +185,14 @@ export default function CareSupportRequest({ navigation, route }: any) {
                       );
                     })}
                   </View>
-                  <Text style={styles.contactHelpText}>{t('care.support.contactNote')}</Text>
+                  <Text style={styles.contactHelpText}>{t('care.nextSteps.contactNote')}</Text>
                 </>
               ) : (
                 <Text style={styles.preferenceNote}>{t('care.preference.encouragementOff')}</Text>
               )}
 
               <View style={styles.buttonContainer}>
-                <CustomButton title={t('care.support.send')} onPress={handleSubmit} />
+                <CustomButton title={t('care.nextSteps.send')} onPress={handleSubmit} />
               </View>
             </GlassCard>
           ) : (
@@ -174,20 +200,20 @@ export default function CareSupportRequest({ navigation, route }: any) {
               {submitState === 'sending' ? (
                 <>
                   <ActivityIndicator color={Colors.accentGold} size="large" style={styles.stateIcon} />
-                  <Text style={styles.stateTitle}>{t('care.support.sending')}</Text>
+                  <Text style={styles.stateTitle}>{t('care.nextSteps.sending')}</Text>
                 </>
               ) : (
                 <>
                   <Text style={styles.errorIcon}>!</Text>
-                  <Text style={styles.stateErrorTitle}>{t('care.support.error')}</Text>
+                  <Text style={styles.stateErrorTitle}>{t('care.nextSteps.error')}</Text>
                   <View style={styles.stateButtons}>
-                    <CustomButton title={t('care.support.retry')} onPress={handleSubmit} style={styles.stateButton} />
+                    <CustomButton title={t('care.nextSteps.retry')} onPress={handleSubmit} style={styles.stateButton} />
                     <CustomButton
-                      title={t('care.support.saveLocal')}
+                      title={t('care.nextSteps.saveLocal')}
                       variant="outline"
                       onPress={() => {
                         setSubmitState('idle');
-                        Alert.alert(t('care.support.saved.title'), t('care.support.saved.body'));
+                        Alert.alert(t('care.nextSteps.saved.title'), t('care.nextSteps.saved.body'));
                       }}
                       style={styles.stateButton}
                     />

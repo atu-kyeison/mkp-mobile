@@ -180,13 +180,10 @@ service cloud.firestore {
         // All active members may read published sermon metadata.
         allow read: if isActiveMemberOf(churchId);
 
-        // Sermon metadata may be created or updated by pastor, admin, or
-        // media_team. Approval/publish status transitions are enforced in
-        // Cloud Functions (Phase 6+).
-        allow create, update: if canManageMedia(churchId);
-
-        // Deletion requires pastor or admin.
-        allow delete: if isPastorOrAdmin(churchId);
+        // Sermon metadata lifecycle is function-owned (Phase 6).
+        // Direct client writes are blocked so upload path, sourceType, and
+        // status transitions remain contract-aligned.
+        allow create, update, delete: if false;
 
         // ====================================================================
         // /churches/{churchId}/sermons/{sermonId}/transcripts/{versionId}
@@ -204,12 +201,14 @@ service cloud.firestore {
       // /churches/{churchId}/formationWeeks/{weekId}
       // ======================================================================
       match /formationWeeks/{weekId} {
-        // All active members may read published formation content.
-        allow read: if isActiveMemberOf(churchId);
+        // Members may read only published formation content.
+        // Pastor/admin may read draft/generated/approved states too.
+        allow read: if isPastorOrAdmin(churchId) ||
+                       (isActiveMemberOf(churchId) &&
+                        resource.data.status == 'published');
 
-        // Only pastor or admin may manage formation content lifecycle.
-        // (Creation via generateFormationContent function in Phase 8.)
-        allow create, update, delete: if isPastorOrAdmin(churchId);
+        // Formation content lifecycle is function-owned (Phase 8).
+        allow create, update, delete: if false;
       }
 
       // ======================================================================
@@ -288,10 +287,9 @@ service cloud.firestore {
       match /churchMessages/{messageId} {
         allow read: if isActiveMemberOf(churchId);
 
-        // TODO (Phase 4): move create/update/delete to publishChurchMessage
-        // Cloud Function so feature-gate enforcement (church.features.churchMessages)
-        // is applied server-side. Until then, role enforcement is correct here.
-        allow create, update, delete: if canPublishChurchMessages(churchId);
+        // Church message lifecycle is function-owned (Phase 4) so feature-gate
+        // enforcement remains server-side and members stay read-only.
+        allow create, update, delete: if false;
       }
 
       // ======================================================================

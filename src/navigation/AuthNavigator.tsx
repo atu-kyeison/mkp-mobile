@@ -11,12 +11,21 @@ import PasswordEmailSentScreen from '../screens/auth/PasswordEmailSentScreen';
 import NewBelieverStartScreen from '../screens/auth/NewBelieverStartScreen';
 import TermsScreen from '../screens/legal/TermsScreen';
 import PrivacyPolicyScreen from '../screens/legal/PrivacyPolicyScreen';
+import { useSession } from '../backend/SessionProvider';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
 export const AuthNavigator = () => {
+  const { isAuthenticated, session } = useSession();
+  const initialRouteName =
+    isAuthenticated && !session?.context?.currentChurchId ? 'ChurchSearch' : 'Welcome';
+
   return (
-    <Stack.Navigator initialRouteName="Welcome" screenOptions={{ headerShown: false }}>
+    <Stack.Navigator
+      key={initialRouteName}
+      initialRouteName={initialRouteName}
+      screenOptions={{ headerShown: false }}
+    >
       <Stack.Screen name="Welcome" component={WelcomeScreen} />
       <Stack.Screen name="ChurchSearch" component={ChurchSearchScreen} />
       <Stack.Screen name="ChurchSuccess" component={ChurchSuccessScreen} />

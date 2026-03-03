@@ -11,15 +11,30 @@ export default function CareEscalationSuccess({ navigation, route }: any) {
   const insets = useSafeAreaInsets();
   const { t } = useI18n();
   const threadCreated = Boolean(route?.params?.threadCreated);
+  const requestType = route?.params?.requestType as string | undefined;
+  const isNextStepFlow =
+    requestType === 'new_believer' ||
+    requestType === 'baptism_request' ||
+    requestType === 'other';
+
+  const title = isNextStepFlow ? t('care.nextSteps.success.title') : t('care.success.title');
+  const message = isNextStepFlow ? t('care.nextSteps.success.message') : t('care.success.message');
+  const disclaimer = isNextStepFlow ? t('care.nextSteps.success.disclaimer') : t('care.success.disclaimer');
+  const returnHomeLabel = isNextStepFlow ? t('care.nextSteps.success.returnHome') : t('care.success.returnHome');
+  const secondaryLinkLabel = isNextStepFlow ? t('care.nextSteps.success.submitPrayer') : t('care.success.submitPrayer');
+
   return (
     <GradientBackground style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
         <View style={[styles.content, { paddingBottom: Math.max(24, insets.bottom + 8) }]}>
           <GlassCard withGlow style={styles.card}>
+            <Text style={styles.kicker}>
+              {isNextStepFlow ? t('care.nextSteps.success.kicker') : t('care.success.kicker')}
+            </Text>
             <Text style={styles.icon}>✓</Text>
-            <Text style={styles.title}>{t('care.success.title')}</Text>
-            <Text style={styles.message}>{t('care.success.message')}</Text>
-            <Text style={styles.disclaimer}>{t('care.success.disclaimer')}</Text>
+            <Text style={styles.title}>{title}</Text>
+            <Text style={styles.message}>{message}</Text>
+            <Text style={styles.disclaimer}>{disclaimer}</Text>
           </GlassCard>
 
           <View style={styles.ctaGroup}>
@@ -31,13 +46,13 @@ export default function CareEscalationSuccess({ navigation, route }: any) {
               />
             ) : null}
             <CustomButton
-              title={t('care.success.returnHome')}
+              title={returnHomeLabel}
               onPress={() => navigation.getParent()?.navigate('Home')}
               variant="outline"
               style={styles.fullWidthButton}
             />
             <TouchableOpacity onPress={() => navigation.navigate('PrayerSubmission')}>
-              <Text style={styles.link}>{t('care.success.submitPrayer')}</Text>
+              <Text style={styles.link}>{secondaryLinkLabel}</Text>
             </TouchableOpacity>
           </View>
 
@@ -63,7 +78,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
     justifyContent: 'center',
   },
-  card: { padding: 28, alignItems: 'center' },
+  card: {
+    padding: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 260,
+  },
+  kicker: {
+    fontFamily: 'Cinzel_700Bold',
+    fontSize: 10,
+    letterSpacing: 3,
+    color: Colors.accentGold,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
   icon: {
     fontFamily: 'Inter_700Bold',
     fontSize: 44,
@@ -72,10 +100,11 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: 'PlayfairDisplay_400Regular_Italic',
-    fontSize: 38,
+    fontSize: 34,
     color: Colors.text,
     textAlign: 'center',
     marginBottom: 14,
+    lineHeight: 42,
   },
   message: {
     fontFamily: 'Inter_400Regular',

@@ -9,25 +9,49 @@ import { useI18n } from '../../i18n/I18nProvider';
 import { LogoBadge } from '../../components/LogoBadge';
 import { getPrimaryBrandLogoUri } from '../../constants/brandAssets';
 import { ErrorStateCard } from '../../components/ErrorStateCard';
+import { useSession } from '../../backend/SessionProvider';
 
 const SigninScreen = ({ navigation, route }: any) => {
   const { t } = useI18n();
+  const { signIn } = useSession();
   const brandLogoUri = getPrimaryBrandLogoUri();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [errorKind, setErrorKind] = useState<'missing' | 'invalid' | null>(route.params?.error ? 'invalid' : null);
 
-  const handleSignIn = () => {
+  const handleSignIn = async () => {
+    if (isSubmitting) return;
     if (!email.trim() || !password.trim()) {
       setErrorKind('missing');
+      setErrorMessage(null);
       return;
     }
     if (password.trim().length < 8) {
       setErrorKind('invalid');
+      setErrorMessage(null);
       return;
     }
+    setIsSubmitting(true);
     setErrorKind(null);
-    navigation.getParent()?.navigate('Main');
+    setErrorMessage(null);
+    try {
+      const context = await signIn({
+        email: email.trim(),
+        password: password.trim(),
+      });
+      if (context.currentChurchId) {
+        navigation.getParent()?.navigate('Main');
+      } else {
+        navigation.replace('ChurchSearch');
+      }
+    } catch (error) {
+      setErrorKind('invalid');
+      setErrorMessage(error instanceof Error ? error.message : t('auth.signin.errorInvalid'));
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -63,9 +87,12 @@ const SigninScreen = ({ navigation, route }: any) => {
                   {errorKind ? (
                     <ErrorStateCard
                       title={t('auth.signin.errorTitle')}
-                      body={t(errorKind === 'missing' ? 'auth.signin.errorMissing' : 'auth.signin.errorInvalid')}
+                      body={errorMessage || t(errorKind === 'missing' ? 'auth.signin.errorMissing' : 'auth.signin.errorInvalid')}
                       primaryLabel={t('auth.signin.tryAgain')}
-                      onPrimaryPress={() => setErrorKind(null)}
+                      onPrimaryPress={() => {
+                        setErrorKind(null);
+                        setErrorMessage(null);
+                      }}
                       secondaryLabel={t('auth.signin.forgot')}
                       onSecondaryPress={() => navigation.navigate('PasswordReset')}
                     />
@@ -89,7 +116,7 @@ const styles = StyleSheet.create({
   safeArea: { flex: 1 }, keyboardView: { flex: 1 }, scrollContent: { flexGrow: 1, paddingTop: 20, paddingBottom: 24 },
   container: { flex: 1, paddingHorizontal: 20, justifyContent: 'center' },
   headerContainer: { alignItems: 'center', marginBottom: 24 },
-  brandText: { fontFamily: 'Cinzel_400Regular', fontSize: 11, letterSpacing: 5, color: Colors.antiqueGold },
+  brandText: { fontFamily: 'Cinzel_400Regular', fontSize: 11, letterSpacing: 5, color: Colors.antiqueGold, marginTop: 12 },
   card: { width: '100%', maxWidth: 420, alignSelf: 'center', borderRadius: 28, paddingHorizontal: 28, paddingTop: 28, paddingBottom: 24 },
   header: { alignItems: 'center', marginBottom: 28 }, title: { fontFamily: 'PlayfairDisplay_500Medium', fontSize: 30, color: 'white', textAlign: 'center', marginBottom: 8 }, subtitle: { fontFamily: 'Inter_300Light', fontSize: 14, color: 'rgba(255, 255, 255, 0.4)', textAlign: 'center' },
   form: {}, inputGroup: { marginBottom: 20 }, label: { fontFamily: 'Inter_500Medium', fontSize: 10, letterSpacing: 2, color: 'rgba(229, 185, 95, 0.7)', marginLeft: 4, marginBottom: 8 },

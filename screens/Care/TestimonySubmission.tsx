@@ -1,10 +1,12 @@
 import React, { useMemo, useState } from 'react';
 import { Alert, StyleSheet, View, Text, ScrollView, TextInput, Switch, TouchableOpacity } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { MaterialIcons } from '@expo/vector-icons';
 import { Colors } from '../../constants/Colors';
 import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
 import { CustomButton } from '../../components/CustomButton';
+import { useSession } from '../../src/backend/SessionProvider';
 import { useI18n } from '../../src/i18n/I18nProvider';
 import { useTheme } from '../../src/theme/ThemeProvider';
 
@@ -12,17 +14,44 @@ export default function TestimonySubmission({ navigation }: any) {
   const insets = useSafeAreaInsets();
   const { t } = useI18n();
   const { themeId } = useTheme();
+  const { session, callFunction } = useSession();
   const styles = useMemo(() => createStyles(), [themeId]);
   const [anonymous, setAnonymous] = useState(false);
   const [allowShare, setAllowShare] = useState(true);
   const [testimony, setTestimony] = useState('');
 
-  const handleShareGratitude = () => {
-    Alert.alert(
-      t('care.testimony.alert.title'),
-      t('care.testimony.alert.body'),
-      [{ text: t('common.ok'), onPress: () => navigation.goBack() }]
-    );
+  const handleShareGratitude = async () => {
+    if (!testimony.trim()) {
+      Alert.alert(t('care.support.validation.title'), t('care.support.validation.messageRequired'));
+      return;
+    }
+
+    const churchId = session?.context?.currentChurchId;
+    if (!churchId) {
+      Alert.alert(t('care.support.validation.title'), t('auth.churchSearch.errorRequired'));
+      return;
+    }
+
+    try {
+      await callFunction<{ requestId: string }>('submitCareRequest', {
+        churchId,
+        type: 'testimony',
+        content: testimony.trim(),
+        isAnonymous: anonymous,
+        preferredChannel: 'email',
+        categoryId: allowShare ? 'other' : 'pastor_conversation',
+      });
+      Alert.alert(
+        t('care.testimony.alert.title'),
+        t('care.testimony.alert.body'),
+        [{ text: t('common.ok'), onPress: () => navigation.goBack() }]
+      );
+    } catch (error) {
+      Alert.alert(
+        t('care.support.error'),
+        error instanceof Error ? error.message : t('care.testimony.alert.body')
+      );
+    }
   };
 
   return (
@@ -34,6 +63,9 @@ export default function TestimonySubmission({ navigation }: any) {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.header}>
+            <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+              <MaterialIcons name="chevron-left" size={28} color={Colors.accentGold} />
+            </TouchableOpacity>
             <View style={styles.divider} />
             <Text style={styles.title}>{t('care.testimony.title')}</Text>
           </View>
@@ -88,6 +120,9 @@ export default function TestimonySubmission({ navigation }: any) {
 
           <View style={styles.buttonContainer}>
             <CustomButton title={t('care.testimony.action')} onPress={handleShareGratitude} />
+            <TouchableOpacity style={styles.secondaryExit} onPress={() => navigation.goBack()}>
+              <Text style={styles.secondaryExitText}>{t('reflection.detail.cancel')}</Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.footer}>
@@ -115,6 +150,16 @@ const createStyles = () => StyleSheet.create({
   header: {
     alignItems: 'center',
     marginBottom: 20,
+  },
+  backButton: {
+    position: 'absolute',
+    left: 0,
+    top: -6,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   divider: {
     width: 48,
@@ -197,6 +242,16 @@ const createStyles = () => StyleSheet.create({
   },
   buttonContainer: {
     marginTop: 18,
+    alignItems: 'center',
+  },
+  secondaryExit: {
+    marginTop: 14,
+  },
+  secondaryExitText: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 12,
+    color: 'rgba(255, 255, 255, 0.56)',
+    textDecorationLine: 'underline',
   },
   footer: {
     marginTop: 12,

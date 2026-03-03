@@ -51,6 +51,10 @@ export const getCareThreads = (): CareThread[] => {
 export const getCareThreadById = (threadId: string): CareThread | null =>
   getCareThreads().find((thread) => thread.id === threadId) || null;
 
+export const replaceCareThreads = (threads: CareThread[]) => {
+  saveThreads(threads);
+};
+
 export const createCareSupportThread = ({
   categoryId,
   preferredChannel,

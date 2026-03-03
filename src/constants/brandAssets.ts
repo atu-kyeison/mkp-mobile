@@ -2,13 +2,16 @@ import { Settings } from 'react-native';
 
 type ChurchBranding = {
   name: string;
+  churchId?: string;
   logoUri?: string;
 };
 
 export type ChurchBrandingResult = ChurchBranding & { found: boolean; code: string };
 
 const DEFAULT_CHURCHS: Record<string, ChurchBranding> = {
-  'GRACE-24': { name: 'Grace Community Church' },
+  'GRACE2024': { name: 'Grace Community Church', churchId: 'church-alpha' },
+  'GRACE-24': { name: 'Grace Community Church', churchId: 'church-alpha' },
+  'RIVER2024': { name: 'River of Life Church', churchId: 'church-beta' },
   'KINGDOM-24': { name: 'Kingdom Fellowship Church' },
 };
 
@@ -44,7 +47,13 @@ export const resolveChurchBrandingByCode = (codeInput: string): ChurchBrandingRe
   const preset = DEFAULT_CHURCHS[code];
   if (preset) {
     const customLogo = getStringSetting(`mkp.brand.church.${code}.logoUri`);
-    return { found: true, code, name: preset.name, logoUri: customLogo || preset.logoUri };
+    return {
+      found: true,
+      code,
+      name: preset.name,
+      churchId: preset.churchId,
+      logoUri: customLogo || preset.logoUri,
+    };
   }
 
   return {

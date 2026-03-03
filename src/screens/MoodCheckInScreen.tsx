@@ -8,13 +8,14 @@ import { GlassCard } from '../components/GlassCard';
 import { useI18n } from '../i18n/I18nProvider';
 
 const MOODS = [
-  { id: 'peaceful', label: 'Peaceful', icon: 'filter-vintage' as const, iconOffset: { x: 0, y: 0 } },
-  { id: 'rushed', label: 'Rushed', icon: 'bolt' as const, iconOffset: { x: 1, y: 0 } },
-  { id: 'anxious', label: 'Anxious', icon: 'waves' as const, iconOffset: { x: 0, y: 1 } },
-  { id: 'grateful', label: 'Grateful', icon: 'favorite' as const, iconOffset: { x: 0, y: 1 } },
-  { id: 'tired', label: 'Tired', icon: 'bedtime' as const, iconOffset: { x: 0, y: 1 } },
-  { id: 'focused', label: 'Focused', icon: 'track-changes' as const, iconOffset: { x: 0, y: 0 } },
-];
+  { id: 'peaceful', icon: 'filter-vintage' as const, iconOffset: { x: 0, y: 0 } },
+  { id: 'rushed', icon: 'bolt' as const, iconOffset: { x: 1, y: 0 } },
+  { id: 'anxious', icon: 'waves' as const, iconOffset: { x: 0, y: 1 } },
+  { id: 'grateful', icon: 'favorite' as const, iconOffset: { x: 0, y: 1 } },
+  { id: 'tired', icon: 'bedtime' as const, iconOffset: { x: 0, y: 1 } },
+  { id: 'heavy', icon: 'cloud' as const, iconOffset: { x: 0, y: 0 } },
+  { id: 'longing', icon: 'flare' as const, iconOffset: { x: 0, y: 0 } },
+] as const;
 
 export const MoodCheckInScreen = ({ navigation, route }: any) => {
   const { t } = useI18n();
@@ -88,6 +89,7 @@ export const MoodCheckInScreen = ({ navigation, route }: any) => {
                     </View>
                   </View>
                   <Text style={styles.moodLabel}>{t(`mood.label.${mood.id}`)}</Text>
+                  <Text style={styles.moodDescriptor}>{t(`mood.descriptor.${mood.id}`)}</Text>
                 </View>
               </GlassCard>
             </TouchableOpacity>
@@ -103,17 +105,6 @@ export const MoodCheckInScreen = ({ navigation, route }: any) => {
             <Text style={styles.continueText}>{t('mood.continue')}</Text>
           </TouchableOpacity>
           <Text style={styles.footerNote}>{t('mood.note')}</Text>
-          <TouchableOpacity
-            style={styles.supportLink}
-            onPress={() =>
-              navigation.getParent()?.navigate('Church', {
-                screen: 'CareSupportRequest',
-                params: { initialHelpType: "I'm going through something difficult" },
-              })
-            }
-          >
-            <Text style={styles.supportLinkText}>{t('mood.needMore')}</Text>
-          </TouchableOpacity>
         </View>
       </SafeAreaView>
     </BackgroundGradient>
@@ -176,7 +167,7 @@ const styles = StyleSheet.create({
   },
   moodCardContainer: {
     width: '44%',
-    aspectRatio: 0.84,
+    aspectRatio: 0.96,
     margin: '2.5%',
   },
   moodCard: {
@@ -196,7 +187,7 @@ const styles = StyleSheet.create({
     width: '100%',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 14,
+    gap: 10,
     paddingVertical: 6,
   },
   moodIcon: {
@@ -229,6 +220,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     width: '100%',
     includeFontPadding: false,
+  },
+  moodDescriptor: {
+    fontFamily: 'Inter_400Regular',
+    fontSize: 11,
+    lineHeight: 16,
+    color: 'rgba(255, 255, 255, 0.58)',
+    textAlign: 'center',
+    width: '100%',
+    paddingHorizontal: 4,
   },
   footer: {
     paddingTop: 8,
@@ -268,16 +268,5 @@ const styles = StyleSheet.create({
     marginTop: 18,
     textTransform: 'uppercase',
     textAlign: 'center',
-  },
-  supportLink: {
-    marginTop: 8,
-    alignSelf: 'center',
-  },
-  supportLinkText: {
-    fontFamily: 'Inter_400Regular',
-    fontSize: 12,
-    color: Colors.accentGold,
-    textDecorationLine: 'underline',
-    textDecorationColor: Colors.accentGold,
   },
 });

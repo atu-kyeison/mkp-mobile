@@ -70,7 +70,7 @@ export const CareThreadScreen = ({ navigation, route }: any) => {
             const isChurch = message.sender === 'church';
             return (
               <View key={message.id} style={[styles.messageRow, isChurch ? styles.messageRowChurch : styles.messageRowMember]}>
-                <GlassCard style={[styles.messageCard, isChurch ? styles.messageCardChurch : styles.messageCardMember]}>
+                <GlassCard style={StyleSheet.flatten([styles.messageCard, isChurch ? styles.messageCardChurch : styles.messageCardMember])}>
                   <Text style={styles.messageSender}>
                     {isChurch ? t('care.thread.sender.church') : t('care.thread.sender.you')}
                   </Text>

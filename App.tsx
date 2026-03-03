@@ -24,6 +24,7 @@ import { RootNavigator } from './src/navigation/RootNavigator';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { I18nProvider } from './src/i18n/I18nProvider';
 import { ThemeProvider } from './src/theme/ThemeProvider';
+import { SessionProvider } from './src/backend/SessionProvider';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -73,7 +74,9 @@ export default function App() {
     <SafeAreaProvider>
       <ThemeProvider>
         <I18nProvider>
-          <ThemedAppShell onLayoutRootView={onLayoutRootView} />
+          <SessionProvider>
+            <ThemedAppShell onLayoutRootView={onLayoutRootView} />
+          </SessionProvider>
         </I18nProvider>
       </ThemeProvider>
     </SafeAreaProvider>

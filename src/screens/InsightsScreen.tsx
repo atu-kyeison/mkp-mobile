@@ -10,7 +10,7 @@ import { useI18n } from '../i18n/I18nProvider';
 import { getJournalEntries, JournalEntry } from '../storage/journalStore';
 import { generateFormationInsight, generateMonthComparison } from '../utils/insightsEngine';
 
-const SAMPLE_MOODS = ['peaceful', 'rushed', 'anxious', 'grateful', 'tired', 'focused'] as const;
+const SAMPLE_MOODS = ['peaceful', 'rushed', 'anxious', 'grateful', 'tired', 'heavy', 'longing'] as const;
 
 const buildPreviewEntries = (locale: 'en' | 'es'): JournalEntry[] => {
   const today = new Date();
@@ -47,6 +47,8 @@ const MOOD_COLORS: Record<string, string> = {
   anxious: 'rgba(114, 136, 168, 0.56)',
   grateful: 'rgba(229, 185, 95, 0.72)',
   tired: 'rgba(123, 133, 151, 0.5)',
+  heavy: 'rgba(111, 125, 148, 0.62)',
+  longing: 'rgba(201, 165, 98, 0.6)',
   focused: 'rgba(154, 178, 170, 0.58)',
 };
 

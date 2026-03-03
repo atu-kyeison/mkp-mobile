@@ -6,19 +6,36 @@ import { useFocusEffect } from '@react-navigation/native';
 import { Colors } from '../../constants/Colors';
 import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
+import { useAppDataSync } from '../backend/appData';
 import { useI18n } from '../i18n/I18nProvider';
 import { CARE_SUPPORT_CATEGORIES } from '../care/supportCategories';
 import { CareThread, getCareThreads } from '../storage/careInboxStore';
 
 export const CareInboxScreen = ({ navigation }: any) => {
   const { t, locale } = useI18n();
+  const { syncCareInbox } = useAppDataSync();
   const localeTag = locale === 'es' ? 'es-ES' : 'en-US';
   const [threads, setThreads] = useState<CareThread[]>([]);
 
   useFocusEffect(
     useCallback(() => {
-      setThreads(getCareThreads());
-    }, [])
+      let cancelled = false;
+      const load = async () => {
+        try {
+          await syncCareInbox();
+        } catch {
+          // Fall back to the locally cached inbox.
+        } finally {
+          if (!cancelled) {
+            setThreads(getCareThreads());
+          }
+        }
+      };
+      void load();
+      return () => {
+        cancelled = true;
+      };
+    }, [syncCareInbox])
   );
 
   const categoryLabel = useCallback(

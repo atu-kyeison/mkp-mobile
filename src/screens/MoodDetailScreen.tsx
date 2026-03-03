@@ -42,8 +42,20 @@ const MOOD_DETAILS: Record<
     descriptionKey: 'moodDetail.desc.peaceful',
     iconOffset: { x: 0, y: 0 },
   },
+  heavy: {
+    icon: 'cloud',
+    titleKey: 'moodDetail.title.heavy',
+    descriptionKey: 'moodDetail.desc.heavy',
+    iconOffset: { x: 0, y: 0 },
+  },
+  longing: {
+    icon: 'flare',
+    titleKey: 'moodDetail.title.longing',
+    descriptionKey: 'moodDetail.desc.longing',
+    iconOffset: { x: 0, y: 0 },
+  },
   focused: {
-    icon: 'center-focus-strong',
+    icon: 'explore',
     titleKey: 'moodDetail.title.focused',
     descriptionKey: 'moodDetail.desc.focused',
     iconOffset: { x: 0, y: 0 },
