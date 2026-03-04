@@ -324,7 +324,7 @@ Set later:
 1. App Check is still off for all callables.
 2. Join codes are salted SHA-256 today, which is acceptable for staging but should be reviewed again before production hardening.
 3. Notification delivery is still scaffolded and not true push.
-4. There is no safe real-project seed script yet.
+4. Staging runtime IAM/policy drift can break callable invoker access after redeploy.
 5. TestFlight readiness still needs Apple signing/build configuration outside Firebase.
 
 ---
@@ -350,6 +350,103 @@ Set later:
 
 Recommended next tasks in order:
 
-1. Create a safe staging seed script that can write real staging church data.
+1. Keep the staging seed script current (`backend/functions/seed-staging.js`).
 2. Add a short deployment checklist command reference.
 3. Add a staging build profile once Apple/TestFlight setup is ready.
+
+---
+
+## 13. March 2026 proven fixes (copy/paste runbook)
+
+These are the exact fixes used to recover a real staging deploy.
+
+### A. Seed staging safely
+
+From `backend/functions`:
+
+```bash
+gcloud auth application-default login
+npm run seed:staging
+```
+
+Notes:
+
+- Script: `backend/functions/seed-staging.js`
+- `FIREBASE_PROJECT_ID` must be `mkp-mobile-staging`
+- Seeds:
+  - `church-alpha` join code `GRACE-STAGE-2026`
+  - `church-beta` join code `RIVER-STAGE-2026`
+
+### B. Required runtime IAM roles (compute service account)
+
+Service account:
+
+```text
+13266270908-compute@developer.gserviceaccount.com
+```
+
+Grant these project roles:
+
+```bash
+gcloud projects add-iam-policy-binding mkp-mobile-staging \
+  --member="serviceAccount:13266270908-compute@developer.gserviceaccount.com" \
+  --role="roles/datastore.user"
+
+gcloud projects add-iam-policy-binding mkp-mobile-staging \
+  --member="serviceAccount:13266270908-compute@developer.gserviceaccount.com" \
+  --role="roles/firebaseauth.admin"
+
+gcloud projects add-iam-policy-binding mkp-mobile-staging \
+  --member="serviceAccount:13266270908-compute@developer.gserviceaccount.com" \
+  --role="roles/serviceusage.serviceUsageConsumer"
+```
+
+### C. Organization policy requirement
+
+If Functions deploy fails setting invoker policies, check org policy:
+
+- `Domain restricted sharing` (`iam.allowedPolicyMemberDomains`)
+
+For staging project `MKP Mobile Staging`, set policy source to:
+
+- `Google-managed default`
+
+This unblocks Cloud Run invoker bindings for Firebase callable functions.
+
+### D. If callable functions return 401 unauthorized
+
+Cloud Run services likely do not have `allUsers` invoker.
+
+Apply to all staging callable services:
+
+```bash
+for s in savecommunicationpreferences registerfcmtoken deletefcmtoken getsessioncontext getcareinbox getchurchmessagesfeed getcurrentformationweek createsermonupload completesermonupload transcribeonupload generateformationcontent updateformationweekstatus computeweeklyanalytics joinchurch submitcarerequest respondtocarethread publishchurchmessage; do
+  gcloud run services add-iam-policy-binding "$s" \
+    --region=us-central1 \
+    --project=mkp-mobile-staging \
+    --member="allUsers" \
+    --role="roles/run.invoker"
+done
+```
+
+### E. If joinChurch returns INTERNAL
+
+Read runtime logs:
+
+```bash
+gcloud logging read 'resource.type="cloud_run_revision" AND resource.labels.service_name="joinchurch" AND resource.labels.location="us-central1"' \
+  --project=mkp-mobile-staging \
+  --limit=30 \
+  --format="value(timestamp,severity,textPayload,jsonPayload.message)"
+```
+
+If logs show missing `serviceusage.services.use` on Identity Toolkit, ensure `roles/serviceusage.serviceUsageConsumer` is granted to the runtime service account (section B).
+
+### F. App env reminder
+
+Keep these local-only:
+
+- `.env.local`
+- `.env.staging`
+
+Do not commit either file.
