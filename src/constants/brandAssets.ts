@@ -11,7 +11,9 @@ export type ChurchBrandingResult = ChurchBranding & { found: boolean; code: stri
 const DEFAULT_CHURCHS: Record<string, ChurchBranding> = {
   'GRACE2024': { name: 'Grace Community Church', churchId: 'church-alpha' },
   'GRACE-24': { name: 'Grace Community Church', churchId: 'church-alpha' },
+  'GRACE-STAGE-2026': { name: 'Grace Community Church', churchId: 'church-alpha' },
   'RIVER2024': { name: 'River of Life Church', churchId: 'church-beta' },
+  'RIVER-STAGE-2026': { name: 'River of Life Church', churchId: 'church-beta' },
   'KINGDOM-24': { name: 'Kingdom Fellowship Church' },
 };
 

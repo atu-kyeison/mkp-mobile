@@ -102,6 +102,13 @@ const SettingsScreen = ({ navigation, route }: any) => {
       // Keep the local setting even if the backend call fails.
     });
   };
+  const handleSignOut = () => {
+    signOut();
+    navigation.getParent()?.getParent()?.reset({
+      index: 0,
+      routes: [{ name: 'Auth', params: { screen: 'Welcome' } }],
+    });
+  };
 
   return (
     <MidnightBackground>
@@ -291,7 +298,7 @@ const SettingsScreen = ({ navigation, route }: any) => {
                 <View style={styles.signOutDivider} />
                 <TouchableOpacity
                   style={styles.signOutButton}
-                  onPress={() => signOut()}
+                  onPress={handleSignOut}
                 >
                   <View style={styles.signOutCard}>
                     <Text style={styles.signOutText}>{t('settings.account.signOut')}</Text>

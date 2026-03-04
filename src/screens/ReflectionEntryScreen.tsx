@@ -109,7 +109,7 @@ export const ReflectionEntryScreen = ({ navigation, route }: any) => {
               <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
                 <Text style={styles.saveButtonText}>{editEntryId ? t('reflection.update') : t('reflection.save')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity style={styles.skipLink} onPress={() => navigation.goBack()}>
+              <TouchableOpacity style={styles.skipLink} onPress={() => openMoodCheckIn('JourneyHistory')}>
                 <Text style={styles.skipLinkText}>{t('reflection.skip')}</Text>
               </TouchableOpacity>
               <Text style={styles.privacyNote}>
