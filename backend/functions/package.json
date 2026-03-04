@@ -11,6 +11,7 @@
     "deploy": "firebase deploy --only functions",
     "logs": "firebase functions:log",
     "seed": "FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 node seed.js",
+    "seed:staging": "FIREBASE_PROJECT_ID=mkp-mobile-staging node seed-staging.js",
     "test:emulator": "FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 node emulator-test.js"
   },
   "engines": {

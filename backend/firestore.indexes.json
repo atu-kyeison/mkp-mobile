@@ -17,13 +17,6 @@
       ]
     },
     {
-      "collectionGroup": "sermons",
-      "queryScope": "COLLECTION_GROUP",
-      "fields": [
-        { "fieldPath": "date", "order": "DESCENDING" }
-      ]
-    },
-    {
       "collectionGroup": "members",
       "queryScope": "COLLECTION_GROUP",
       "fields": [
@@ -45,13 +38,6 @@
       "fields": [
         { "fieldPath": "status", "order": "ASCENDING" },
         { "fieldPath": "createdAt", "order": "ASCENDING" }
-      ]
-    },
-    {
-      "collectionGroup": "churchMessages",
-      "queryScope": "COLLECTION",
-      "fields": [
-        { "fieldPath": "createdAt", "order": "DESCENDING" }
       ]
     },
     {
