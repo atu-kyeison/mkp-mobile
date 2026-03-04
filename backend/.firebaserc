@@ -1,5 +1,8 @@
 {
   "projects": {
-    "default": "mkp-mobile-dev"
+    "default": "mkp-mobile-dev",
+    "dev": "mkp-mobile-dev",
+    "staging": "mkp-mobile-staging",
+    "prod": "mkp-mobile-prod"
   }
 }
