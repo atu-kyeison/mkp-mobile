@@ -7,18 +7,8 @@ import { GlassCard } from '../components/GlassCard';
 import { Colors } from '../../constants/Colors';
 import { useI18n } from '../i18n/I18nProvider';
 import { deleteJournalEntry } from '../storage/journalStore';
+import { getMoodEmoji, normalizeMoodId } from '../utils/moodModel';
 import { openChurchMessage } from '../../constants/Actions';
-
-const MOOD_EMOJI: Record<string, string> = {
-  anxious: '⛈️',
-  rushed: '🌬️',
-  tired: '🌙',
-  grateful: '☀️',
-  peaceful: '🌤️',
-  heavy: '🌧️',
-  longing: '✨',
-  focused: '🧭',
-};
 
 export const ReflectionDetailScreen = ({ navigation, route }: any) => {
   const { t, locale } = useI18n();
@@ -33,8 +23,9 @@ export const ReflectionDetailScreen = ({ navigation, route }: any) => {
   const fromSunday = route.params?.fromSunday ?? false;
   const sermonUrl = route.params?.sermonUrl as string | undefined;
   const entryId = route.params?.entryId as string | undefined;
-  const moodEmoji = mood ? MOOD_EMOJI[String(mood).toLowerCase()] || '🌿' : null;
-  const moodLabel = mood ? t(`mood.label.${String(mood).toLowerCase()}`) : null;
+  const moodId = normalizeMoodId(mood);
+  const moodEmoji = mood ? getMoodEmoji(mood) : null;
+  const moodLabel = mood ? t(`mood.label.${moodId}`) : null;
 
   const handleEdit = () => {
     if (!entryId) return;

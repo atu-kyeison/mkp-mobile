@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Modal, StyleSheet, View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Animated, PanResponder, TextInput } from 'react-native';
+import { Modal, StyleSheet, View, Text, ScrollView, TouchableOpacity, Animated, PanResponder, TextInput } from 'react-native';
 import { MaterialIcons } from '@expo/vector-icons';
 import { useFocusEffect } from '@react-navigation/native';
 import { Colors } from '../../constants/Colors';
@@ -11,6 +11,7 @@ import { useTheme } from '../theme/ThemeProvider';
 import { getJournalEntries, JournalEntry } from '../storage/journalStore';
 import { getJourneyFavoriteIds, saveJourneyFavoriteIds } from '../storage/journeyFavoritesStore';
 import { buildJourneyPreviewEntries } from '../utils/journeyPreview';
+import { getMoodEmoji, normalizeMoodId } from '../utils/moodModel';
 
 type CalendarDay = {
   day: number;
@@ -19,17 +20,6 @@ type CalendarDay = {
   reflection?: boolean;
   mood?: boolean;
   sunday?: boolean;
-};
-
-const MOOD_EMOJI: Record<string, string> = {
-  anxious: '⛈️',
-  rushed: '🌬️',
-  tired: '🌙',
-  grateful: '☀️',
-  peaceful: '🌤️',
-  heavy: '🌧️',
-  longing: '✨',
-  focused: '🧭',
 };
 
 const toIsoDate = (date: Date) => {
@@ -76,7 +66,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
     return new Date(now.getFullYear(), now.getMonth(), 1);
   });
   const [selectedDay, setSelectedDay] = useState<CalendarDay | null>(null);
-  const [detailState, setDetailState] = useState<'loading' | 'ready' | 'empty' | 'error'>('loading');
+  const [detailState, setDetailState] = useState<'ready' | 'empty' | 'error'>('empty');
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [selectedDayEntries, setSelectedDayEntries] = useState<JournalEntry[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -512,13 +502,6 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                 </TouchableOpacity>
               </View>
 
-              {detailState === 'loading' ? (
-                <View style={styles.sheetBodyCentered}>
-                  <ActivityIndicator size="large" color={Colors.accentGold} />
-                  <Text style={styles.sheetLoadingText}>{t('journey.dayDetail.loading')}</Text>
-                </View>
-              ) : null}
-
               {detailState === 'ready' ? (
                 <ScrollView
                   style={styles.sheetBodyReady}
@@ -584,10 +567,10 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                         {entry.mood ? (
                           <View style={styles.moodPill}>
                             <Text style={styles.moodEmoji}>
-                              {MOOD_EMOJI[String(entry.mood).toLowerCase()] || '🌿'}
+                              {getMoodEmoji(entry.mood)}
                             </Text>
                             <Text style={styles.moodPillText}>
-                              {t(`mood.label.${String(entry.mood).toLowerCase()}`)}
+                              {t(`mood.label.${normalizeMoodId(entry.mood)}`)}
                             </Text>
                           </View>
                         ) : null}
@@ -784,7 +767,6 @@ const createStyles = () => StyleSheet.create({
   sheetTitle: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 18, color: 'rgba(255,255,255,0.92)' },
   closeButton: { width: 32, height: 32, borderRadius: 16, borderWidth: 1, borderColor: 'rgba(255,255,255,0.12)', alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.05)' },
   sheetBodyCentered: { flex: 1, minHeight: 170, alignItems: 'center', justifyContent: 'center', gap: 12 },
-  sheetLoadingText: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 16, color: 'rgba(229,185,95,0.85)' },
   sheetBodyReady: { flex: 1, paddingTop: 2 },
   sheetBodyReadyContent: { paddingBottom: 8 },
   inlineActionRow: { marginBottom: 18, gap: 10 },

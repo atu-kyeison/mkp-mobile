@@ -9,17 +9,7 @@ import { GlassCard } from '../components/GlassCard';
 import { useI18n } from '../i18n/I18nProvider';
 import { getJournalEntries, JournalEntry } from '../storage/journalStore';
 import { buildJourneyPreviewEntries } from '../utils/journeyPreview';
-
-const MOOD_EMOJI: Record<string, string> = {
-  peaceful: '🌤️',
-  rushed: '🌬️',
-  anxious: '⛈️',
-  grateful: '☀️',
-  tired: '🌙',
-  heavy: '🌧️',
-  longing: '✨',
-  focused: '🧭',
-};
+import { getMoodEmoji, normalizeMoodId } from '../utils/moodModel';
 
 export const PastAwarenessListScreen = ({ navigation }: any) => {
   const { t, locale } = useI18n();
@@ -57,7 +47,7 @@ export const PastAwarenessListScreen = ({ navigation }: any) => {
             </GlassCard>
           ) : (
             moodEntries.map((entry) => {
-              const moodId = String(entry.mood || 'peaceful').toLowerCase();
+              const moodId = normalizeMoodId(entry.mood || 'peaceful');
               const dateLabel = new Date(entry.createdAt)
                 .toLocaleDateString(localeTag, { weekday: 'long', month: 'short', day: 'numeric' })
                 .replace(',', ' -');
@@ -77,7 +67,7 @@ export const PastAwarenessListScreen = ({ navigation }: any) => {
                   <GlassCard style={styles.entryCard}>
                     <View style={styles.entryTopRow}>
                       <View style={styles.moodPill}>
-                        <Text style={styles.moodEmoji}>{MOOD_EMOJI[moodId] || '🌿'}</Text>
+                        <Text style={styles.moodEmoji}>{getMoodEmoji(moodId)}</Text>
                         <Text style={styles.moodLabel}>{t(`mood.label.${moodId}`)}</Text>
                       </View>
                       <MaterialIcons name="chevron-right" size={16} color="rgba(229,185,95,0.42)" />

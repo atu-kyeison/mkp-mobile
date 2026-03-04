@@ -9,6 +9,7 @@ import { GlassCard } from '../components/GlassCard';
 import { useI18n } from '../i18n/I18nProvider';
 import { getJournalEntries, JournalEntry } from '../storage/journalStore';
 import { generateFormationInsight, generateMonthComparison } from '../utils/insightsEngine';
+import { getMoodColor, normalizeMoodId } from '../utils/moodModel';
 
 const SAMPLE_MOODS = ['peaceful', 'rushed', 'anxious', 'grateful', 'tired', 'heavy', 'longing'] as const;
 
@@ -39,17 +40,6 @@ const buildPreviewEntries = (locale: 'en' | 'es'): JournalEntry[] => {
       linkedSermonUrl: index % 3 === 0 ? 'https://www.youtube.com/' : undefined,
     };
   });
-};
-
-const MOOD_COLORS: Record<string, string> = {
-  peaceful: 'rgba(186, 175, 142, 0.62)',
-  rushed: 'rgba(176, 132, 96, 0.56)',
-  anxious: 'rgba(114, 136, 168, 0.56)',
-  grateful: 'rgba(229, 185, 95, 0.72)',
-  tired: 'rgba(123, 133, 151, 0.5)',
-  heavy: 'rgba(111, 125, 148, 0.62)',
-  longing: 'rgba(201, 165, 98, 0.6)',
-  focused: 'rgba(154, 178, 170, 0.58)',
 };
 
 export const InsightsScreen = () => {
@@ -117,7 +107,7 @@ export const InsightsScreen = () => {
         weeklyEntries
           .filter((entry) => Boolean(entry.mood))
           .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
-          .map((entry) => entry.mood as string)
+          .map((entry) => normalizeMoodId(entry.mood))
           .slice(-6)
       );
     }, [locale])
@@ -200,7 +190,7 @@ export const InsightsScreen = () => {
                     key={`${mood}-${index}`}
                     style={[
                       styles.moodArcSegment,
-                      { backgroundColor: MOOD_COLORS[mood] || 'rgba(130, 154, 177, 0.7)' },
+                      { backgroundColor: getMoodColor(mood) },
                     ]}
                   />
                 ))}
@@ -215,7 +205,7 @@ export const InsightsScreen = () => {
               <View style={styles.legendWrap}>
                 {uniqueMoods.map((mood) => (
                   <View key={mood} style={styles.legendChip}>
-                    <View style={[styles.legendSwatch, { backgroundColor: MOOD_COLORS[mood] || Colors.accentGold }]} />
+                    <View style={[styles.legendSwatch, { backgroundColor: getMoodColor(mood) }]} />
                     <Text style={styles.legendChipText}>{t(`mood.label.${mood}`)}</Text>
                   </View>
                 ))}

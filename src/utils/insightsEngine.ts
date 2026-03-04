@@ -1,4 +1,5 @@
 import { JournalEntry } from '../storage/journalStore';
+import { getMoodScore, normalizeMoodId } from './moodModel';
 
 type SupportedLocale = 'en' | 'es';
 type Translate = (key: string) => string;
@@ -14,17 +15,6 @@ export type MonthComparisonResult = {
   titleText: string;
   bodyText: string;
   supportingText: string;
-};
-
-const MOOD_SCORES: Record<string, number> = {
-  anxious: -2,
-  rushed: -1,
-  tired: -1,
-  heavy: -2,
-  longing: 1,
-  focused: 1,
-  grateful: 1,
-  peaceful: 2,
 };
 
 const startOfDay = (date: Date) => {
@@ -101,8 +91,8 @@ export const generateFormationInsight = ({
     .filter((entry) => Boolean(entry.mood))
     .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
 
-  const currentScores = currentMoodEntries.map((entry) => MOOD_SCORES[String(entry.mood).toLowerCase()] ?? 0);
-  const previousScores = previousMoodEntries.map((entry) => MOOD_SCORES[String(entry.mood).toLowerCase()] ?? 0);
+  const currentScores = currentMoodEntries.map((entry) => getMoodScore(entry.mood));
+  const previousScores = previousMoodEntries.map((entry) => getMoodScore(entry.mood));
   const currentDays = uniqueDayKeys(currentWeekEntries);
   const previousDays = uniqueDayKeys(previousWeekEntries);
   const cadence = regularityScore(currentDays);
@@ -112,10 +102,10 @@ export const generateFormationInsight = ({
   const averageDelta = currentAverage - previousAverage;
   const recoveries = countRecoveries(currentScores);
   const sundayLinkedCount = currentWeekEntries.filter((entry) => Boolean(entry.linkedSermonTitle)).length;
-  const dominantMood = Array.from(new Set(currentMoodEntries.map((entry) => String(entry.mood).toLowerCase())))
+  const dominantMood = Array.from(new Set(currentMoodEntries.map((entry) => normalizeMoodId(entry.mood))))
     .map((mood) => ({
       mood,
-      count: currentMoodEntries.filter((entry) => String(entry.mood).toLowerCase() === mood).length,
+      count: currentMoodEntries.filter((entry) => normalizeMoodId(entry.mood) === mood).length,
     }))
     .sort((a, b) => b.count - a.count)[0];
 
@@ -256,10 +246,10 @@ export const generateMonthComparison = ({
   const currentMoodEntries = currentMonthEntries.filter((entry) => Boolean(entry.mood));
   const previousMoodEntries = previousMonthEntries.filter((entry) => Boolean(entry.mood));
   const currentAverage = average(
-    currentMoodEntries.map((entry) => MOOD_SCORES[String(entry.mood).toLowerCase()] ?? 0)
+    currentMoodEntries.map((entry) => getMoodScore(entry.mood))
   );
   const previousAverage = average(
-    previousMoodEntries.map((entry) => MOOD_SCORES[String(entry.mood).toLowerCase()] ?? 0)
+    previousMoodEntries.map((entry) => getMoodScore(entry.mood))
   );
   const currentSundayLinked = currentMonthEntries.filter((entry) => Boolean(entry.linkedSermonTitle)).length;
   const previousSundayLinked = previousMonthEntries.filter((entry) => Boolean(entry.linkedSermonTitle)).length;

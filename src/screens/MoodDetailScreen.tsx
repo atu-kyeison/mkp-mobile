@@ -8,6 +8,7 @@ import { GlassCard } from '../components/GlassCard';
 import { useI18n } from '../i18n/I18nProvider';
 import { useTheme } from '../theme/ThemeProvider';
 import { getJournalEntryById } from '../storage/journalStore';
+import { normalizeMoodId } from '../utils/moodModel';
 
 const MOOD_DETAILS: Record<
   string,
@@ -54,12 +55,6 @@ const MOOD_DETAILS: Record<
     descriptionKey: 'moodDetail.desc.longing',
     iconOffset: { x: 0, y: 0 },
   },
-  focused: {
-    icon: 'explore',
-    titleKey: 'moodDetail.title.focused',
-    descriptionKey: 'moodDetail.desc.focused',
-    iconOffset: { x: 0, y: 0 },
-  },
   anxious: {
     icon: 'waves',
     titleKey: 'moodDetail.title.anxious',
@@ -73,7 +68,7 @@ export const MoodDetailScreen = ({ navigation, route }: any) => {
   const { themeId } = useTheme();
   const styles = useMemo(() => createStyles(), [themeId]);
   const insets = useSafeAreaInsets();
-  const moodId = route.params?.moodId || 'tired';
+  const moodId = normalizeMoodId(route.params?.moodId || 'tired');
   const detail = MOOD_DETAILS[moodId] || MOOD_DETAILS.tired;
   const localeTag = locale === 'es' ? 'es-ES' : 'en-US';
   const fallbackDate = useMemo(
