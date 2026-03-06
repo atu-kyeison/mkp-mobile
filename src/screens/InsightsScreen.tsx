@@ -10,40 +10,11 @@ import { useI18n } from '../i18n/I18nProvider';
 import { getJournalEntries, JournalEntry } from '../storage/journalStore';
 import { generateFormationInsight, generateMonthComparison } from '../utils/insightsEngine';
 import { getMoodColor, normalizeMoodId } from '../utils/moodModel';
-
-const SAMPLE_MOODS = ['peaceful', 'rushed', 'anxious', 'grateful', 'tired', 'heavy', 'longing'] as const;
-
-const buildPreviewEntries = (locale: 'en' | 'es'): JournalEntry[] => {
-  const today = new Date();
-  const totalDays = 42;
-
-  return Array.from({ length: totalDays }, (_, index) => {
-    const mood = SAMPLE_MOODS[index % SAMPLE_MOODS.length];
-    const entryDate = new Date(today);
-    entryDate.setDate(today.getDate() - index);
-    entryDate.setHours(9, 0, 0, 0);
-
-    return {
-      id: `insight-preview-${mood}-${index}`,
-      createdAt: entryDate.toISOString(),
-      body:
-        locale === 'es'
-          ? `Reflexión de prueba para ${mood}.`
-          : `Preview reflection for ${mood}.`,
-      invitationText:
-        locale === 'es'
-          ? 'Entrada de ritmo de prueba.'
-          : 'Preview rhythm entry.',
-      journalVariant: 'mid_week',
-      mood,
-      linkedSermonTitle: index % 3 === 0 ? (locale === 'es' ? 'Permanece y descansa' : 'Abide and Remain') : undefined,
-      linkedSermonUrl: index % 3 === 0 ? 'https://www.youtube.com/' : undefined,
-    };
-  });
-};
+import { getInterimContent } from '../constants/interimContent';
 
 export const InsightsScreen = () => {
   const { t, locale } = useI18n();
+  const interimContent = getInterimContent(locale);
   const navigation = useNavigation<any>();
   const [entriesThisWeek, setEntriesThisWeek] = useState(0);
   const [moodHistory, setMoodHistory] = useState<string[]>([]);
@@ -77,7 +48,7 @@ export const InsightsScreen = () => {
       );
 
       const savedEntries = getJournalEntries();
-      const sourceEntries = savedEntries.length > 0 ? savedEntries : buildPreviewEntries(locale);
+      const sourceEntries = savedEntries;
       const weeklyEntries = sourceEntries.filter((entry) => {
         const created = new Date(entry.createdAt);
         return !Number.isNaN(created.getTime()) && created >= weekAgo && created <= now;
@@ -113,11 +84,15 @@ export const InsightsScreen = () => {
     }, [locale])
   );
 
+  const hasEntries = currentWeekEntries.length > 0 || previousWeekEntries.length > 0 || currentMonthEntries.length > 0 || previousMonthEntries.length > 0;
+
   const reflectionStatText = useMemo(() => {
     if (locale === 'es') {
+      if (entriesThisWeek === 0) return 'Aún no registraste pausas de reflexión esta semana';
       if (entriesThisWeek === 1) return 'Hiciste una pausa para reflexionar 1 día esta semana';
       return `Hiciste una pausa para reflexionar ${entriesThisWeek} días esta semana`;
     }
+    if (entriesThisWeek === 0) return 'No reflection pauses logged yet this week';
     if (entriesThisWeek === 1) return 'You paused to reflect 1 day this week';
     return `You paused to reflect ${entriesThisWeek} days this week`;
   }, [entriesThisWeek, locale]);
@@ -131,24 +106,25 @@ export const InsightsScreen = () => {
     [moodHistory]
   );
   const rhythmExplanation = useMemo(() => {
+    if (moodHistory.length === 0) return interimContent.insights.rhythmEmpty;
     if (locale === 'es') {
       return 'Cada color representa el estado que registraste ese día, de antes hacia ahora.';
     }
     return 'Each color marks the mood you logged that day, moving from earlier to now.';
-  }, [locale]);
+  }, [interimContent.insights.rhythmEmpty, locale, moodHistory.length]);
 
   const reflectionSubtext = useMemo(() => {
     if (locale === 'es') {
       if (entriesThisWeek >= 4) return 'Volviste de forma consistente esta semana.';
       if (entriesThisWeek >= 2) return 'Ya hay un ritmo formándose esta semana.';
       if (entriesThisWeek === 1) return 'Un solo momento de atención ya empieza a formar un ritmo.';
-      return 'Aún no hay suficientes pausas esta semana para detectar un patrón.';
+      return interimContent.insights.noticeBody;
     }
     if (entriesThisWeek >= 4) return 'You returned consistently this week.';
     if (entriesThisWeek >= 2) return 'A rhythm is beginning to take shape this week.';
     if (entriesThisWeek === 1) return 'Even one honest pause begins to form a rhythm.';
-    return 'There are not enough pauses yet this week to detect a pattern.';
-  }, [entriesThisWeek, locale]);
+    return interimContent.insights.noticeBody;
+  }, [entriesThisWeek, interimContent.insights.noticeBody, locale]);
 
   const formationInsight = useMemo(
     () => generateFormationInsight({ locale, t, currentWeekEntries, previousWeekEntries }),
@@ -224,9 +200,9 @@ export const InsightsScreen = () => {
 
           <GlassCard style={styles.sectionCard}>
             <Text style={styles.sectionLabel}>{t('insights.notice')}</Text>
-            <Text style={styles.noticeText}>{formationInsight.noticeText}</Text>
-            <Text style={styles.insightSummary}>{formationInsight.summaryText}</Text>
-            {formationInsight.signalLabels.length > 0 ? (
+            <Text style={styles.noticeText}>{hasEntries ? formationInsight.noticeText : interimContent.insights.noticeTitle}</Text>
+            <Text style={styles.insightSummary}>{hasEntries ? formationInsight.summaryText : interimContent.insights.noticeBody}</Text>
+            {hasEntries && formationInsight.signalLabels.length > 0 ? (
               <View style={styles.signalWrap}>
                 {formationInsight.signalLabels.map((signal) => (
                   <View key={signal} style={styles.signalChip}>
@@ -235,14 +211,14 @@ export const InsightsScreen = () => {
                 ))}
               </View>
             ) : null}
-            <Text style={styles.metricsText}>{formationInsight.metricsText}</Text>
-            {insightSummary ? <Text style={styles.recentPostureText}>{insightSummary}</Text> : null}
+            <Text style={styles.metricsText}>{hasEntries ? formationInsight.metricsText : interimContent.insights.metricsFallback}</Text>
+            {hasEntries && insightSummary ? <Text style={styles.recentPostureText}>{insightSummary}</Text> : null}
           </GlassCard>
 
           <GlassCard style={styles.sectionCard}>
-            <Text style={styles.sectionLabel}>{monthComparison.titleText}</Text>
-            <Text style={styles.noticeText}>{monthComparison.bodyText}</Text>
-            <Text style={styles.insightSummary}>{monthComparison.supportingText}</Text>
+            <Text style={styles.sectionLabel}>{hasEntries ? monthComparison.titleText : t('insights.notice')}</Text>
+            <Text style={styles.noticeText}>{hasEntries ? monthComparison.bodyText : interimContent.insights.monthBody}</Text>
+            {hasEntries ? <Text style={styles.insightSummary}>{monthComparison.supportingText}</Text> : null}
           </GlassCard>
 
           <Text style={styles.footerText}>

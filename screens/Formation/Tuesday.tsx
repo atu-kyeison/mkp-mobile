@@ -60,7 +60,7 @@ export default function Tuesday({ navigation }: any) {
               </View>
               <TouchableOpacity
                 style={styles.listenButton}
-                onPress={() => openChurchMessage()}
+                onPress={() => openChurchMessage(content.sundayMessageUrl)}
               >
                 <Text style={styles.listenIcon}>🎧</Text>
                 <Text style={styles.listenText}>{content.listenLabel}</Text>

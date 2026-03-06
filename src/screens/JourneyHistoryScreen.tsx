@@ -10,8 +10,8 @@ import { useI18n } from '../i18n/I18nProvider';
 import { useTheme } from '../theme/ThemeProvider';
 import { getJournalEntries, JournalEntry } from '../storage/journalStore';
 import { getJourneyFavoriteIds, saveJourneyFavoriteIds } from '../storage/journeyFavoritesStore';
-import { buildJourneyPreviewEntries } from '../utils/journeyPreview';
 import { getMoodEmoji, normalizeMoodId } from '../utils/moodModel';
+import { getInterimContent } from '../constants/interimContent';
 
 type CalendarDay = {
   day: number;
@@ -59,6 +59,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
   const { themeId } = useTheme();
   const styles = useMemo(() => createStyles(), [themeId]);
   const insets = useSafeAreaInsets();
+  const interimContent = getInterimContent(locale);
   const [activeTab, setActiveTab] = useState<'LIBRARY' | 'FAVORITES' | 'CALENDAR'>('LIBRARY');
   const [entries, setEntries] = useState<JournalEntry[]>([]);
   const [monthCursor, setMonthCursor] = useState(() => {
@@ -72,10 +73,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
   const [searchQuery, setSearchQuery] = useState('');
   const sheetTranslateY = useMemo(() => new Animated.Value(0), []);
 
-  const displayEntries = useMemo(
-    () => (entries.length > 0 ? entries : buildJourneyPreviewEntries(locale)),
-    [entries, locale]
-  );
+  const displayEntries = entries;
 
   useFocusEffect(
     useCallback(() => {
@@ -305,7 +303,8 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
             <View style={styles.timelineLine} />
             {journeyItems.length === 0 ? (
               <GlassCard style={styles.emptyPromptCard}>
-                <Text style={styles.emptyPromptText}>{t('journey.favoritesEmpty')}</Text>
+                <Text style={styles.emptyPromptText}>{interimContent.journey.libraryEmptyTitle}</Text>
+                <Text style={styles.emptyPromptSubtext}>{interimContent.journey.libraryEmptyBody}</Text>
                 <TouchableOpacity
                   style={styles.favoritesCta}
                   onPress={() =>
@@ -315,7 +314,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                     })
                   }
                 >
-                  <Text style={styles.favoritesCtaText}>{t('journey.favoritesCta')}</Text>
+                  <Text style={styles.favoritesCtaText}>{interimContent.journey.libraryEmptyCta}</Text>
                 </TouchableOpacity>
               </GlassCard>
             ) : filteredJourneyItems.length === 0 ? (
@@ -387,7 +386,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                 <View style={styles.favoritesIconWrap}>
                   <MaterialIcons name="alt-route" size={28} color={Colors.accentGold} />
                 </View>
-                <Text style={styles.favoritesEmptyText}>{t('journey.favoritesEmpty')}</Text>
+                <Text style={styles.favoritesEmptyText}>{interimContent.journey.favoritesEmptyBody}</Text>
                 <TouchableOpacity
                   style={styles.favoritesCta}
                   onPress={() =>
@@ -397,7 +396,7 @@ export const JourneyHistoryScreen = ({ navigation }: any) => {
                     })
                   }
                 >
-                  <Text style={styles.favoritesCtaText}>{t('journey.favoritesCta')}</Text>
+                  <Text style={styles.favoritesCtaText}>{interimContent.journey.libraryEmptyCta}</Text>
                 </TouchableOpacity>
               </GlassCard>
             ) : filteredFavoriteItems.length === 0 ? (
@@ -705,11 +704,20 @@ const createStyles = () => StyleSheet.create({
   },
   favoritesEmptyText: {
     fontFamily: 'PlayfairDisplay_400Regular_Italic',
-    fontSize: 18,
-    lineHeight: 34,
+    fontSize: 17,
+    lineHeight: 30,
     color: 'rgba(255,255,255,0.82)',
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: 28,
+  },
+  emptyPromptSubtext: {
+    marginTop: 10,
+    marginBottom: 24,
+    fontFamily: 'Inter_400Regular',
+    fontSize: 14,
+    lineHeight: 22,
+    color: 'rgba(255,255,255,0.7)',
+    textAlign: 'center',
   },
   favoritesCta: {
     width: '100%',
@@ -757,7 +765,13 @@ const createStyles = () => StyleSheet.create({
   legendText: { fontFamily: 'Inter_400Regular', fontSize: 11, color: 'rgba(229,185,95,0.6)' },
   legendSeparator: { color: 'rgba(229,185,95,0.25)' },
   emptyPromptCard: { borderRadius: 28, minHeight: 220, paddingVertical: 30, paddingHorizontal: 24, alignItems: 'center', justifyContent: 'space-between' },
-  emptyPromptText: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 15, color: 'rgba(255,255,255,0.45)', textAlign: 'center' },
+  emptyPromptText: {
+    fontFamily: 'PlayfairDisplay_400Regular',
+    fontSize: 24,
+    lineHeight: 34,
+    color: 'rgba(255,255,255,0.88)',
+    textAlign: 'center',
+  },
   modalBackdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.45)', justifyContent: 'flex-end' },
   bottomSheet: { backgroundColor: Colors.backgroundDark, borderTopLeftRadius: 34, borderTopRightRadius: 34, paddingHorizontal: 24, paddingTop: 10, paddingBottom: 38, borderTopWidth: 1, borderTopColor: 'rgba(229,185,95,0.3)' },
   sheetHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 18, paddingTop: 10 },

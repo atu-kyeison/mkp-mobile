@@ -20,6 +20,7 @@ const buildFormationLocalePack = (
   const days = week.days || {};
   const truth = week.truths?.[0] || '';
   const scripture = week.scriptureRefs?.[0] || '';
+  const sundayMessageUrl = week.listen?.url || undefined;
   const listenLabel = locale === 'es' ? 'Escuchar' : 'Listen';
 
   return {
@@ -30,6 +31,7 @@ const buildFormationLocalePack = (
       sundayMessageLabel:
         locale === 'es' ? 'Del mensaje del domingo' : "From Sunday's Message",
       sundayMessageText: week.sunday?.summary || truth,
+      sundayMessageUrl,
       listenLabel,
       practiceLabel: days.monday?.title || (locale === 'es' ? 'Práctica de hoy' : "Today's Practice"),
       practiceText: days.monday?.prompt || truth,
@@ -48,6 +50,7 @@ const buildFormationLocalePack = (
       sundayMessageLabel:
         locale === 'es' ? 'Del mensaje del domingo' : "From Sunday's Message",
       sundayMessageText: week.sunday?.summary || truth,
+      sundayMessageUrl,
       listenLabel,
       practiceLabel: days.tuesday?.title || (locale === 'es' ? 'Práctica de hoy' : "Today's Practice"),
       practiceText: days.tuesday?.prompt || truth,
@@ -66,6 +69,7 @@ const buildFormationLocalePack = (
       sundayMessageLabel:
         locale === 'es' ? 'Del mensaje del domingo' : "From Sunday's Message",
       sundayMessageText: week.sunday?.summary || truth,
+      sundayMessageUrl,
       listenLabel,
       practiceLabel: days.wednesday?.title || (locale === 'es' ? 'Perspectiva de hoy' : "Today's Insight"),
       practiceText: days.wednesday?.prompt || truth,
@@ -84,6 +88,7 @@ const buildFormationLocalePack = (
       sundayMessageLabel:
         locale === 'es' ? 'Del mensaje del domingo' : "From Sunday's Message",
       sundayMessageText: week.sunday?.summary || truth,
+      sundayMessageUrl,
       listenLabel,
       practiceLabel: days.thursday?.title || (locale === 'es' ? 'Entrega de hoy' : "Today's Surrender"),
       practiceText: days.thursday?.prompt || truth,
@@ -102,6 +107,7 @@ const buildFormationLocalePack = (
       sundayMessageLabel:
         locale === 'es' ? 'Del mensaje del domingo' : "From Sunday's Message",
       sundayMessageText: week.sunday?.summary || truth,
+      sundayMessageUrl,
       listenLabel,
       practiceLabel: days.friday?.title || (locale === 'es' ? 'Invitación de hoy' : "Today's Invitation"),
       practiceText: days.friday?.prompt || truth,

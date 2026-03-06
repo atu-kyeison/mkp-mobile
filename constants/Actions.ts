@@ -2,11 +2,21 @@ import { Alert, Linking } from 'react-native';
 import { getStoredLocale, translateForLocale } from '../src/i18n/I18nProvider';
 
 export const CHURCH_MESSAGE_URL =
-  process.env.EXPO_PUBLIC_CHURCH_MESSAGE_URL || 'https://www.youtube.com/';
+  process.env.EXPO_PUBLIC_CHURCH_MESSAGE_URL || '';
 
 export async function openChurchMessage(messageUrl?: string) {
+  const targetUrl = (messageUrl || CHURCH_MESSAGE_URL || '').trim();
+  if (!targetUrl) {
+    const locale = getStoredLocale();
+    Alert.alert(
+      translateForLocale(locale, 'actions.linkUnavailableTitle'),
+      translateForLocale(locale, 'actions.churchMessageNotPublishedBody')
+    );
+    return;
+  }
+
   try {
-    await Linking.openURL(messageUrl || CHURCH_MESSAGE_URL);
+    await Linking.openURL(targetUrl);
   } catch {
     const locale = getStoredLocale();
     Alert.alert(

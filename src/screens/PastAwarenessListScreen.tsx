@@ -8,11 +8,12 @@ import { BackgroundGradient } from '../components/BackgroundGradient';
 import { GlassCard } from '../components/GlassCard';
 import { useI18n } from '../i18n/I18nProvider';
 import { getJournalEntries, JournalEntry } from '../storage/journalStore';
-import { buildJourneyPreviewEntries } from '../utils/journeyPreview';
 import { getMoodEmoji, normalizeMoodId } from '../utils/moodModel';
+import { getInterimContent } from '../constants/interimContent';
 
 export const PastAwarenessListScreen = ({ navigation }: any) => {
   const { t, locale } = useI18n();
+  const interimContent = getInterimContent(locale);
   const localeTag = locale === 'es' ? 'es-ES' : 'en-US';
   const [entries, setEntries] = useState<JournalEntry[]>([]);
 
@@ -23,9 +24,8 @@ export const PastAwarenessListScreen = ({ navigation }: any) => {
   );
 
   const moodEntries = useMemo(() => {
-    const sourceEntries = entries.length > 0 ? entries : buildJourneyPreviewEntries(locale);
-    return sourceEntries.filter((entry) => Boolean(entry.mood));
-  }, [entries, locale]);
+    return entries.filter((entry) => Boolean(entry.mood));
+  }, [entries]);
 
   return (
     <BackgroundGradient style={styles.container}>
@@ -43,7 +43,8 @@ export const PastAwarenessListScreen = ({ navigation }: any) => {
         <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
           {moodEntries.length === 0 ? (
             <GlassCard style={styles.emptyCard}>
-              <Text style={styles.emptyText}>{t('journey.pastAwareness.empty')}</Text>
+              <Text style={styles.emptyTitle}>{interimContent.journey.pastAwarenessEmptyTitle}</Text>
+              <Text style={styles.emptyText}>{interimContent.journey.pastAwarenessEmptyBody}</Text>
             </GlassCard>
           ) : (
             moodEntries.map((entry) => {
@@ -137,10 +138,18 @@ const styles = StyleSheet.create({
     padding: 24,
     borderRadius: 24,
   },
+  emptyTitle: {
+    fontFamily: 'PlayfairDisplay_400Regular',
+    fontSize: 22,
+    lineHeight: 32,
+    color: 'rgba(255,255,255,0.88)',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
   emptyText: {
-    fontFamily: 'PlayfairDisplay_400Regular_Italic',
-    fontSize: 18,
-    lineHeight: 30,
+    fontFamily: 'Inter_400Regular',
+    fontSize: 15,
+    lineHeight: 24,
     color: 'rgba(255,255,255,0.72)',
     textAlign: 'center',
   },

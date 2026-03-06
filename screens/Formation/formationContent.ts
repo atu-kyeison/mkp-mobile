@@ -28,6 +28,7 @@ export interface FormationDayContent {
   scriptureSpeech?: string;
   sundayMessageLabel?: string;
   sundayMessageText?: string;
+  sundayMessageUrl?: string;
   listenLabel?: string;
   practiceLabel: string;
   practiceText: string;
