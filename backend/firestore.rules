@@ -224,11 +224,22 @@ service cloud.firestore {
         // guarantee workflow integrity (server timestamps, thread seeding).
         allow create: if false;
 
-        // Care staff may update care request status / workflow fields.
-        allow update: if isCareStaff(churchId);
+        // Lifecycle updates are function-owned (updateCareRequestLifecycle).
+        // This keeps ownership and status transitions server-validated.
+        allow update: if false;
 
         // Only pastor or admin may delete care requests.
         allow delete: if isPastorOrAdmin(churchId);
+      }
+
+      // ======================================================================
+      // /churches/{churchId}/submissionMailboxAlerts/{requestId}
+      // ======================================================================
+      // Interim operational handoff queue for church mailbox alerts.
+      // Read-only to care staff; writes are function-only via submitCareRequest.
+      match /submissionMailboxAlerts/{requestId} {
+        allow read: if isCareStaff(churchId);
+        allow create, update, delete: if false;
       }
 
       // ======================================================================

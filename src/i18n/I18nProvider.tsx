@@ -268,7 +268,7 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     'care.prayer.placeholder': 'What would you like prayer for today?',
     'care.prayer.action': 'SHARE PRAYER',
     'care.prayer.anonymous.title': 'Post Anonymously',
-    'care.prayer.anonymous.subtitle': 'Your name will be hidden from the care team view',
+    'care.prayer.anonymous.subtitle': 'Your name is hidden in church view, but your church can still follow up privately.',
     'care.prayer.support.title': 'Request Pastoral Support',
     'care.prayer.support.subtitle': 'A leader will reach out to walk with you',
 
@@ -679,7 +679,7 @@ const dictionaries: Record<SupportedLocale, Dictionary> = {
     'care.prayer.placeholder': '¿Por qué te gustaría oración hoy?',
     'care.prayer.action': 'COMPARTIR ORACIÓN',
     'care.prayer.anonymous.title': 'Publicar de forma anónima',
-    'care.prayer.anonymous.subtitle': 'Tu nombre estará oculto en la vista del equipo pastoral',
+    'care.prayer.anonymous.subtitle': 'Tu nombre se oculta en la vista de la iglesia, pero aún pueden darte seguimiento en privado.',
     'care.prayer.support.title': 'Solicitar apoyo pastoral',
     'care.prayer.support.subtitle': 'Un líder se comunicará para caminar contigo',
 

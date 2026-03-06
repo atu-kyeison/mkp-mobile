@@ -55,6 +55,7 @@ interface ChurchData {
 }
 
 interface CareThreadData {
+  requestId?: string;
   status: string;
   churchReplyCount: number;
   maxChurchReplies: number;
@@ -104,6 +105,12 @@ interface UserProfileData {
   displayName?: string;
   email?: string;
   preferredLanguage?: string;
+}
+
+interface CareRequestData {
+  status?: string;
+  ownerUserId?: string | null;
+  threadId?: string | null;
 }
 
 // ---------------------------------------------------------------------------
@@ -200,6 +207,19 @@ const SERMON_SOURCE_TYPES = new Set(["audio_upload"]);
 const SERMON_LANGUAGES = new Set(["en", "es"]);
 const TRANSCRIPT_RETENTION_DAYS = 7;
 const FORMATION_STATUSES = new Set(["draft", "generated", "approved", "published"]);
+const CARE_REQUEST_TYPES = new Set([
+  "prayer",
+  "testimony",
+  "care_support",
+]);
+const CARE_REQUEST_CHANNELS = new Set(["in_app", "email"]);
+const CARE_REQUEST_STATUSES = new Set([
+  "new",
+  "assigned",
+  "in_progress",
+  "closed",
+]);
+const CHURCH_ADMIN_ROLES = new Set(["pastor", "admin"]);
 
 function ensureNonEmptyString(value: unknown, fieldName: string): string {
   if (typeof value !== "string" || value.trim() === "") {
@@ -280,6 +300,50 @@ function ensureEnumValue(
   const normalized = ensureNonEmptyString(value, fieldName);
   if (!allowed.has(normalized)) {
     throw new HttpsError("invalid-argument", helpText);
+  }
+  return normalized;
+}
+
+function isValidEmailAddress(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+function canTransitionCareRequestStatus(
+  currentStatus: string | undefined,
+  nextStatus: string
+): boolean {
+  const normalizedCurrent =
+    currentStatus && CARE_REQUEST_STATUSES.has(currentStatus)
+      ? currentStatus
+      : "new";
+
+  const allowedTransitions: Record<string, Set<string>> = {
+    new: new Set(["new", "assigned", "in_progress", "closed"]),
+    assigned: new Set(["assigned", "in_progress", "closed", "new"]),
+    in_progress: new Set(["in_progress", "assigned", "closed", "new"]),
+    closed: new Set(["closed", "assigned", "in_progress"]),
+  };
+
+  return allowedTransitions[normalizedCurrent]?.has(nextStatus) === true;
+}
+
+async function getSubmissionMailboxAddress(
+  churchId: string
+): Promise<string | null> {
+  const configSnap = await db.doc(`churches/${churchId}/private/config`).get();
+  if (!configSnap.exists) {
+    return null;
+  }
+
+  const raw = (configSnap.data() as { submissionMailbox?: unknown })
+    .submissionMailbox;
+  if (typeof raw !== "string") {
+    return null;
+  }
+
+  const normalized = raw.trim().toLowerCase();
+  if (!isValidEmailAddress(normalized)) {
+    return null;
   }
   return normalized;
 }
@@ -619,7 +683,7 @@ export const getCareInbox = onCall(
     const threadsSnap = await db
       .collection(`churches/${churchId}/careThreads`)
       .where("memberUserId", "==", uid)
-      .orderBy("updatedAt", "desc")
+      .orderBy("lastMessageAt", "desc")
       .get();
 
     const threads = await Promise.all(
@@ -1464,21 +1528,19 @@ export const submitCareRequest = onCall(
     if (!churchId || typeof churchId !== "string" || churchId.trim() === "") {
       throw new HttpsError("invalid-argument", "churchId is required.");
     }
-    if (!type || !["prayer", "testimony", "care_support"].includes(type as string)) {
-      throw new HttpsError(
-        "invalid-argument",
-        "type must be prayer, testimony, or care_support."
-      );
-    }
-    if (!content || typeof content !== "string" || content.trim() === "") {
-      throw new HttpsError("invalid-argument", "content is required.");
-    }
-    if (!preferredChannel || !["in_app", "email"].includes(preferredChannel as string)) {
-      throw new HttpsError(
-        "invalid-argument",
-        "preferredChannel must be in_app or email."
-      );
-    }
+    const normalizedType = ensureEnumValue(
+      type,
+      "type",
+      CARE_REQUEST_TYPES,
+      "type must be prayer, testimony, or care_support."
+    );
+    const normalizedContent = ensureNonEmptyString(content, "content");
+    const normalizedPreferredChannel = ensureEnumValue(
+      preferredChannel,
+      "preferredChannel",
+      CARE_REQUEST_CHANNELS,
+      "preferredChannel must be in_app or email."
+    );
     if (categoryId !== undefined && typeof categoryId !== "string") {
       throw new HttpsError("invalid-argument", "categoryId must be a string.");
     }
@@ -1488,10 +1550,11 @@ export const submitCareRequest = onCall(
 
     // Load church to check feature flags
     const church = await requireChurch(churchId);
+    const mailboxAddress = await getSubmissionMailboxAddress(churchId);
 
     const now = FieldValue.serverTimestamp();
     const shouldCreateThread =
-      preferredChannel === "in_app" &&
+      normalizedPreferredChannel === "in_app" &&
       church.features?.careThreads === true;
 
     // Pre-generate document references so IDs are known before any write.
@@ -1508,33 +1571,107 @@ export const submitCareRequest = onCall(
       messageRef = threadRef.collection("messages").doc();
     }
 
+    const mailboxAlertRef = db.doc(
+      `churches/${churchId}/submissionMailboxAlerts/${requestId}`
+    );
+    const queueEmailDelivery = mailboxAddress !== null;
+
     // Write all docs atomically.
     const batch = db.batch();
 
     batch.set(requestRef, {
-      type,
+      type: normalizedType,
       submitterId: uid,
       // submitterName is stored server-side regardless of isAnonymous.
       // The isAnonymous flag controls display in the pastoral interface;
       // it does not remove the record from the care workflow (contract §7.10).
       submitterName: member.displayName,
-      content: (content as string).trim(),
-      status: "pending",
+      submitterEmail: member.email ?? null,
+      content: normalizedContent,
+      status: "new",
+      ownerUserId: null,
+      ownerRole: null,
+      assignedAt: null,
+      closedAt: null,
+      closedBy: null,
+      lastActionAt: now,
+      lastActionBy: uid,
       isAnonymous: isAnonymous === true,
-      preferredChannel,
+      preferredChannel: normalizedPreferredChannel,
       categoryId: (categoryId as string | undefined) ?? null,
       threadId: threadId ?? null,
+      intakeSource: "mobile_app",
+      mailboxDeliveryState: queueEmailDelivery
+        ? "queued"
+        : "not_configured",
       createdAt: now,
       resolvedAt: null,
       resolvedBy: null,
     });
+
+    batch.set(mailboxAlertRef, {
+      requestId,
+      type: normalizedType,
+      status: "queued",
+      queuedAt: now,
+      churchId,
+      churchName: church.name ?? "",
+      submitterId: uid,
+      submitterName: member.displayName,
+      submitterEmail: member.email ?? null,
+      isAnonymous: isAnonymous === true,
+      preferredChannel: normalizedPreferredChannel,
+      categoryId: (categoryId as string | undefined) ?? null,
+      contentPreview:
+        normalizedContent.length > 280
+          ? `${normalizedContent.slice(0, 277)}...`
+          : normalizedContent,
+      mailboxAddress,
+      deliveryTarget:
+        queueEmailDelivery && mailboxAddress
+          ? "firebase_trigger_email_extension"
+          : "manual_church_queue",
+      deliveredAt: null,
+      deliveryError: queueEmailDelivery
+        ? null
+        : "submission_mailbox_not_configured",
+      createdAt: now,
+      updatedAt: now,
+    });
+
+    if (queueEmailDelivery && mailboxAddress) {
+      const mailRef = db.collection("mail").doc();
+      batch.set(mailRef, {
+        to: [mailboxAddress],
+        message: {
+          subject: `[MKP] New ${normalizedType.replace("_", " ")} submission`,
+          text: [
+            `Church: ${church.name ?? churchId}`,
+            `Submission ID: ${requestId}`,
+            `Type: ${normalizedType}`,
+            `Category: ${(categoryId as string | undefined) ?? "none"}`,
+            `Preferred channel: ${normalizedPreferredChannel}`,
+            `Anonymous: ${isAnonymous === true ? "yes" : "no"}`,
+            "",
+            normalizedContent,
+          ].join("\n"),
+        },
+        x_mkp: {
+          churchId,
+          requestId,
+          type: normalizedType,
+          categoryId: (categoryId as string | undefined) ?? null,
+          source: "submitCareRequest",
+        },
+      });
+    }
 
     if (shouldCreateThread && threadRef && messageRef && threadId) {
       batch.set(threadRef, {
         requestId,
         memberUserId: uid,
         categoryId: (categoryId as string | undefined) ?? null,
-        preferredChannel,
+        preferredChannel: normalizedPreferredChannel,
         status: "awaiting_reply",
         maxChurchReplies: 1,    // locked MVP value (contract §7.11)
         churchReplyCount: 0,
@@ -1546,16 +1683,207 @@ export const submitCareRequest = onCall(
       batch.set(messageRef, {
         senderType: "member",
         senderUserId: uid,
-        body: (content as string).trim(),
+        body: normalizedContent,
         createdAt: now,
       });
     }
 
     await batch.commit();
 
-    const result: { requestId: string; threadId?: string } = { requestId };
+    const result: {
+      requestId: string;
+      threadId?: string;
+      mailboxDeliveryState: "queued" | "not_configured";
+    } = {
+      requestId,
+      mailboxDeliveryState: queueEmailDelivery ? "queued" : "not_configured",
+    };
     if (threadId) result.threadId = threadId;
     return result;
+  }
+);
+
+// ---------------------------------------------------------------------------
+// Phase 3: updateCareRequestLifecycle
+// ---------------------------------------------------------------------------
+
+/**
+ * updateCareRequestLifecycle
+ *
+ * Church staff triage tool for interim submission handling.
+ * Supports explicit ownership (claim/reassign) and lifecycle transitions
+ * on care requests so churches can work from one backend system of record.
+ *
+ * Request data:
+ *   {
+ *     churchId: string,
+ *     requestId: string,
+ *     status?: 'new' | 'assigned' | 'in_progress' | 'closed',
+ *     ownerUserId?: string | null
+ *   }
+ *
+ * Returns:
+ *   { requestId: string, status: string, ownerUserId: string | null }
+ */
+export const updateCareRequestLifecycle = onCall(
+  { enforceAppCheck: false },
+  async (request) => {
+    if (!request.auth) {
+      throw new HttpsError("unauthenticated", "Must be signed in.");
+    }
+
+    const uid = request.auth.uid;
+    const data = (request.data ?? {}) as Record<string, unknown>;
+    const churchId = ensureNonEmptyString(data.churchId, "churchId");
+    const requestId = ensureNonEmptyString(data.requestId, "requestId");
+
+    const callerMember = await requireActiveMember(churchId, uid);
+    if (!CARE_STAFF_ROLES.has(callerMember.role)) {
+      throw new HttpsError(
+        "permission-denied",
+        "Not authorized to update care request lifecycle."
+      );
+    }
+
+    const requestRef = db.doc(`churches/${churchId}/careRequests/${requestId}`);
+
+    return db.runTransaction(async (tx) => {
+      const requestSnap = await tx.get(requestRef);
+      if (!requestSnap.exists) {
+        throw new HttpsError("not-found", "Care request not found.");
+      }
+
+      const careRequest = requestSnap.data() as CareRequestData;
+      const now = FieldValue.serverTimestamp();
+      const updatePayload: Record<string, unknown> = {
+        lastActionAt: now,
+        lastActionBy: uid,
+      };
+
+      const hasOwnerPatch = Object.prototype.hasOwnProperty.call(
+        data,
+        "ownerUserId"
+      );
+      if (hasOwnerPatch) {
+        const rawOwner = data.ownerUserId;
+        const nextOwnerUserId =
+          rawOwner === null
+            ? null
+            : ensureOptionalString(rawOwner, "ownerUserId") ?? null;
+
+        if (nextOwnerUserId === null) {
+          if (
+            !CHURCH_ADMIN_ROLES.has(callerMember.role) &&
+            careRequest.ownerUserId !== uid
+          ) {
+            throw new HttpsError(
+              "permission-denied",
+              "Only pastor/admin can unassign other owners."
+            );
+          }
+          updatePayload.ownerUserId = null;
+          updatePayload.ownerRole = null;
+          updatePayload.assignedAt = null;
+        } else {
+          if (
+            nextOwnerUserId !== uid &&
+            !CHURCH_ADMIN_ROLES.has(callerMember.role)
+          ) {
+            throw new HttpsError(
+              "permission-denied",
+              "Only pastor/admin can assign requests to another user."
+            );
+          }
+
+          const ownerMemberRef = db.doc(
+            `churches/${churchId}/members/${nextOwnerUserId}`
+          );
+          const ownerMemberSnap = await tx.get(ownerMemberRef);
+          if (!ownerMemberSnap.exists) {
+            throw new HttpsError("invalid-argument", "ownerUserId must be a member.");
+          }
+          const ownerMember = ownerMemberSnap.data() as MemberData;
+          if (
+            ownerMember.status !== "active" ||
+            !CARE_STAFF_ROLES.has(ownerMember.role)
+          ) {
+            throw new HttpsError(
+              "invalid-argument",
+              "ownerUserId must be an active pastor, admin, or care_team member."
+            );
+          }
+
+          updatePayload.ownerUserId = nextOwnerUserId;
+          updatePayload.ownerRole = ownerMember.role;
+          updatePayload.assignedAt = now;
+        }
+      }
+
+      if (Object.prototype.hasOwnProperty.call(data, "status")) {
+        const nextStatus = ensureEnumValue(
+          data.status,
+          "status",
+          CARE_REQUEST_STATUSES,
+          "status must be new, assigned, in_progress, or closed."
+        );
+
+        if (!canTransitionCareRequestStatus(careRequest.status, nextStatus)) {
+          throw new HttpsError(
+            "failed-precondition",
+            `Cannot transition care request from ${careRequest.status ?? "new"} to ${nextStatus}.`
+          );
+        }
+
+        if (
+          !CHURCH_ADMIN_ROLES.has(callerMember.role) &&
+          careRequest.ownerUserId !== null &&
+          careRequest.ownerUserId !== undefined &&
+          careRequest.ownerUserId !== uid
+        ) {
+          throw new HttpsError(
+            "permission-denied",
+            "Only the assigned owner or pastor/admin can change this status."
+          );
+        }
+
+        updatePayload.status = nextStatus;
+        if (nextStatus === "closed") {
+          updatePayload.closedAt = now;
+          updatePayload.closedBy = uid;
+          updatePayload.resolvedAt = now;
+          updatePayload.resolvedBy = uid;
+        } else {
+          updatePayload.closedAt = null;
+          updatePayload.closedBy = null;
+          updatePayload.resolvedAt = null;
+          updatePayload.resolvedBy = null;
+        }
+      }
+
+      if (Object.keys(updatePayload).length === 2) {
+        throw new HttpsError(
+          "invalid-argument",
+          "Provide at least one lifecycle update field."
+        );
+      }
+
+      tx.update(requestRef, updatePayload);
+
+      const nextOwner =
+        Object.prototype.hasOwnProperty.call(updatePayload, "ownerUserId")
+          ? (updatePayload.ownerUserId as string | null)
+          : (careRequest.ownerUserId ?? null);
+      const nextStatus =
+        typeof updatePayload.status === "string"
+          ? updatePayload.status
+          : careRequest.status ?? "new";
+
+      return {
+        requestId,
+        status: nextStatus,
+        ownerUserId: nextOwner,
+      };
+    });
   }
 );
 
@@ -1676,7 +2004,28 @@ export const respondToCareThread = onCall(
         updatedAt: now,
       });
 
-      return { messageId: msgRef.id, memberUserId: thread.memberUserId };
+      if (thread.requestId) {
+        const requestRef = db.doc(
+          `churches/${churchId}/careRequests/${thread.requestId}`
+        );
+        tx.update(requestRef, {
+          status: "closed",
+          closedAt: now,
+          closedBy: uid,
+          resolvedAt: now,
+          resolvedBy: uid,
+          lastActionAt: now,
+          lastActionBy: uid,
+          ownerUserId: uid,
+          ownerRole: member.role,
+          assignedAt: now,
+        });
+      }
+
+      return {
+        messageId: msgRef.id,
+        memberUserId: thread.memberUserId,
+      };
     });
 
     const notificationScaffold = await notifyMemberCareReply(

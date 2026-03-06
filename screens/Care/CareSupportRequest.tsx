@@ -79,7 +79,11 @@ export default function CareSupportRequest({ navigation, route }: any) {
         categoryId: helpType,
       });
       if (result.threadId) {
-        await syncCareInbox();
+        try {
+          await syncCareInbox();
+        } catch (syncError) {
+          console.warn('syncCareInbox failed after submitCareRequest', syncError);
+        }
       }
       setSubmitState('idle');
       navigation.navigate('CareEscalationSuccess', {

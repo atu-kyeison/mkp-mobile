@@ -184,6 +184,7 @@ async function testSubmitCareRequest() {
   const graceToken  = await signIn('grace@test.com');   // member, church-beta (features disabled)
 
   let createdThreadId;
+  let createdRequestId;
 
   // 1. Valid care request with in_app channel → creates thread (features.careThreads=true)
   try {
@@ -200,6 +201,7 @@ async function testSubmitCareRequest() {
     );
     if (result.requestId) {
       pass('care request created, requestId returned');
+      createdRequestId = result.requestId;
     } else {
       fail('care request created, requestId returned', JSON.stringify(result));
     }
@@ -209,9 +211,61 @@ async function testSubmitCareRequest() {
     } else {
       fail('in_app channel + careThreads=true creates thread', JSON.stringify(result));
     }
+    if (result.mailboxDeliveryState === 'queued') {
+      pass('mailbox alert marks delivery as queued when mailbox is configured');
+    } else {
+      fail('mailbox alert marks delivery as queued when mailbox is configured', JSON.stringify(result));
+    }
   } catch (err) {
     fail('care request created', err.message);
     fail('in_app channel + careThreads=true creates thread');
+    fail('mailbox alert marks delivery as queued when mailbox is configured');
+  }
+
+  // 1b. request lifecycle + mailbox queue docs are created
+  try {
+    const [requestSnap, queueSnap] = await Promise.all([
+      db.doc(`churches/church-alpha/careRequests/${createdRequestId}`).get(),
+      db.doc(`churches/church-alpha/submissionMailboxAlerts/${createdRequestId}`).get(),
+    ]);
+    const requestData = requestSnap.data() || {};
+    const queueData = queueSnap.data() || {};
+    if (
+      requestData.status === 'new' &&
+      requestData.ownerUserId === null &&
+      requestData.mailboxDeliveryState === 'queued'
+    ) {
+      pass('care request stores lifecycle defaults for triage');
+    } else {
+      fail('care request stores lifecycle defaults for triage', JSON.stringify(requestData));
+    }
+    if (
+      queueSnap.exists &&
+      queueData.status === 'queued' &&
+      queueData.mailboxAddress === 'care-alpha@test.mykingdompal.com'
+    ) {
+      pass('church mailbox queue record is created');
+    } else {
+      fail('church mailbox queue record is created', JSON.stringify(queueData));
+    }
+  } catch (err) {
+    fail('care request stores lifecycle defaults for triage', err.message);
+    fail('church mailbox queue record is created', err.message);
+  }
+
+  // 1c. root /mail handoff doc exists for trigger email extension path
+  try {
+    const mailSnap = await db.collection('mail')
+      .where('x_mkp.requestId', '==', createdRequestId)
+      .limit(1)
+      .get();
+    if (mailSnap.size === 1) {
+      pass('submission writes trigger-email handoff document');
+    } else {
+      fail('submission writes trigger-email handoff document', `found ${mailSnap.size}`);
+    }
+  } catch (err) {
+    fail('submission writes trigger-email handoff document', err.message);
   }
 
   // 2. email channel → no thread created
@@ -288,7 +342,7 @@ async function testSubmitCareRequest() {
     pass('unauthenticated call is rejected');
   }
 
-  return createdThreadId;
+  return { createdThreadId, createdRequestId };
 }
 
 async function testNotificationScaffoldingSetup() {
@@ -365,7 +419,85 @@ async function testNotificationScaffoldingSetup() {
   }
 }
 
-async function testRespondToCareThread(threadId) {
+async function testUpdateCareRequestLifecycle(createdRequestId) {
+  console.log('\n── updateCareRequestLifecycle ───────────────────');
+
+  if (!createdRequestId) {
+    console.log('  (skipped — no requestId from submitCareRequest)');
+    return;
+  }
+
+  const aliceToken = await signIn('alice@test.com');  // member
+  const bobToken = await signIn('bob@test.com');      // pastor
+  const carolToken = await signIn('carol@test.com');  // care_team
+
+  try {
+    await callFn(
+      'updateCareRequestLifecycle',
+      {
+        churchId: 'church-alpha',
+        requestId: createdRequestId,
+        status: 'assigned',
+      },
+      aliceToken
+    );
+    fail('member cannot update care lifecycle');
+  } catch (err) {
+    pass('member cannot update care lifecycle');
+  }
+
+  try {
+    const result = await callFn(
+      'updateCareRequestLifecycle',
+      {
+        churchId: 'church-alpha',
+        requestId: createdRequestId,
+        ownerUserId: 'uid-carol',
+        status: 'assigned',
+      },
+      bobToken
+    );
+    if (result.status === 'assigned' && result.ownerUserId === 'uid-carol') {
+      pass('pastor can assign lifecycle ownership');
+    } else {
+      fail('pastor can assign lifecycle ownership', JSON.stringify(result));
+    }
+  } catch (err) {
+    fail('pastor can assign lifecycle ownership', err.message);
+  }
+
+  try {
+    await callFn(
+      'updateCareRequestLifecycle',
+      {
+        churchId: 'church-alpha',
+        requestId: createdRequestId,
+        status: 'closed',
+      },
+      bobToken
+    );
+    pass('pastor can close a care request');
+  } catch (err) {
+    fail('pastor can close a care request', err.message);
+  }
+
+  try {
+    await callFn(
+      'updateCareRequestLifecycle',
+      {
+        churchId: 'church-alpha',
+        requestId: createdRequestId,
+        ownerUserId: 'uid-bob',
+      },
+      carolToken
+    );
+    fail('care_team cannot reassign ownership to another user');
+  } catch (err) {
+    pass('care_team cannot reassign ownership to another user');
+  }
+}
+
+async function testRespondToCareThread(threadId, requestId) {
   console.log('\n── respondToCareThread ───────────────────────────');
 
   if (!threadId) {
@@ -438,6 +570,21 @@ async function testRespondToCareThread(threadId) {
     fail('second church reply is rejected (one-reply-max)');
   } catch (err) {
     pass('second church reply is rejected (one-reply-max)');
+  }
+
+  // 5. Linked request is auto-closed after church reply
+  if (requestId) {
+    try {
+      const snap = await db.doc(`churches/church-alpha/careRequests/${requestId}`).get();
+      const data = snap.data() || {};
+      if (data.status === 'closed' && data.resolvedAt && data.closedBy === 'uid-bob') {
+        pass('care request is auto-closed when thread reply is sent');
+      } else {
+        fail('care request is auto-closed when thread reply is sent', JSON.stringify(data));
+      }
+    } catch (err) {
+      fail('care request is auto-closed when thread reply is sent', err.message);
+    }
   }
 
   return messageId;
@@ -1284,8 +1431,9 @@ async function main() {
   try {
     await testJoinChurch();
     await testNotificationScaffoldingSetup();
-    const threadId = await testSubmitCareRequest();
-    await testRespondToCareThread(threadId);
+    const { createdThreadId, createdRequestId } = await testSubmitCareRequest();
+    await testUpdateCareRequestLifecycle(createdRequestId);
+    await testRespondToCareThread(createdThreadId, createdRequestId);
     await testPublishChurchMessage();
     await testDeleteFcmToken();
     await testSermonMediaPipeline();

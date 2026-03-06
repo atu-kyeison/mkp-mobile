@@ -69,7 +69,7 @@ export default function Thursday({ navigation }: any) {
           </GlassCard>
 
           <GlassCard withGlow style={styles.practiceCard}>
-            <Text style={styles.cardLabel}>{content.practiceLabel}</Text>
+            <Text style={styles.practiceLabel}>{content.practiceLabel}</Text>
             <Text style={styles.practiceText}>{content.practiceText}</Text>
             <CustomButton
               title={content.practiceButton}
@@ -229,6 +229,13 @@ const createStyles = () => StyleSheet.create({
   practiceCard: {
     padding: 24,
     marginBottom: 16,
+  },
+  practiceLabel: {
+    fontFamily: 'Inter_600SemiBold',
+    fontSize: 11,
+    color: 'rgba(229, 185, 95, 0.78)',
+    letterSpacing: 1.2,
+    marginBottom: 10,
   },
   practiceText: {
     fontFamily: 'Inter_400Regular',

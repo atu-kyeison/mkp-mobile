@@ -70,17 +70,17 @@ export const CareThreadScreen = ({ navigation, route }: any) => {
             const isChurch = message.sender === 'church';
             return (
               <View key={message.id} style={[styles.messageRow, isChurch ? styles.messageRowChurch : styles.messageRowMember]}>
-                <GlassCard style={StyleSheet.flatten([styles.messageCard, isChurch ? styles.messageCardChurch : styles.messageCardMember])}>
-                  <Text style={styles.messageSender}>
+                <View style={StyleSheet.flatten([styles.messageCard, isChurch ? styles.messageCardChurch : styles.messageCardMember])}>
+                  <Text style={[styles.messageSender, !isChurch && styles.messageSenderMember]}>
                     {isChurch ? t('care.thread.sender.church') : t('care.thread.sender.you')}
                   </Text>
                   <Text style={styles.messageBody}>{message.body}</Text>
-                </GlassCard>
+                </View>
               </View>
             );
           })}
 
-          <GlassCard style={styles.statusCard}>
+          <View style={styles.statusCard}>
             <Text style={styles.statusTitle}>
               {thread.churchReplyCount >= thread.maxChurchReplies
                 ? t('care.thread.status.closedTitle')
@@ -92,7 +92,7 @@ export const CareThreadScreen = ({ navigation, route }: any) => {
                 : t('care.thread.status.awaitingBody')}
             </Text>
             <Text style={styles.statusMeta}>{t('care.thread.oneReplyRule')}</Text>
-          </GlassCard>
+          </View>
         </ScrollView>
       </SafeAreaView>
     </GradientBackground>
@@ -112,12 +112,26 @@ const styles = StyleSheet.create({
   messageRow: { width: '100%', marginBottom: 14 },
   messageRowMember: { alignItems: 'flex-start' },
   messageRowChurch: { alignItems: 'flex-end' },
-  messageCard: { maxWidth: '88%', padding: 16, borderRadius: 22 },
+  messageCard: {
+    maxWidth: '88%',
+    padding: 16,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 185, 95, 0.12)',
+  },
   messageCardMember: { backgroundColor: 'rgba(13, 27, 42, 0.68)' },
   messageCardChurch: { backgroundColor: 'rgba(229,185,95,0.12)', borderColor: 'rgba(229,185,95,0.28)' },
   messageSender: { fontFamily: 'Cinzel_700Bold', fontSize: 10, color: Colors.accentGold, letterSpacing: 1.8, marginBottom: 8, textTransform: 'uppercase' },
+  messageSenderMember: { textAlign: 'center' },
   messageBody: { fontFamily: 'Inter_400Regular', fontSize: 15, lineHeight: 24, color: 'rgba(255,255,255,0.88)' },
-  statusCard: { padding: 18, borderRadius: 22, marginTop: 8 },
+  statusCard: {
+    padding: 18,
+    borderRadius: 22,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(229, 185, 95, 0.12)',
+    backgroundColor: 'rgba(13, 27, 42, 0.62)',
+  },
   statusTitle: { fontFamily: 'PlayfairDisplay_400Regular_Italic', fontSize: 22, color: Colors.text, textAlign: 'center', marginBottom: 10 },
   statusBody: { fontFamily: 'Inter_400Regular', fontSize: 14, lineHeight: 22, color: 'rgba(255,255,255,0.72)', textAlign: 'center', marginBottom: 12 },
   statusMeta: { fontFamily: 'Inter_700Bold', fontSize: 10, letterSpacing: 1.6, color: 'rgba(229,185,95,0.72)', textAlign: 'center', textTransform: 'uppercase' },

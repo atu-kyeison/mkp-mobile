@@ -51,10 +51,12 @@ const CHURCH_BETA_ID  = 'church-beta';
 // Church Alpha — all relevant features enabled
 const ALPHA_JOIN_CODE = 'GRACE2024';
 const ALPHA_SALT      = 'testSalt-alpha';
+const ALPHA_SUBMISSION_MAILBOX = 'care-alpha@test.mykingdompal.com';
 
 // Church Beta — features disabled (for feature-gate tests)
 const BETA_JOIN_CODE = 'RIVER2024';
 const BETA_SALT      = 'testSalt-beta';
+const BETA_SUBMISSION_MAILBOX = 'care-beta@test.mykingdompal.com';
 
 // One test user per role. Predictable UIDs make log-reading easier.
 const TEST_USERS = [
@@ -102,6 +104,7 @@ async function seedChurches() {
   batch.set(db.doc(`churches/${CHURCH_ALPHA_ID}/private/config`), {
     joinCodeHash: hashJoinCode(ALPHA_SALT, ALPHA_JOIN_CODE),
     joinCodeSalt: ALPHA_SALT,
+    submissionMailbox: ALPHA_SUBMISSION_MAILBOX,
     codeGeneratedAt: now,
   });
 
@@ -129,6 +132,7 @@ async function seedChurches() {
   batch.set(db.doc(`churches/${CHURCH_BETA_ID}/private/config`), {
     joinCodeHash: hashJoinCode(BETA_SALT, BETA_JOIN_CODE),
     joinCodeSalt: BETA_SALT,
+    submissionMailbox: BETA_SUBMISSION_MAILBOX,
     codeGeneratedAt: now,
   });
 

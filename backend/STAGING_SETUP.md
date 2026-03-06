@@ -211,6 +211,7 @@ For staging, create these records safely:
 2. One user per canonical role
 3. Membership docs per church
 4. Private join-code config docs with salted hashed join codes
+5. Per-church submission mailbox in private config (`submissionMailbox`)
 
 Minimum church feature flags for the main staging church:
 
@@ -220,6 +221,10 @@ Minimum church feature flags for the main staging church:
 - `sermonTranscription: true`
 - `formationGeneration: true`
 - `dashboardSSO: false`
+
+Recommended private config for interim submission handling:
+
+- `submissionMailbox: care-alpha@mykingdompal.com`
 
 Secondary church:
 
@@ -271,13 +276,14 @@ Validate these callables in staging:
 3. `saveCommunicationPreferences`
 4. `submitCareRequest`
 5. `respondToCareThread`
-6. `publishChurchMessage`
-7. `createSermonUpload`
-8. `completeSermonUpload`
-9. `transcribeOnUpload`
-10. `generateFormationContent`
-11. `updateFormationWeekStatus`
-12. `computeWeeklyAnalytics`
+6. `updateCareRequestLifecycle`
+7. `publishChurchMessage`
+8. `createSermonUpload`
+9. `completeSermonUpload`
+10. `transcribeOnUpload`
+11. `generateFormationContent`
+12. `updateFormationWeekStatus`
+13. `computeWeeklyAnalytics`
 
 ### Storage
 
@@ -307,6 +313,7 @@ Set now:
 - app env values
 - staging church docs
 - staging join code hashes and salts
+- staging submission mailbox config
 - staging test users and memberships
 
 Set later:
@@ -324,8 +331,9 @@ Set later:
 1. App Check is still off for all callables.
 2. Join codes are salted SHA-256 today, which is acceptable for staging but should be reviewed again before production hardening.
 3. Notification delivery is still scaffolded and not true push.
-4. Staging runtime IAM/policy drift can break callable invoker access after redeploy.
-5. TestFlight readiness still needs Apple signing/build configuration outside Firebase.
+4. Church mailbox notifications depend on Trigger Email extension or equivalent `/mail` processor.
+5. Staging runtime IAM/policy drift can break callable invoker access after redeploy.
+6. TestFlight readiness still needs Apple signing/build configuration outside Firebase.
 
 ---
 

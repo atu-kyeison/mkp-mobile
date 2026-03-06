@@ -82,6 +82,7 @@ This creates:
 - `features.mediaPipeline = true`
 - `features.sermonTranscription = true`
 - `features.formationGeneration = true`
+- `private/config.submissionMailbox = care-alpha@test.mykingdompal.com`
 - Join code: `GRACE2024`
 
 **church-beta** — River of Life Church
@@ -90,6 +91,7 @@ This creates:
 - `features.mediaPipeline = false`
 - `features.sermonTranscription = false`
 - `features.formationGeneration = false`
+- `private/config.submissionMailbox = care-beta@test.mykingdompal.com`
 - Join code: `RIVER2024`
 
 **Test users** (all passwords: `password123`):
@@ -122,6 +124,7 @@ The test runner covers:
 - `saveCommunicationPreferences` — preference persistence at contract path
 - `registerFcmToken` / `deleteFcmToken` — token lifecycle at contract path
 - `submitCareRequest` — thread creation, email channel, feature-disabled church, bad type
+- `updateCareRequestLifecycle` — role-gated ownership assignment and status transitions
 - `respondToCareThread` — member blocked, media_team blocked, one reply allowed, second reply blocked, notification hook scaffold
 - `publishChurchMessage` — member blocked, media_team blocked, pastor/communications allowed, feature gate, bad kind, notification preference gating
 - `createSermonUpload` / `completeSermonUpload` — sermon source metadata flow, role gating, feature gating, upload path validation
@@ -187,6 +190,13 @@ curl -X POST \
   -H 'Content-Type: application/json' \
   -H 'Authorization: Bearer {BOB_TOKEN}' \
   -d '{"data":{"churchId":"church-alpha","threadId":"{THREAD_ID}","body":"We are praying for you."}}'
+
+# updateCareRequestLifecycle  (requires pastor/admin/care_team)
+curl -X POST \
+  'http://127.0.0.1:5001/mkp-mobile-dev/us-central1/updateCareRequestLifecycle' \
+  -H 'Content-Type: application/json' \
+  -H 'Authorization: Bearer {BOB_TOKEN}' \
+  -d '{"data":{"churchId":"church-alpha","requestId":"{REQUEST_ID}","ownerUserId":"uid-carol","status":"assigned"}}'
 
 # publishChurchMessage  (requires pastor/admin/communications — use bob@test.com or dave@test.com)
 curl -X POST \
@@ -299,7 +309,7 @@ backend/
 | 8     | Formation generation                      | ✓ complete  |
 | 9     | Analytics                                 | ✓ complete  |
 | 10    | Emulator validation                       | ✓ complete through Phase 9 |
-| 11    | Mobile app wiring                         | pending     |
+| 11    | Mobile app wiring                         | ✓ complete  |
 
 ---
 

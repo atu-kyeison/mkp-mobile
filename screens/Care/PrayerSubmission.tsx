@@ -22,9 +22,12 @@ export default function PrayerSubmission({ navigation }: any) {
   const [anonymous, setAnonymous] = useState(false);
   const [pastoralSupport, setPastoralSupport] = useState(false);
   const [request, setRequest] = useState('');
+  const [submitState, setSubmitState] = useState<'idle' | 'sending'>('idle');
   const communicationPrefs = useMemo(() => getCommunicationPrefs(), []);
 
   const handleSharePrayer = async () => {
+    if (submitState === 'sending') return;
+
     if (!request.trim()) {
       Alert.alert(t('care.support.validation.title'), t('care.support.validation.messageRequired'));
       return;
@@ -40,6 +43,7 @@ export default function PrayerSubmission({ navigation }: any) {
       pastoralSupport && communicationPrefs.encouragement ? 'in_app' : 'email';
 
     try {
+      setSubmitState('sending');
       const result = await callFunction<{ requestId: string; threadId?: string }>('submitCareRequest', {
         churchId,
         type: 'prayer',
@@ -49,23 +53,27 @@ export default function PrayerSubmission({ navigation }: any) {
         categoryId: pastoralSupport ? 'pastor_conversation' : 'other',
       });
       if (result.threadId) {
-        await syncCareInbox();
+        try {
+          await syncCareInbox();
+        } catch (syncError) {
+          console.warn('syncCareInbox failed after submitCareRequest', syncError);
+        }
       }
       Alert.alert(
         t('care.prayer.alert.title'),
         t('care.prayer.alert.body'),
         [
-          { text: t('care.prayer.alert.done'), onPress: () => navigation.goBack() },
           {
-            text: t('care.prayer.alert.needSupport'),
-            onPress: () =>
-              navigation.navigate('CareSupportRequest', {
-                initialHelpType: 'A conversation with a pastor',
-              }),
+            text: t('care.prayer.alert.done'),
+            onPress: () => {
+              setSubmitState('idle');
+              navigation.goBack();
+            },
           },
         ]
       );
     } catch (error) {
+      setSubmitState('idle');
       Alert.alert(
         t('care.support.error'),
         error instanceof Error ? error.message : t('care.prayer.alert.body')
@@ -103,14 +111,24 @@ export default function PrayerSubmission({ navigation }: any) {
                 onChangeText={setRequest}
               />
               <View style={styles.cardFooter}>
-                <CustomButton title={t('care.prayer.action')} onPress={handleSharePrayer} style={styles.submitButton} />
+                <CustomButton
+                  title={t('care.prayer.action')}
+                  onPress={handleSharePrayer}
+                  style={styles.submitButton}
+                  loading={submitState === 'sending'}
+                  disabled={submitState === 'sending'}
+                />
                 <View style={styles.stars}>
                   <Text style={styles.star}>★</Text>
                   <Text style={styles.starLarge}>★</Text>
                   <Text style={styles.star}>★</Text>
                 </View>
               </View>
-              <TouchableOpacity style={styles.secondaryExit} onPress={() => navigation.goBack()}>
+              <TouchableOpacity
+                style={styles.secondaryExit}
+                onPress={() => navigation.goBack()}
+                disabled={submitState === 'sending'}
+              >
                 <Text style={styles.secondaryExitText}>{t('reflection.detail.cancel')}</Text>
               </TouchableOpacity>
             </GlassCard>

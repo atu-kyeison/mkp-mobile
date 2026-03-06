@@ -22,6 +22,14 @@ export default function CareEscalationSuccess({ navigation, route }: any) {
   const disclaimer = isNextStepFlow ? t('care.nextSteps.success.disclaimer') : t('care.success.disclaimer');
   const returnHomeLabel = isNextStepFlow ? t('care.nextSteps.success.returnHome') : t('care.success.returnHome');
   const secondaryLinkLabel = isNextStepFlow ? t('care.nextSteps.success.submitPrayer') : t('care.success.submitPrayer');
+  const returnToCareHome = () => {
+    navigation.popToTop();
+  };
+
+  const handleReturnHome = () => {
+    returnToCareHome();
+    navigation.getParent()?.navigate('Home');
+  };
 
   return (
     <GradientBackground style={styles.container}>
@@ -47,10 +55,18 @@ export default function CareEscalationSuccess({ navigation, route }: any) {
             ) : null}
             <CustomButton
               title={returnHomeLabel}
-              onPress={() => navigation.getParent()?.navigate('Home')}
+              onPress={handleReturnHome}
               variant="outline"
               style={styles.fullWidthButton}
             />
+            {isNextStepFlow ? (
+              <CustomButton
+                title={t('care.success.back')}
+                onPress={returnToCareHome}
+                variant="outline"
+                style={styles.fullWidthButton}
+              />
+            ) : null}
             <TouchableOpacity onPress={() => navigation.navigate('PrayerSubmission')}>
               <Text style={styles.link}>{secondaryLinkLabel}</Text>
             </TouchableOpacity>
@@ -95,8 +111,12 @@ const styles = StyleSheet.create({
   icon: {
     fontFamily: 'Inter_700Bold',
     fontSize: 44,
+    lineHeight: 48,
     color: Colors.accentGold,
     marginBottom: 16,
+    textAlign: 'center',
+    alignSelf: 'center',
+    width: '100%',
   },
   title: {
     fontFamily: 'PlayfairDisplay_400Regular_Italic',

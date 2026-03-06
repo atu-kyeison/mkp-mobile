@@ -4,5 +4,13 @@
     "dev": "mkp-mobile-dev",
     "staging": "mkp-mobile-staging",
     "prod": "mkp-mobile-prod"
+  },
+  "targets": {},
+  "etags": {
+    "mkp-mobile-staging": {
+      "extensionInstances": {
+        "firestore-send-email": "1024f31783a5573f4af7974d634bd9e269dad5697ad24fdfb8c6f6bd4f821e74"
+      }
+    }
   }
 }

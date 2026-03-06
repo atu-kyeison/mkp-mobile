@@ -34,6 +34,10 @@ const CHURCH_BETA_ID = 'church-beta';
 const ALPHA_JOIN_CODE = process.env.MKP_ALPHA_JOIN_CODE || 'GRACE-STAGE-2026';
 const BETA_JOIN_CODE = process.env.MKP_BETA_JOIN_CODE || 'RIVER-STAGE-2026';
 const DEFAULT_PASSWORD = process.env.MKP_STAGING_PASSWORD || 'StagePass123!';
+const ALPHA_SUBMISSION_MAILBOX =
+  process.env.MKP_ALPHA_SUBMISSION_MAILBOX || 'care-alpha@mykingdompal.com';
+const BETA_SUBMISSION_MAILBOX =
+  process.env.MKP_BETA_SUBMISSION_MAILBOX || 'care-beta@mykingdompal.com';
 
 const TEST_USERS = [
   { uid: 'stg-alice-member', email: 'alice.staging@mykingdompal.com', displayName: 'Alice Member', churchId: CHURCH_ALPHA_ID, role: 'member' },
@@ -131,6 +135,7 @@ async function seedChurches() {
     {
       joinCodeHash: hashJoinCode(alphaSalt, ALPHA_JOIN_CODE),
       joinCodeSalt: alphaSalt,
+      submissionMailbox: ALPHA_SUBMISSION_MAILBOX,
       codeGeneratedAt: now,
     },
     { merge: true }
@@ -165,6 +170,7 @@ async function seedChurches() {
     {
       joinCodeHash: hashJoinCode(betaSalt, BETA_JOIN_CODE),
       joinCodeSalt: betaSalt,
+      submissionMailbox: BETA_SUBMISSION_MAILBOX,
       codeGeneratedAt: now,
     },
     { merge: true }
