@@ -1,4 +1,4 @@
-import { Settings } from 'react-native';
+import { Settings } from './deviceSettings';
 
 const CHURCH_MESSAGES_KEY = 'mkp.church.messages';
 

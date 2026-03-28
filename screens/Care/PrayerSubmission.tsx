@@ -255,11 +255,15 @@ const createStyles = () => StyleSheet.create({
     marginBottom: 16,
   },
   cardFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-end',
+    position: 'relative',
+    minHeight: 42,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   submitButton: {
+    width: '100%',
+    maxWidth: 320,
+    alignSelf: 'center',
     paddingVertical: 12,
     paddingHorizontal: 32,
   },
@@ -274,6 +278,9 @@ const createStyles = () => StyleSheet.create({
     textDecorationLine: 'underline',
   },
   stars: {
+    position: 'absolute',
+    right: 0,
+    bottom: 2,
     flexDirection: 'column',
     alignItems: 'center',
     opacity: 0.4,

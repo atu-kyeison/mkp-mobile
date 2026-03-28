@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useMemo, useState } from 'react';
-import { Settings } from 'react-native';
+import { Settings } from '../storage/deviceSettings';
 import { Colors as RootColors } from '../../constants/Colors';
 import LocalColors from '../constants/Colors';
 

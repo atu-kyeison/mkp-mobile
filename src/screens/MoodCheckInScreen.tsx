@@ -6,6 +6,7 @@ import { Colors } from '../../constants/Colors';
 import { BackgroundGradient } from '../components/BackgroundGradient';
 import { GlassCard } from '../components/GlassCard';
 import { useI18n } from '../i18n/I18nProvider';
+import { addJournalEntry, getJournalEntryById, updateJournalEntry } from '../storage/journalStore';
 
 const MOODS = [
   { id: 'peaceful', icon: 'filter-vintage' as const, iconOffset: { x: 0, y: 0 } },
@@ -28,6 +29,23 @@ export const MoodCheckInScreen = ({ navigation, route }: any) => {
   const handleContinue = () => {
     if (!selectedMood) {
       return;
+    }
+
+    const entryId = nextParams?.entryId;
+    if (typeof entryId === 'string' && entryId.trim().length > 0) {
+      const existingEntry = getJournalEntryById(entryId);
+      if (existingEntry) {
+        updateJournalEntry(entryId, { mood: selectedMood });
+      }
+    } else {
+      addJournalEntry({
+        id: `${Date.now()}`,
+        createdAt: new Date().toISOString(),
+        body: t(`mood.descriptor.${selectedMood}`),
+        invitationText: t('journey.dayDetail.innerPosture'),
+        journalVariant: journalVariant === 'mid_week' ? 'mid_week' : 'early_week',
+        mood: selectedMood,
+      });
     }
 
     if (nextScreen) {

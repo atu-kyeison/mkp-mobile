@@ -19,8 +19,11 @@ export default function TestimonySubmission({ navigation }: any) {
   const [anonymous, setAnonymous] = useState(false);
   const [allowShare, setAllowShare] = useState(true);
   const [testimony, setTestimony] = useState('');
+  const [submitState, setSubmitState] = useState<'idle' | 'sending'>('idle');
 
   const handleShareGratitude = async () => {
+    if (submitState === 'sending') return;
+
     if (!testimony.trim()) {
       Alert.alert(t('care.support.validation.title'), t('care.support.validation.messageRequired'));
       return;
@@ -33,6 +36,7 @@ export default function TestimonySubmission({ navigation }: any) {
     }
 
     try {
+      setSubmitState('sending');
       await callFunction<{ requestId: string }>('submitCareRequest', {
         churchId,
         type: 'testimony',
@@ -44,9 +48,16 @@ export default function TestimonySubmission({ navigation }: any) {
       Alert.alert(
         t('care.testimony.alert.title'),
         t('care.testimony.alert.body'),
-        [{ text: t('common.ok'), onPress: () => navigation.goBack() }]
+        [{
+          text: t('common.ok'),
+          onPress: () => {
+            setSubmitState('idle');
+            navigation.goBack();
+          },
+        }]
       );
     } catch (error) {
+      setSubmitState('idle');
       Alert.alert(
         t('care.support.error'),
         error instanceof Error ? error.message : t('care.testimony.alert.body')
@@ -66,69 +77,70 @@ export default function TestimonySubmission({ navigation }: any) {
             <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
               <MaterialIcons name="chevron-left" size={28} color={Colors.accentGold} />
             </TouchableOpacity>
+            <Text style={styles.headerLabel}>{t('care.header')}</Text>
             <View style={styles.divider} />
             <Text style={styles.title}>{t('care.testimony.title')}</Text>
           </View>
 
-          <GlassCard withGlow style={styles.inputCard}>
-            <Text style={styles.cardLabel}>{t('care.testimony.label')}</Text>
-            <TextInput
-              style={styles.textInput}
-              placeholder={t('care.testimony.placeholder')}
-              placeholderTextColor="rgba(148, 163, 184, 0.5)"
-              multiline
-              numberOfLines={8}
-              value={testimony}
-              onChangeText={setTestimony}
-            />
-            <View style={styles.stars}>
-              <Text style={styles.star}>★</Text>
-              <Text style={styles.starLarge}>★</Text>
-              <Text style={styles.star}>★</Text>
-            </View>
-          </GlassCard>
-
-          <View style={styles.togglesContainer}>
-            <GlassCard style={styles.innerCard}>
-              <View style={styles.toggleRow}>
-                <View style={styles.labelWithIcon}>
-                  <Text style={styles.icon}>👤</Text>
-                  <Text style={styles.toggleText}>{t('care.testimony.anonymous')}</Text>
-                </View>
-                <Switch
-                  value={anonymous}
-                  onValueChange={setAnonymous}
-                  trackColor={{ false: 'rgba(255, 255, 255, 0.1)', true: Colors.accentGold }}
-                  thumbColor="#fff"
+          <View style={styles.mainContent}>
+            <GlassCard withGlow style={styles.inputCard}>
+              <Text style={styles.cardLabel}>{t('care.testimony.label')}</Text>
+              <TextInput
+                style={styles.textInput}
+                placeholder={t('care.testimony.placeholder')}
+                placeholderTextColor="rgba(255, 255, 255, 0.2)"
+                multiline
+                numberOfLines={5}
+                value={testimony}
+                onChangeText={setTestimony}
+              />
+              <View style={styles.cardFooter}>
+                <CustomButton
+                  title={t('care.testimony.action')}
+                  onPress={handleShareGratitude}
+                  style={styles.submitButton}
+                  loading={submitState === 'sending'}
+                  disabled={submitState === 'sending'}
                 />
               </View>
-              <View style={styles.separator} />
-              <View style={styles.toggleRow}>
-                <View style={styles.labelWithIcon}>
-                  <Text style={styles.icon}>⛪</Text>
-                  <Text style={styles.toggleText}>{t('care.testimony.allowShare')}</Text>
-                </View>
-                <Switch
-                  value={allowShare}
-                  onValueChange={setAllowShare}
-                  trackColor={{ false: 'rgba(255, 255, 255, 0.1)', true: 'rgba(229, 185, 95, 0.4)' }}
-                  thumbColor={allowShare ? Colors.accentGold : '#fff'}
-                />
-              </View>
+              <TouchableOpacity style={styles.secondaryExit} onPress={() => navigation.goBack()}>
+                <Text style={styles.secondaryExitText}>{t('reflection.detail.cancel')}</Text>
+              </TouchableOpacity>
             </GlassCard>
-          </View>
 
-          <View style={styles.buttonContainer}>
-            <CustomButton title={t('care.testimony.action')} onPress={handleShareGratitude} />
-            <TouchableOpacity style={styles.secondaryExit} onPress={() => navigation.goBack()}>
-              <Text style={styles.secondaryExitText}>{t('reflection.detail.cancel')}</Text>
-            </TouchableOpacity>
-          </View>
+            <View style={styles.togglesContainer}>
+              <GlassCard style={styles.innerCard}>
+                <View style={styles.toggleRow}>
+                  <View style={styles.toggleLabelGroup}>
+                    <Text style={styles.toggleTitle}>{t('care.testimony.anonymous')}</Text>
+                  </View>
+                  <Switch
+                    value={anonymous}
+                    onValueChange={setAnonymous}
+                    trackColor={{ false: 'rgba(255, 255, 255, 0.1)', true: Colors.accentGold }}
+                    thumbColor="#fff"
+                  />
+                </View>
+                <View style={styles.separator} />
+                <View style={styles.toggleRow}>
+                  <View style={styles.toggleLabelGroup}>
+                    <Text style={styles.toggleTitle}>{t('care.testimony.allowShare')}</Text>
+                  </View>
+                  <Switch
+                    value={allowShare}
+                    onValueChange={setAllowShare}
+                    trackColor={{ false: 'rgba(255, 255, 255, 0.1)', true: 'rgba(229, 185, 95, 0.4)' }}
+                    thumbColor={allowShare ? Colors.accentGold : '#fff'}
+                  />
+                </View>
+              </GlassCard>
+            </View>
 
-          <View style={styles.footer}>
-            <Text style={styles.footerText}>
-              {t('care.testimony.footer')}
-            </Text>
+            <View style={styles.footer}>
+              <Text style={styles.footerText}>
+                {t('care.testimony.footer')}
+              </Text>
+            </View>
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -145,107 +157,108 @@ const createStyles = () => StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 24,
-    paddingTop: 14,
+    paddingTop: 8,
+    flexGrow: 1,
   },
   header: {
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: 14,
   },
   backButton: {
     position: 'absolute',
     left: 0,
-    top: -6,
+    top: -2,
     width: 36,
     height: 36,
     borderRadius: 18,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  headerLabel: {
+    fontFamily: 'Cinzel_700Bold',
+    fontSize: 10,
+    color: Colors.accentGold,
+    letterSpacing: 3.2,
+    textDecorationLine: 'underline',
+    textDecorationColor: Colors.accentGold,
+    textDecorationStyle: 'solid',
+    marginBottom: 10,
+  },
   divider: {
     width: 48,
     height: 1,
     backgroundColor: 'rgba(229, 185, 95, 0.4)',
-    marginBottom: 18,
+    marginBottom: 14,
+  },
+  mainContent: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    paddingTop: 10,
   },
   title: {
     fontFamily: 'PlayfairDisplay_400Regular_Italic',
-    fontSize: 24,
+    fontSize: 19,
     color: Colors.text,
     textAlign: 'center',
-    lineHeight: 36,
+    lineHeight: 28,
   },
   inputCard: {
-    padding: 24,
-    minHeight: 300,
+    padding: 28,
+    minHeight: 280,
   },
   cardLabel: {
     fontFamily: 'Inter_700Bold',
     fontSize: 9,
     color: 'rgba(229, 185, 95, 0.6)',
     letterSpacing: 2,
-    marginBottom: 16,
+    marginBottom: 24,
   },
   textInput: {
     flex: 1,
     fontFamily: 'PlayfairDisplay_400Regular_Italic',
-    fontSize: 18,
+    fontSize: 19,
     color: Colors.text,
     textAlignVertical: 'top',
+    marginBottom: 16,
   },
-  stars: {
-    position: 'absolute',
-    bottom: 24,
-    right: 24,
+  cardFooter: {
     alignItems: 'center',
-    opacity: 0.4,
   },
-  star: {
-    color: Colors.accentGold,
-    fontSize: 10,
-  },
-  starLarge: {
-    color: Colors.accentGold,
-    fontSize: 14,
+  submitButton: {
+    width: '100%',
+    maxWidth: 320,
+    alignSelf: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 32,
   },
   togglesContainer: {
     marginTop: 18,
   },
   innerCard: {
-    padding: 20,
+    padding: 24,
   },
   toggleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  labelWithIcon: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  toggleLabelGroup: {
     flex: 1,
     paddingRight: 16,
   },
-  icon: {
-    fontSize: 20,
-    marginRight: 12,
-    opacity: 0.4,
-  },
-  toggleText: {
-    fontFamily: 'Inter_400Regular',
+  toggleTitle: {
+    fontFamily: 'Inter_700Bold',
     fontSize: 13,
-    color: 'rgba(255, 255, 255, 0.7)',
-    flex: 1,
+    color: 'rgba(255, 255, 255, 0.8)',
   },
   separator: {
     height: 1,
     backgroundColor: 'rgba(255, 255, 255, 0.05)',
     marginVertical: 20,
   },
-  buttonContainer: {
-    marginTop: 18,
-    alignItems: 'center',
-  },
   secondaryExit: {
-    marginTop: 14,
+    marginTop: 16,
+    alignSelf: 'center',
   },
   secondaryExitText: {
     fontFamily: 'Inter_400Regular',

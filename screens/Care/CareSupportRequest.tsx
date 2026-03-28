@@ -52,9 +52,10 @@ export default function CareSupportRequest({ navigation, route }: any) {
   const [contactMethod, setContactMethod] = useState<CareResponseChannel>('in_app');
   const [message, setMessage] = useState('');
   const [submitState, setSubmitState] = useState<'idle' | 'sending' | 'error'>('idle');
+  const noteIsOptional = helpType === 'new_believer' || helpType === 'baptism_request';
 
   const completeSendAttempt = async () => {
-    if (!message.trim()) {
+    if (!noteIsOptional && !message.trim()) {
       setSubmitState('idle');
       Alert.alert(t('care.support.validation.title'), t('care.support.validation.messageRequired'));
       return;
@@ -73,7 +74,7 @@ export default function CareSupportRequest({ navigation, route }: any) {
       const result = await callFunction<{ requestId: string; threadId?: string }>('submitCareRequest', {
         churchId,
         type: 'care_support',
-        content: message.trim(),
+        content: message.trim() || t(`care.nextSteps.defaultMessage.${helpType}`),
         isAnonymous: false,
         preferredChannel,
         categoryId: helpType,
@@ -151,7 +152,7 @@ export default function CareSupportRequest({ navigation, route }: any) {
               </View>
 
               <Text style={[styles.sectionLabel, styles.sectionSpacing]}>
-                {t('care.nextSteps.section.message')}
+                {noteIsOptional ? t('care.nextSteps.section.messageOptional') : t('care.nextSteps.section.message')}
               </Text>
               <TextInput
                 style={styles.textInput}
@@ -159,7 +160,9 @@ export default function CareSupportRequest({ navigation, route }: any) {
                 numberOfLines={5}
                 value={message}
                 onChangeText={setMessage}
-                placeholder={t('care.nextSteps.placeholder')}
+                placeholder={
+                  noteIsOptional ? t('care.nextSteps.placeholderOptional') : t('care.nextSteps.placeholder')
+                }
                 placeholderTextColor="rgba(255, 255, 255, 0.35)"
               />
 

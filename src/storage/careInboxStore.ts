@@ -1,4 +1,4 @@
-import { Settings } from 'react-native';
+import { Settings } from './deviceSettings';
 import { CareResponseChannel, CareSupportCategoryId } from '../care/supportCategories';
 
 const CARE_THREADS_KEY = 'mkp.care.threads';

@@ -1,4 +1,4 @@
-import { Settings } from 'react-native';
+import { Settings } from './deviceSettings';
 
 const JOURNAL_KEY = 'mkp.journal.entries';
 

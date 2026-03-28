@@ -25,6 +25,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { I18nProvider } from './src/i18n/I18nProvider';
 import { ThemeProvider } from './src/theme/ThemeProvider';
 import { SessionProvider } from './src/backend/SessionProvider';
+import { hydrateDeviceSettings } from './src/storage/deviceSettings';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -38,6 +39,7 @@ const ThemedAppShell = ({ onLayoutRootView }: { onLayoutRootView: () => Promise<
 };
 
 export default function App() {
+  const [storageReady, setStorageReady] = React.useState(false);
   const [fontsLoaded, fontError] = useFonts({
     Cinzel_400Regular,
     Cinzel_700Bold,
@@ -61,12 +63,31 @@ export default function App() {
   });
 
   const onLayoutRootView = useCallback(async () => {
-    if (fontsLoaded || fontError) {
+    if ((fontsLoaded || fontError) && storageReady) {
       await SplashScreen.hideAsync();
     }
-  }, [fontsLoaded, fontError]);
+  }, [fontsLoaded, fontError, storageReady]);
 
-  if (!fontsLoaded && !fontError) {
+  useEffect(() => {
+    let isMounted = true;
+    const loadStorage = async () => {
+      try {
+        await hydrateDeviceSettings();
+      } catch (error) {
+        console.warn('device settings hydration failed', error);
+      } finally {
+        if (isMounted) {
+          setStorageReady(true);
+        }
+      }
+    };
+    void loadStorage();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  if ((!fontsLoaded && !fontError) || !storageReady) {
     return null;
   }
 

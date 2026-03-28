@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { Settings } from 'react-native';
+import { persistSetting, Settings } from '../storage/deviceSettings';
 import {
   AuthSession,
   SessionContext,
@@ -41,6 +41,25 @@ type SessionContextValue = SessionState & {
 };
 
 const SessionContextObject = createContext<SessionContextValue | null>(null);
+const SESSION_TIMEOUT_MS = 8000;
+
+const withTimeout = async <T,>(promise: Promise<T>, timeoutMs = SESSION_TIMEOUT_MS) => {
+  let timeoutHandle: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      promise,
+      new Promise<T>((_, reject) => {
+        timeoutHandle = setTimeout(() => {
+          reject(new Error('Session restore timed out.'));
+        }, timeoutMs);
+      }),
+    ]);
+  } finally {
+    if (timeoutHandle) {
+      clearTimeout(timeoutHandle);
+    }
+  }
+};
 
 const parseStoredSession = (): StoredSession | null => {
   const raw = Settings.get(SESSION_KEY);
@@ -52,12 +71,12 @@ const parseStoredSession = (): StoredSession | null => {
   }
 };
 
-const persistSession = (session: StoredSession | null) => {
+const persistSession = async (session: StoredSession | null) => {
   if (!session) {
-    Settings.set({ [SESSION_KEY]: '' });
+    await persistSetting(SESSION_KEY, '');
     return;
   }
-  Settings.set({ [SESSION_KEY]: JSON.stringify(session) });
+  await persistSetting(SESSION_KEY, JSON.stringify(session));
 };
 
 const persistChurchSettings = (context?: SessionContext) => {
@@ -81,7 +100,7 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
   const loadSessionContext = async (session: StoredSession) => {
     const context = await fetchSessionContext(session.idToken);
     const next = { ...session, context };
-    persistSession(next);
+    await persistSession(next);
     persistChurchSettings(context);
     setState({
       isLoading: false,
@@ -100,17 +119,17 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
       }
 
       try {
-        await loadSessionContext(stored);
+        await withTimeout(loadSessionContext(stored));
       } catch {
         try {
-          const refreshed = await refreshAuthSession(stored.refreshToken);
-          await loadSessionContext({
+          const refreshed = await withTimeout(refreshAuthSession(stored.refreshToken));
+          await withTimeout(loadSessionContext({
             ...stored,
             idToken: refreshed.idToken,
             refreshToken: refreshed.refreshToken,
-          });
+          }));
         } catch {
-          persistSession(null);
+          await persistSession(null);
           setState({ isLoading: false, isAuthenticated: false, session: null });
         }
       }
@@ -121,7 +140,7 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
 
   const signIn = async (params: { email: string; password: string }) => {
     const session = await signInWithEmail(params);
-    persistSession(session);
+    await persistSession(session);
     return loadSessionContext(session);
   };
 
@@ -131,7 +150,7 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
     displayName: string;
   }) => {
     const session = await signUpWithEmail(params);
-    persistSession(session);
+    await persistSession(session);
     return loadSessionContext(session);
   };
 
@@ -160,7 +179,7 @@ export const SessionProvider = ({ children }: { children: React.ReactNode }) => 
   };
 
   const signOut = () => {
-    persistSession(null);
+    void persistSession(null);
     Settings.set({
       'mkp.connectedChurchName': '',
       'mkp.connectedChurchLogoUri': '',

@@ -56,14 +56,17 @@ export const ReflectionEntryScreen = ({ navigation, route }: any) => {
         navigation.navigate('JourneyHistory');
         return;
       }
+      const entryId = `${Date.now()}`;
       addJournalEntry({
-        id: `${Date.now()}`,
+        id: entryId,
         createdAt: new Date().toISOString(),
         body: trimmed,
         invitationText: content.invitationText,
         journalVariant,
         mood: typeof mood === 'string' ? mood : undefined,
       });
+      openMoodCheckIn('JourneyHistory', { entryId });
+      return;
     }
     openMoodCheckIn('JourneyHistory');
   };

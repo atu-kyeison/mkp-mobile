@@ -1,4 +1,4 @@
-import { Settings } from 'react-native';
+import { Settings } from './deviceSettings';
 
 const FAVORITES_KEY = 'mkp.journey.favoriteIds';
 
@@ -21,4 +21,3 @@ export const getJourneyFavoriteIds = (): string[] => {
 export const saveJourneyFavoriteIds = (favoriteIds: string[]) => {
   Settings.set({ [FAVORITES_KEY]: JSON.stringify(favoriteIds) });
 };
-

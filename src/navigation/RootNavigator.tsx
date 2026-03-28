@@ -1,4 +1,5 @@
 import React from 'react';
+import { ActivityIndicator, View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { AuthNavigator } from './AuthNavigator';
@@ -9,6 +10,7 @@ import UseGuidelinesScreen from '../screens/legal/UseGuidelinesScreen';
 import TermsScreen from '../screens/legal/TermsScreen';
 import PrivacyPolicyScreen from '../screens/legal/PrivacyPolicyScreen';
 import { useSession } from '../backend/SessionProvider';
+import { Colors } from '../../constants/Colors';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -16,7 +18,18 @@ export const RootNavigator = () => {
   const { isLoading, isAuthenticated, session } = useSession();
 
   if (isLoading) {
-    return null;
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: Colors.backgroundDark,
+        }}
+      >
+        <ActivityIndicator size="large" color={Colors.accentGold} />
+      </View>
+    );
   }
 
   const shouldEnterMain =

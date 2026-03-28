@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GradientBackground } from '../../components/GradientBackground';
 import { GlassCard } from '../../components/GlassCard';
@@ -39,10 +39,16 @@ export default function CareEscalationSuccess({ navigation, route }: any) {
             <Text style={styles.kicker}>
               {isNextStepFlow ? t('care.nextSteps.success.kicker') : t('care.success.kicker')}
             </Text>
-            <Text style={styles.icon}>✓</Text>
-            <Text style={styles.title}>{title}</Text>
-            <Text style={styles.message}>{message}</Text>
-            <Text style={styles.disclaimer}>{disclaimer}</Text>
+            <Text style={styles.icon} allowFontScaling={false}>✓</Text>
+            <Text style={styles.title} allowFontScaling={false} maxFontSizeMultiplier={1.1}>
+              {title}
+            </Text>
+            <Text style={styles.message} allowFontScaling={false} maxFontSizeMultiplier={1.1}>
+              {message}
+            </Text>
+            <Text style={styles.disclaimer} allowFontScaling={false} maxFontSizeMultiplier={1.1}>
+              {disclaimer}
+            </Text>
           </GlassCard>
 
           <View style={styles.ctaGroup}>
@@ -95,10 +101,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   card: {
-    padding: 28,
+    paddingTop: 28,
+    paddingHorizontal: 28,
+    paddingBottom: 32,
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: 260,
+    minHeight: Platform.OS === 'android' ? 288 : 260,
   },
   kicker: {
     fontFamily: 'Cinzel_700Bold',
@@ -120,11 +128,12 @@ const styles = StyleSheet.create({
   },
   title: {
     fontFamily: 'PlayfairDisplay_400Regular_Italic',
-    fontSize: 34,
+    fontSize: Platform.OS === 'android' ? 30 : 34,
     color: Colors.text,
     textAlign: 'center',
     marginBottom: 14,
-    lineHeight: 42,
+    lineHeight: Platform.OS === 'android' ? 36 : 42,
+    width: '100%',
   },
   message: {
     fontFamily: 'Inter_400Regular',
@@ -132,7 +141,8 @@ const styles = StyleSheet.create({
     color: 'rgba(255, 255, 255, 0.82)',
     lineHeight: 24,
     textAlign: 'center',
-    marginBottom: 14,
+    marginBottom: 18,
+    width: '100%',
   },
   disclaimer: {
     fontFamily: 'Inter_400Regular',
@@ -140,6 +150,7 @@ const styles = StyleSheet.create({
     lineHeight: 16,
     color: 'rgba(255, 255, 255, 0.52)',
     textAlign: 'center',
+    width: '100%',
   },
   ctaGroup: {
     marginTop: 26,

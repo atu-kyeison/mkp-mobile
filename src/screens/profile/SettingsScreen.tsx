@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Settings } from 'react-native';
 import { View, Text, ScrollView, StyleSheet, TouchableOpacity, Switch } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -16,6 +15,7 @@ import {
   setReminderPreference,
 } from '../../storage/communicationPrefsStore';
 import { useSession } from '../../backend/SessionProvider';
+import { Settings } from '../../storage/deviceSettings';
 
 const SettingsScreen = ({ navigation, route }: any) => {
   const { locale, setLocale, t } = useI18n();

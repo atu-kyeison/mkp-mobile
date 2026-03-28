@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { Settings } from 'react-native';
 import { Alert, View, Text, TextInput, TouchableOpacity, StyleSheet, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { MidnightBackground } from '../../components/MidnightBackground';
@@ -11,6 +10,8 @@ import { LogoBadge } from '../../components/LogoBadge';
 import { getPrimaryBrandLogoUri, resolveChurchBrandingByCode } from '../../constants/brandAssets';
 import { ErrorStateCard } from '../../components/ErrorStateCard';
 import { useSession } from '../../backend/SessionProvider';
+import { Settings } from '../../storage/deviceSettings';
+import { openPrivacyUrl, openTermsUrl } from '../../legal/legalLinks';
 
 const ChurchSearchScreen = ({ navigation }: any) => {
   const { t } = useI18n();
@@ -23,7 +24,7 @@ const ChurchSearchScreen = ({ navigation }: any) => {
 
   const handleConnect = async () => {
     if (isSubmitting) return;
-    const normalized = code.trim();
+    const normalized = code.trim().toUpperCase();
     if (!normalized) {
       setErrorKind('required');
       setErrorMessage(null);
@@ -121,9 +122,9 @@ const ChurchSearchScreen = ({ navigation }: any) => {
               <View style={styles.cardFooter}>
                 <Text style={styles.footerText}>{t('auth.footer.prefix')}</Text>
                 <View style={styles.footerLinks}>
-                  <TouchableOpacity onPress={() => navigation.navigate('Terms')}><Text style={styles.footerLink}>{t('auth.footer.terms')}</Text></TouchableOpacity>
+                  <TouchableOpacity onPress={openTermsUrl}><Text style={styles.footerLink}>{t('auth.footer.terms')}</Text></TouchableOpacity>
                   <Text style={styles.footerText}> {t('auth.footer.and')} </Text>
-                  <TouchableOpacity onPress={() => navigation.navigate('Privacy')}><Text style={styles.footerLink}>{t('auth.footer.privacy')}</Text></TouchableOpacity>
+                  <TouchableOpacity onPress={openPrivacyUrl}><Text style={styles.footerLink}>{t('auth.footer.privacy')}</Text></TouchableOpacity>
                 </View>
               </View>
             </GlassCard>

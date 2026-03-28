@@ -1,4 +1,4 @@
-import { Settings } from 'react-native';
+import { Settings } from './deviceSettings';
 
 const KEYS = {
   reminders: 'mkp.pref.reminders',

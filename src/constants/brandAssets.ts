@@ -1,4 +1,4 @@
-import { Settings } from 'react-native';
+import { Settings } from '../storage/deviceSettings';
 
 type ChurchBranding = {
   name: string;

@@ -1,4 +1,4 @@
-import { Settings } from 'react-native';
+import { Settings } from '../../src/storage/deviceSettings';
 
 export type FormationDayKey =
   | 'monday'
