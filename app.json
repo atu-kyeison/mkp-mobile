@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "MKP-Mobile-Auth-V2",
-    "slug": "mkp-mobile-auth-v2",
+    "name": "MKP",
+    "slug": "mkp-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,6 +13,8 @@
       "backgroundColor": "#0D1B2A"
     },
     "ios": {
+      "bundleIdentifier": "com.mykingdompal.mkp",
+      "buildNumber": "1",
       "supportsTablet": true,
       "infoPlist": {
         "LSApplicationQueriesSchemes": [
@@ -25,6 +27,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#0D1B2A"
       },
+      "package": "com.mykingdompal.mkp",
+      "versionCode": 1,
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false
     },

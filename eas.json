@@ -1,0 +1,37 @@
+{
+  "cli": {
+    "version": ">= 16.20.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "testflight": {
+      "channel": "staging",
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_APP_ENV": "staging",
+        "EXPO_PUBLIC_USE_FIREBASE_EMULATORS": "false",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "mkp-mobile-staging",
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyCraNNnz39Dw1QMzFiN-68HhEpAu2pkYgQ",
+        "EXPO_PUBLIC_FIREBASE_FUNCTIONS_BASE_URL": "https://us-central1-mkp-mobile-staging.cloudfunctions.net"
+      }
+    },
+    "internal-testing-android": {
+      "channel": "staging",
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_APP_ENV": "staging",
+        "EXPO_PUBLIC_USE_FIREBASE_EMULATORS": "false",
+        "EXPO_PUBLIC_FIREBASE_PROJECT_ID": "mkp-mobile-staging",
+        "EXPO_PUBLIC_FIREBASE_API_KEY": "AIzaSyCraNNnz39Dw1QMzFiN-68HhEpAu2pkYgQ",
+        "EXPO_PUBLIC_FIREBASE_FUNCTIONS_BASE_URL": "https://us-central1-mkp-mobile-staging.cloudfunctions.net"
+      },
+      "android": {
+        "buildType": "app-bundle"
+      }
+    }
+  },
+  "submit": {
+    "testflight": {},
+    "internal-testing-android": {}
+  }
+}
