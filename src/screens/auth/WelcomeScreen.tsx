@@ -8,6 +8,7 @@ import Colors from '../../constants/Colors';
 import { useI18n } from '../../i18n/I18nProvider';
 import { LogoBadge } from '../../components/LogoBadge';
 import { getPrimaryBrandLogoUri } from '../../constants/brandAssets';
+import { openPrivacyUrl, openTermsUrl } from '../../legal/legalLinks';
 
 const WelcomeScreen = ({ navigation }: any) => {
   const { t } = useI18n();
@@ -39,9 +40,9 @@ const WelcomeScreen = ({ navigation }: any) => {
             <View style={styles.footer}>
               <Text style={styles.footerText}>
                 {t('auth.footer.prefix')}{' '}
-                <Text style={styles.footerLink} onPress={() => navigation.navigate('Terms')}>{t('auth.footer.terms')}</Text>{' '}
+                <Text style={styles.footerLink} onPress={openTermsUrl}>{t('auth.footer.terms')}</Text>{' '}
                 {t('auth.footer.and')}{' '}
-                <Text style={styles.footerLink} onPress={() => navigation.navigate('Privacy')}>{t('auth.footer.privacy')}</Text>.
+                <Text style={styles.footerLink} onPress={openPrivacyUrl}>{t('auth.footer.privacy')}</Text>.
               </Text>
             </View>
           </GlassCard>

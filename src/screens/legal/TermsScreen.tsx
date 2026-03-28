@@ -1,6 +1,7 @@
 import React from 'react';
 import { LegalContentScreen } from '../../components/LegalContentScreen';
 import { useI18n } from '../../i18n/I18nProvider';
+import { openTermsUrl } from '../../legal/legalLinks';
 
 const TermsScreen = ({ navigation, route }: any) => {
   const { t } = useI18n();
@@ -25,6 +26,8 @@ const TermsScreen = ({ navigation, route }: any) => {
         { title: t('legal.terms.s3.title'), content: t('legal.terms.s3.body') },
         { title: t('legal.terms.s4.title'), content: t('legal.terms.s4.body') },
       ]}
+      secondaryButtonTitle={t('legal.openOnline')}
+      onSecondaryPress={openTermsUrl}
       buttonTitle={t('legal.terms.accept')}
       footerNote={t('legal.terms.quote')}
       onPress={handleAccept}

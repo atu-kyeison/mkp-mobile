@@ -7,6 +7,7 @@ import { GoldButton } from '../../components/GoldButton';
 import { MaterialIcons } from '@expo/vector-icons';
 import Colors from '../../constants/Colors';
 import { useI18n } from '../../i18n/I18nProvider';
+import { openPrivacyUrl, openTermsUrl } from '../../legal/legalLinks';
 
 const NewBelieverStartScreen = ({ navigation }: any) => {
   const { t } = useI18n();
@@ -79,9 +80,9 @@ const NewBelieverStartScreen = ({ navigation }: any) => {
             </TouchableOpacity>
 
             <View style={styles.legalRow}>
-              <Text style={styles.legalLink} onPress={() => navigation.navigate('Terms')}>{t('auth.footer.terms').toUpperCase()}</Text>
+              <Text style={styles.legalLink} onPress={openTermsUrl}>{t('auth.footer.terms').toUpperCase()}</Text>
               <Text style={styles.legalDot}>•</Text>
-              <Text style={styles.legalLink} onPress={() => navigation.navigate('Privacy')}>{t('auth.footer.privacy').toUpperCase()}</Text>
+              <Text style={styles.legalLink} onPress={openPrivacyUrl}>{t('auth.footer.privacy').toUpperCase()}</Text>
             </View>
           </View>
         </View>

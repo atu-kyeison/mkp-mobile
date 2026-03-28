@@ -11,6 +11,7 @@ import { LogoBadge } from '../../components/LogoBadge';
 import { getPrimaryBrandLogoUri } from '../../constants/brandAssets';
 import { ErrorStateCard } from '../../components/ErrorStateCard';
 import { useSession } from '../../backend/SessionProvider';
+import { openPrivacyUrl, openTermsUrl } from '../../legal/legalLinks';
 
 const SignupScreen = ({ navigation }: any) => {
   const { t } = useI18n();
@@ -86,7 +87,7 @@ const SignupScreen = ({ navigation }: any) => {
               </View>
               <View style={styles.cardFooter}>
                 <Text style={styles.footerText}>
-                  {t('auth.footer.prefix').toUpperCase()} <Text style={styles.footerLink} onPress={() => navigation.navigate('Terms')}>{t('auth.footer.terms').toUpperCase()}</Text> {t('auth.footer.and').toUpperCase()} <Text style={styles.footerLink} onPress={() => navigation.navigate('Privacy')}>{t('auth.footer.privacy').toUpperCase()}</Text>.
+                  {t('auth.footer.prefix').toUpperCase()} <Text style={styles.footerLink} onPress={openTermsUrl}>{t('auth.footer.terms').toUpperCase()}</Text> {t('auth.footer.and').toUpperCase()} <Text style={styles.footerLink} onPress={openPrivacyUrl}>{t('auth.footer.privacy').toUpperCase()}</Text>.
                 </Text>
               </View>
             </GlassCard>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { LegalContentScreen } from '../../components/LegalContentScreen';
 import { useI18n } from '../../i18n/I18nProvider';
+import { openPrivacyUrl } from '../../legal/legalLinks';
 
 const PrivacyPolicyScreen = ({ navigation }: any) => {
   const { t } = useI18n();
@@ -27,6 +28,8 @@ const PrivacyPolicyScreen = ({ navigation }: any) => {
           content: t('legal.privacy.s4.body'),
         },
       ]}
+      secondaryButtonTitle={t('legal.openOnline')}
+      onSecondaryPress={openPrivacyUrl}
       buttonTitle={t('legal.acknowledge')}
       onPress={() => navigation.goBack()}
     />

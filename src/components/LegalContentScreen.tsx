@@ -21,6 +21,8 @@ type LegalContentScreenProps = {
   onPress: () => void;
   footerNote?: string;
   showBackButton?: boolean;
+  secondaryButtonTitle?: string;
+  onSecondaryPress?: () => void;
 };
 
 export const LegalContentScreen = ({
@@ -32,6 +34,8 @@ export const LegalContentScreen = ({
   onPress,
   footerNote,
   showBackButton = true,
+  secondaryButtonTitle,
+  onSecondaryPress,
 }: LegalContentScreenProps) => (
   <MidnightBackground>
     <SafeAreaView style={styles.safeArea}>
@@ -61,6 +65,14 @@ export const LegalContentScreen = ({
 
             <View style={styles.cardFooter}>
               {footerNote ? <Text style={styles.footerNote}>{footerNote}</Text> : null}
+              {secondaryButtonTitle && onSecondaryPress ? (
+                <GoldButton
+                  title={secondaryButtonTitle}
+                  onPress={onSecondaryPress}
+                  style={styles.secondaryButton}
+                  variant="outline"
+                />
+              ) : null}
               <GoldButton title={buttonTitle} onPress={onPress} style={styles.button} />
             </View>
           </GlassCard>
@@ -159,6 +171,12 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
   },
   button: {
+    width: '100%',
+    maxWidth: 340,
+    alignSelf: 'center',
+  },
+  secondaryButton: {
+    marginBottom: 14,
     width: '100%',
     maxWidth: 340,
     alignSelf: 'center',
